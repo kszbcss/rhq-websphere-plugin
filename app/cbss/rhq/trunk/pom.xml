@@ -27,4 +27,14 @@
             </snapshots>
         </repository>
     </repositories>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>1.4</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>
