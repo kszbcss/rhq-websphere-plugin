@@ -14,7 +14,7 @@
         <ems.version>1.2.15.1</ems.version>
     </properties>
     <modules>
-        <module>org-mc4j-ems-impl-bcss</module>
+        <module>org-mc4j-ems-impl-cbss</module>
         <module>rhq-websphere-plugin</module>
     </modules>
     <repositories>
