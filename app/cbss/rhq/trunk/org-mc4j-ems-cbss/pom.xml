@@ -38,7 +38,7 @@
                                     <artifactId>org-mc4j-ems-impl-cbss</artifactId>
                                     <version>${project.version}</version>
                                     <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                                     <destFileName>org-mc4j-ems-impl.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>

@@ -16,6 +16,7 @@
     <modules>
         <module>org-mc4j-ems-cbss</module>
         <module>org-mc4j-ems-impl-cbss</module>
+        <module>rhq-jmx-plugin-cbss</module>
         <module>rhq-websphere-plugin</module>
     </modules>
     <repositories>
@@ -38,6 +39,11 @@
                 <plugin>
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>1.4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>xml-maven-plugin</artifactId>
+                    <version>1.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
