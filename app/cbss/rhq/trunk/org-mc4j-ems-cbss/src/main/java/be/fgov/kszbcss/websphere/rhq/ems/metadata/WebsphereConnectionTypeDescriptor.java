@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.websphere.rhq.ems;
+package be.fgov.kszbcss.websphere.rhq.ems.metadata;
 
 import org.mc4j.ems.connection.support.metadata.AbstractConnectionTypeDescriptor;
 
