@@ -40,6 +40,8 @@ public class WebsphereConnectionTypeDescriptor extends AbstractConnectionTypeDes
     public String[] getConnectionClasspathEntries() {
         return new String[] {
             "runtimes/com.ibm.ws.admin.client_7.0.0.jar",
+            "runtimes/com.ibm.ws.ejb.thinclient_7.0.0.jar",
+            "runtimes/com.ibm.ws.orb_7.0.0.jar",
         };
     }
 
