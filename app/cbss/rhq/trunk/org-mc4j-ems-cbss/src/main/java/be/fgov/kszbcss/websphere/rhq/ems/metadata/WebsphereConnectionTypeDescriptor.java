@@ -34,31 +34,24 @@ public class WebsphereConnectionTypeDescriptor extends AbstractConnectionTypeDes
     }
 
     public String getConnectionMessage() {
-        return "You must use the IBM JVM for MC4J when connection to WebSphere 5.x. The Sun JVM " +
-            "can only be used for WS 6.";
+        return null;
     }
 
     public String[] getConnectionClasspathEntries() {
         return new String[] {
-            "AppServer/lib/*",
-            "AppServer/deploytool/itp/plugins/com.ibm.etools.jsse/ibmjsse.jar",
-            "AppServer/java/jre/lib/ext/mail.jar",
-            "AppServer/java/jre/lib/ibmcertpathprovider.jar",
-            "AppServer/java/jre/lib/ext/ibmjceprovider.jar",
-            "AppServer/deploytool/itp/plugins/org.apache.xerces_4.0.13/xercesImpl.jar",
-            "AppServer/deploytool/itp/plugins/org.apache.xerces_4.0.13/xmlParserAPIs.jar",
+            "runtimes/com.ibm.ws.admin.client_7.0.0.jar",
         };
     }
 
     public String getConnectionNodeClassName() {
-        return "org.mc4j.ems.impl.jmx.connection.support.providers.WebsphereConnectionProvider";
+        return "be.fgov.kszbcss.websphere.rhq.ems.provider.WebsphereConnectionProvider";
     }
 
     public String getDisplayName() {
-        return "WebSphere 5.x+";
+        return "WebSphere 7.0";
     }
 
     public String getRecongnitionPath() {
-        return "AppServer/lib/runtime.jar";
+        return "runtimes/com.ibm.ws.admin.client_7.0.0.jar";
     }
 }

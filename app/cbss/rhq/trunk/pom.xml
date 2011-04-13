@@ -10,8 +10,10 @@
         <developerConnection>scm:svn:http://scm.cbss.inet/cbss/app/cbss/rhq/trunk</developerConnection>
     </scm>
     <properties>
-        <rhq.version>3.0.1.GA</rhq.version>
-        <ems.version>1.2.15.1</ems.version>
+        <!-- rhq.version>3.0.1.GA</rhq.version>
+        <ems.version>1.2.15.1</ems.version -->
+        <rhq.version>3.0.0</rhq.version>
+        <ems.version>1.2.11</ems.version>
     </properties>
     <modules>
         <module>org-mc4j-ems-cbss</module>
@@ -47,5 +49,15 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <inherited>true</inherited>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 </project>
