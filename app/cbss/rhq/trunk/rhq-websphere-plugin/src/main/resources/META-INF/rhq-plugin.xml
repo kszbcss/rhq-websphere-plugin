@@ -7,25 +7,24 @@
         xmlns="urn:xmlns:rhq-plugin"
         xmlns:c="urn:xmlns:rhq-configuration">
     <depends plugin="JMX"/>
-    <server name="WebSphere Server"
-            discovery="WebSphereDiscoveryComponent"
-            class="WebSphereServerComponent"
-            description="WebSphere Application Server"
-            supportsManualAdd="true">
+    <service name="Thread Pool"
+             discovery="WebSphereMBeanResourceDiscoveryComponent"
+             class="StatsEnabledMBeanResourceComponent"
+             description="WebSphere Thread Pool">
+
+        <runs-inside>
+            <parent-resource-type name="JMX Server" plugin="JMX"/>
+        </runs-inside>
+
         <plugin-configuration>
-            <c:group name="connection" displayName="Connection Info">
-                <c:simple-property name="host" displayName="Host"
-                                   description="The host name of the application server or administrative agent to connect to."
-                                   default="localhost"/>
-                <c:simple-property name="port" displayName="Port"
-                                   description="The port (ORB_LISTENER_ADDRESS) to connect to."
-                                   default="9100"/>
-                <c:simple-property name="principal" required="false" description="The name of the principal (i.e. user) to authenticate."/>
-                <c:simple-property name="credentials" type="password" required="false"
-                                   description="The credentials (i.e. password) that should be used to authenticate the principal."/>
-                <c:simple-property name="wasHomeDir" displayName="WAS Home Directory" type="directory" readOnly="true"
-                                   description="The absolute path to the directory where WebSphere is installed (e.g. /opt/IBM/WebSphere/AppServer)."/>
-            </c:group>
+            <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,type=ThreadPool"/>
+            <c:simple-property name="nameTemplate" default="{name}"/>
+            <c:simple-property name="descriptionTemplate" default="A thread pool."/>
+            <c:simple-property name="name" type="string" description="The name of this thread pool"/>
         </plugin-configuration>
-    </server>
+        
+        <metric displayName="Pool size" property="stat.PoolSize.count"
+                category="utilization" defaultOn="true" displayType="summary"
+                description="The average number of threads in a pool."/>
+    </service>
 </plugin>
