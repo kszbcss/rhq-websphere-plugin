@@ -23,7 +23,7 @@
             <c:simple-property name="name" type="string" description="The name of this thread pool"/>
         </plugin-configuration>
         
-        <metric displayName="Pool size" property="stat.PoolSize.count"
+        <metric displayName="Pool size" property="stats.PoolSize.current"
                 category="utilization" defaultOn="true" displayType="summary"
                 description="The average number of threads in a pool."/>
     </service>
