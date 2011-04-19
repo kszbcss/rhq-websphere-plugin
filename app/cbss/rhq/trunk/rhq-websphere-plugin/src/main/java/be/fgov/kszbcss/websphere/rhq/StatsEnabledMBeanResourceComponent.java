@@ -48,19 +48,26 @@ public class StatsEnabledMBeanResourceComponent extends MBeanResourceComponent {
                 if (getStatisticMethod == null) {
                     log.error("Unable to retrieve data for " + name + " because of previous failure");
                 } else {
-                    int idx = name.indexOf('.', 6);
+                    int idx = name.lastIndexOf('.');
                     String statisticName = name.substring(6, idx);
                     String propertyName = name.substring(idx+1);
                     Object statistic;
                     try {
                         statistic = getStatisticMethod.invoke(stats, statisticName);
                     } catch (Exception ex) {
-                        log.error("Unable to retrieve statistic for " + statisticName, ex);
+                        log.error("Unable to retrieve statistic with name " + statisticName, ex);
                         continue;
+                    }
+                    if (statistic == null) {
+                        log.error("Statistic with name " + statisticName + " not available");
+                        continue;
+                    }
+                    if (log.isDebugEnabled()) {
+                        log.debug("Loaded Statistic with name " + statisticName + " and type " + statistic.getClass().getName());
                     }
                     Long value;
                     try {
-                        value = (Long)propUtils.getNestedProperty(statistic, propertyName);
+                        value = (Long)propUtils.getProperty(statistic, propertyName);
                     } catch (Exception ex) {
                         log.error("Failed to get the " + propertyName + " from the Statistic object for " + statisticName, ex);
                         continue;

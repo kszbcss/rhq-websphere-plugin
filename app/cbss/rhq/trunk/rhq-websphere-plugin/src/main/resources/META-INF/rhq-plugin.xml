@@ -27,4 +27,28 @@
                 category="utilization" defaultOn="true" displayType="summary"
                 description="The average number of threads in a pool."/>
     </service>
+    <service name="Servlet"
+             discovery="WebSphereMBeanResourceDiscoveryComponent"
+             class="StatsEnabledMBeanResourceComponent"
+             description="Servlet">
+
+        <runs-inside>
+            <parent-resource-type name="JMX Server" plugin="JMX"/>
+        </runs-inside>
+
+        <plugin-configuration>
+            <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,type=Servlet"/>
+            <c:simple-property name="nameTemplate" default="{name}"/>
+            <c:simple-property name="descriptionTemplate" default="A servlet."/>
+            <c:simple-property name="name" type="string" description="The name of this servlet"/>
+        </plugin-configuration>
+        
+        <metric property="stats.webAppModule.servlets.responseTime.minTime" displayName="Min. Servlet Resp. Time"
+                units="milliseconds"
+                description="Minimum response time of a servlet"/>
+
+        <metric property="stats.webAppModule.servlets.responseTime.maxTime" displayName="Max. Servlet Resp. Time"
+                units="milliseconds"
+                description="Maximum response time of a servlet"/>
+    </service>
 </plugin>
