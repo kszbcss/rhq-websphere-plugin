@@ -23,26 +23,33 @@ public class StatsEnabledMBeanResourceComponent extends MBeanResourceComponent {
         // We create a new PropertyUtilsBean every time in order to avoid keeping references
         // to class loaders used by EMS (which could create a leak).
         PropertyUtilsBean propUtils = new PropertyUtilsBean();
-        Object stats = null;
+        Object wsStats = null;
         Method getStatisticMethod = null;
         for (MeasurementScheduleRequest request : (Set<MeasurementScheduleRequest>)requests) {
             String name = request.getName();
             if (name.startsWith("stats.")) {
-                if (stats == null) {
-                    stats = bean.getAttribute("stats").getValue();
-                    Class<?> statsClass = stats.getClass();
+                if (wsStats == null) {
+                    Object stats = bean.getAttribute("stats").getValue();
+                    try {
+                        wsStats = propUtils.getProperty(stats, "WSImpl");
+                    } catch (Exception ex) {
+                        log.error("Unable to get the WSStats object", ex);
+                        continue;
+                    }
+                    Class<?> wsStatsClass = wsStats.getClass();
                     if (log.isDebugEnabled()) {
                         try {
-                            String[] statsNames = (String[])statsClass.getMethod("getStatisticNames").invoke(stats);
-                            log.debug("Loaded Stats object from MBean. Available statistics: " + Arrays.asList(statsNames));
+                            String[] statsNames = (String[])wsStatsClass.getMethod("getStatisticNames").invoke(wsStats);
+                            log.debug("Loaded WSStats object from MBean. Available statistics: " + Arrays.asList(statsNames));
                         } catch (Exception ex) {
-                            log.debug("Loaded Stats object from MBean, but unable to get statistic names", ex);
+                            log.debug("Loaded WSStats object from MBean, but unable to get statistic names", ex);
                         }
                     }
                     try {
-                        getStatisticMethod = statsClass.getMethod("getStatistic", String.class);
+                        getStatisticMethod = wsStatsClass.getMethod("getStatistic", String.class);
                     } catch (NoSuchMethodException ex) {
                         log.error(ex);
+                        continue;
                     }
                 }
                 if (getStatisticMethod == null) {
@@ -53,7 +60,7 @@ public class StatsEnabledMBeanResourceComponent extends MBeanResourceComponent {
                     String propertyName = name.substring(idx+1);
                     Object statistic;
                     try {
-                        statistic = getStatisticMethod.invoke(stats, statisticName);
+                        statistic = getStatisticMethod.invoke(wsStats, statisticName);
                     } catch (Exception ex) {
                         log.error("Unable to retrieve statistic with name " + statisticName, ex);
                         continue;
@@ -65,9 +72,9 @@ public class StatsEnabledMBeanResourceComponent extends MBeanResourceComponent {
                     if (log.isDebugEnabled()) {
                         log.debug("Loaded Statistic with name " + statisticName + " and type " + statistic.getClass().getName());
                     }
-                    Long value;
+                    Number value;
                     try {
-                        value = (Long)propUtils.getProperty(statistic, propertyName);
+                        value = (Number)propUtils.getProperty(statistic, propertyName);
                     } catch (Exception ex) {
                         log.error("Failed to get the " + propertyName + " from the Statistic object for " + statisticName, ex);
                         continue;
@@ -75,7 +82,7 @@ public class StatsEnabledMBeanResourceComponent extends MBeanResourceComponent {
                     if (log.isDebugEnabled()) {
                         log.debug("Adding measurement for " + name + "; value=" + value);
                     }
-                    report.addData(new MeasurementDataNumeric(request, new Double(value)));
+                    report.addData(new MeasurementDataNumeric(request, value.doubleValue()));
                 }
             } else {
                 simpleRequests.add(request);
