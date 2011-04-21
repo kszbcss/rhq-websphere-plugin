@@ -35,7 +35,7 @@ public class WebSphereMBeanResourceDiscoveryComponent<T extends JMXComponent> ex
     //   1. It may easily be longer than 500 characters (which is the limit allowed by RHQ).
     //   2. For a given resource, the MBean name may change over time. E.g. the "version" key property
     //      will change after an upgrade.
-    private String getResourceKey(EmsBeanName objectName) {
+    protected String getResourceKey(EmsBeanName objectName) {
         String key = objectName.getKeyProperty("mbeanIdentifier");
         return key != null ? key : objectName.getCanonicalName();
     }

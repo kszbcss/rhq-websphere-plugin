@@ -2,6 +2,7 @@ package be.fgov.kszbcss.websphere.rhq;
 
 import java.util.Set;
 
+import org.mc4j.ems.connection.bean.EmsBeanName;
 import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.pluginapi.inventory.DiscoveredResourceDetails;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
@@ -18,5 +19,12 @@ public class WebModuleDiscoveryComponent extends WebSphereMBeanResourceDiscovery
             details.getPluginConfiguration().put(new PropertySimple("applicationName", applicationName));
         }
         return result;
+    }
+
+    @Override
+    protected String getResourceKey(EmsBeanName objectName) {
+        // For WebModule MBeans, the mbeanIdentifier may be "null". The J2EEName contains a
+        // combination of the application name and the module name.
+        return objectName.getKeyProperty("J2EEName");
     }
 }
