@@ -27,6 +27,36 @@
                 category="utilization" defaultOn="true" displayType="summary"
                 description="The average number of threads in a pool."/>
     </service>
+    <service name="JDBC Provider"
+             discovery="JDBCProviderDiscoveryComponent"
+             class="org.rhq.plugins.jmx.MBeanResourceComponent"
+             description="JDBC Provider">
+
+        <runs-inside>
+            <parent-resource-type name="JMX Server" plugin="JMX"/>
+        </runs-inside>
+
+        <plugin-configuration>
+            <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%providerName%,type=JDBCProvider"/>
+            <c:simple-property name="nameTemplate" default="{providerName}"/>
+            <c:simple-property name="descriptionTemplate" default="A JDBC provider."/>
+            <c:simple-property name="providerName" type="string" description="The name of the JDBC provider"/>
+        </plugin-configuration>
+
+        <service name="Datasource"
+                 discovery="DataSourceDiscoveryComponent"
+                 class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                 description="Datasource">
+            <plugin-configuration>
+                <!-- Data sources related to the parent resource (i.e. JDBC provider) will be filtered out
+                     by DataSourceDiscoveryComponent -->
+                <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,type=DataSource"/>
+                <c:simple-property name="nameTemplate" default="{name}"/>
+                <c:simple-property name="descriptionTemplate" default="A data source."/>
+                <c:simple-property name="name" readOnly="true" type="string" description="The data source name"/>
+            </plugin-configuration>
+        </service>
+    </service>
     <service name="Application"
              discovery="ApplicationDiscoveryComponent"
              class="org.rhq.plugins.jmx.MBeanResourceComponent"
