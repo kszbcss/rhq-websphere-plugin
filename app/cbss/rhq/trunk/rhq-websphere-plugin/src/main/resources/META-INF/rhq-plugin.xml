@@ -27,6 +27,37 @@
                 category="utilization" defaultOn="true" displayType="summary"
                 description="The average number of threads in a pool."/>
     </service>
+    <service name="Application"
+             discovery="WebSphereMBeanResourceDiscoveryComponent"
+             class="org.rhq.plugins.jmx.MBeanResourceComponent"
+             description="Application (EAR)">
+        
+        <runs-inside>
+            <parent-resource-type name="JMX Server" plugin="JMX"/>
+        </runs-inside>
+        
+        <plugin-configuration>
+            <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%applicationName%,type=Application"/>
+            <c:simple-property name="nameTemplate" default="{applicationName}"/>
+            <c:simple-property name="descriptionTemplate" default="An enterprise application."/>
+            <c:simple-property name="applicationName" readOnly="true" type="string" description="The application name used internally by WebSphere"/>
+        </plugin-configuration>
+        
+        <service name="Web module"
+                 discovery="WebModuleDiscoveryComponent"
+                 class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                 description="Web module">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%moduleName%,Application={applicationName},type=WebModule"/>
+                <c:simple-property name="nameTemplate" default="{moduleName}"/>
+                <c:simple-property name="descriptionTemplate" default="A Web module."/>
+                <!-- The applicationName property is necessary to make the correlation with child resources
+                     (because the moduleName is not unique) -->
+                <c:simple-property name="applicationName" readOnly="true" type="string" description="The application name used internally by WebSphere"/>
+                <c:simple-property name="moduleName" readOnly="true" type="string" description="The module name used internally by WebSphere"/>
+            </plugin-configuration>
+        </service>
+    </service>
     <service name="Servlet"
              discovery="WebSphereMBeanResourceDiscoveryComponent"
              class="StatsEnabledMBeanResourceComponent"
