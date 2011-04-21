@@ -44,7 +44,7 @@
         </plugin-configuration>
         
         <service name="Web module"
-                 discovery="WebModuleDiscoveryComponent"
+                 discovery="ModuleDiscoveryComponent"
                  class="org.rhq.plugins.jmx.MBeanResourceComponent"
                  description="Web module">
             <plugin-configuration>
@@ -75,6 +75,37 @@
                 <metric property="stats.webAppModule.servlets.responseTime.maxTime" displayName="Max. Servlet Resp. Time"
                         units="milliseconds"
                         description="Maximum response time of a servlet"/>
+            </service>
+        </service>
+        
+        <service name="EJB module"
+                 discovery="ModuleDiscoveryComponent"
+                 class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                 description="EJB module">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%moduleName%,Application={applicationName},type=EJBModule"/>
+                <c:simple-property name="nameTemplate" default="{moduleName}"/>
+                <c:simple-property name="descriptionTemplate" default="An EJB module."/>
+                <!-- The applicationName property is necessary to make the correlation with child resources
+                     (because the moduleName is not unique) -->
+                <c:simple-property name="applicationName" readOnly="true" type="string" description="The application name used internally by WebSphere"/>
+                <c:simple-property name="moduleName" readOnly="true" type="string" description="The module name used internally by WebSphere"/>
+            </plugin-configuration>
+
+            <service name="Stateless Session Bean"
+                     discovery="WebSphereMBeanResourceDiscoveryComponent"
+                     class="StatsEnabledMBeanResourceComponent"
+                     description="Stateless Session Bean">
+                <plugin-configuration>
+                    <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,EJBModule={moduleName},Application={applicationName},type=StatelessSessionBean"/>
+                    <c:simple-property name="nameTemplate" default="{name}"/>
+                    <c:simple-property name="descriptionTemplate" default="A servlet."/>
+                    <c:simple-property name="name" readOnly="true" type="string" description="The name of this EJB"/>
+                </plugin-configuration>
+                
+                <metric property="stats.MethodResponseTime.mean" displayName="Avg. Method Resp. Time"
+                        units="milliseconds" defaultOn="true"
+                        description="The average response time in milliseconds on the remote methods of the bean"/>
             </service>
         </service>
     </service>

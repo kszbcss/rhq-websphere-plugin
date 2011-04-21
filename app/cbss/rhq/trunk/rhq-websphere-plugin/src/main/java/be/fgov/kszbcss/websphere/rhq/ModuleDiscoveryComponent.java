@@ -8,7 +8,7 @@ import org.rhq.core.pluginapi.inventory.DiscoveredResourceDetails;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 import org.rhq.plugins.jmx.JMXComponent;
 
-public class WebModuleDiscoveryComponent extends WebSphereMBeanResourceDiscoveryComponent<JMXComponent> {
+public class ModuleDiscoveryComponent extends WebSphereMBeanResourceDiscoveryComponent<JMXComponent> {
     @Override
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<JMXComponent> context) {
         // We need to copy the applicationName from the parent resource so that we can use it in the discovery of
