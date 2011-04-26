@@ -20,6 +20,7 @@
         <module>org-mc4j-ems-impl-cbss</module>
         <module>rhq-jmx-plugin-cbss</module>
         <module>rhq-websphere-plugin</module>
+        <module>websphere-apis</module>
     </modules>
     <repositories>
         <repository>

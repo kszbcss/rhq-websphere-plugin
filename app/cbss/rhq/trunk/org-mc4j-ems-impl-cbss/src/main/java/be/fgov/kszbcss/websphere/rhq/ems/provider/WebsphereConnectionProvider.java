@@ -1,19 +1,22 @@
 package be.fgov.kszbcss.websphere.rhq.ems.provider;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
 import javax.management.MBeanServer;
+import javax.security.auth.Subject;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mc4j.ems.impl.jmx.connection.support.providers.AbstractConnectionProvider;
-import org.mc4j.ems.impl.jmx.connection.support.providers.proxy.GenericMBeanServerProxy;
+
+import com.ibm.websphere.management.AdminClient;
+import com.ibm.websphere.management.AdminClientFactory;
+import com.ibm.websphere.security.auth.WSSubject;
 
 public class WebsphereConnectionProvider extends AbstractConnectionProvider {
     private static final Log log = LogFactory.getLog(WebsphereConnectionProvider.class);
     
-    private GenericMBeanServerProxy statsProxy;
+    private AdminClientProxy proxy;
     private MBeanServer mbeanServer;
 
     protected void doConnect() throws Exception {
@@ -25,8 +28,6 @@ public class WebsphereConnectionProvider extends AbstractConnectionProvider {
         ClassLoader savedTCCL = thread.getContextClassLoader();
         thread.setContextClassLoader(cl);
         try {
-            Class<?> adminClientFactoryClass = cl.loadClass("com.ibm.websphere.management.AdminClientFactory");
-    
             Properties properties = new Properties();
             
             String serverURL = connectionSettings.getServerUrl();
@@ -42,38 +43,32 @@ public class WebsphereConnectionProvider extends AbstractConnectionProvider {
                 port = serverURL.substring(idx+1);
             }
             
-            properties.put("type", "RMI");
-            properties.setProperty("host", host);
-            properties.setProperty("port", port);
+            properties.put(AdminClient.CONNECTOR_TYPE, AdminClient.CONNECTOR_TYPE_RMI);
+            properties.setProperty(AdminClient.CONNECTOR_HOST, host);
+            properties.setProperty(AdminClient.CONNECTOR_PORT, port);
     
             String principal = connectionSettings.getPrincipal(); 
             if (principal != null && principal.length() > 0) { 
-                properties.setProperty("securityEnabled", "true"); 
-                properties.setProperty("username", principal); 
-                properties.setProperty("password", connectionSettings.getCredentials()); 
+                properties.setProperty(AdminClient.CONNECTOR_SECURITY_ENABLED, "true"); 
+                properties.setProperty(AdminClient.USERNAME, principal); 
+                properties.setProperty(AdminClient.PASSWORD, connectionSettings.getCredentials()); 
             } else { 
-                properties.setProperty("securityEnabled", "false");
+                properties.setProperty(AdminClient.CONNECTOR_SECURITY_ENABLED, "false");
             }
             
             if (log.isDebugEnabled()) {
                 log.debug("Creating AdminClient with properties: " + properties);
             }
             
-            Object adminClient;
-            try {
-                adminClient = adminClientFactoryClass.getMethod("createAdminClient", Properties.class).invoke(null, properties);
-            } catch (InvocationTargetException ex) {
-                // Unwrap the exception to avoid lengthy stack traces
-                Throwable cause = ex.getCause();
-                if (cause instanceof Exception) {
-                    throw (Exception)cause;
-                } else {
-                    throw ex;
-                }
+            AdminClient adminClient = AdminClientFactory.createAdminClient(properties);
+            Subject subject = WSSubject.getRunAsSubject();
+            if (log.isDebugEnabled()) {
+                log.debug("Subject = " + subject);
             }
+            WSSubject.setRunAsSubject(null);
     
-            statsProxy = new GenericMBeanServerProxy(adminClient);
-            mbeanServer = statsProxy.buildServerProxy();
+            proxy = new AdminClientProxy(adminClient, subject);
+            mbeanServer = proxy.buildServerProxy();
         } finally {
             thread.setContextClassLoader(savedTCCL);
         }
@@ -84,10 +79,10 @@ public class WebsphereConnectionProvider extends AbstractConnectionProvider {
     }
 
     public long getRoundTrips() {
-        return statsProxy.getRoundTrips();
+        return proxy.getRoundTrips();
     }
 
     public long getFailures() {
-        return statsProxy.getFailures();
+        return proxy.getFailures();
     }
 }
