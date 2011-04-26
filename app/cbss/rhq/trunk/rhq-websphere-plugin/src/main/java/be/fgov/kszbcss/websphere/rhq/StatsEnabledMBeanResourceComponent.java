@@ -1,7 +1,5 @@
 package be.fgov.kszbcss.websphere.rhq;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,9 +10,10 @@ import org.mc4j.ems.connection.bean.EmsBean;
 import org.rhq.core.domain.measurement.MeasurementDataNumeric;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
+import org.rhq.plugins.jmx.JMXComponent;
 import org.rhq.plugins.jmx.MBeanResourceComponent;
 
-public class StatsEnabledMBeanResourceComponent extends MBeanResourceComponent {
+public class StatsEnabledMBeanResourceComponent<T extends JMXComponent> extends MBeanResourceComponent<T> {
     private final Log log = LogFactory.getLog(StatsEnabledMBeanResourceComponent.class);
     
     @Override
@@ -23,44 +22,20 @@ public class StatsEnabledMBeanResourceComponent extends MBeanResourceComponent {
         // We create a new PropertyUtilsBean every time in order to avoid keeping references
         // to class loaders used by EMS (which could create a leak).
         PropertyUtilsBean propUtils = new PropertyUtilsBean();
-        Object wsStats = null;
-        Method getStatisticMethod = null;
+        WSStatsWrapper wsStats = null;
         for (MeasurementScheduleRequest request : (Set<MeasurementScheduleRequest>)requests) {
             String name = request.getName();
             if (name.startsWith("stats.")) {
                 if (wsStats == null) {
-                    Object stats = bean.getAttribute("stats").getValue();
-                    try {
-                        wsStats = propUtils.getProperty(stats, "WSImpl");
-                    } catch (Exception ex) {
-                        log.error("Unable to get the WSStats object", ex);
-                        continue;
-                    }
-                    Class<?> wsStatsClass = wsStats.getClass();
-                    if (log.isDebugEnabled()) {
-                        try {
-                            String[] statsNames = (String[])wsStatsClass.getMethod("getStatisticNames").invoke(wsStats);
-                            log.debug("Loaded WSStats object from MBean. Available statistics: " + Arrays.asList(statsNames));
-                        } catch (Exception ex) {
-                            log.debug("Loaded WSStats object from MBean, but unable to get statistic names", ex);
-                        }
-                    }
-                    try {
-                        getStatisticMethod = wsStatsClass.getMethod("getStatistic", String.class);
-                    } catch (NoSuchMethodException ex) {
-                        log.error(ex);
-                        continue;
-                    }
+                    wsStats = getWSStats(new StatsHelper(propUtils));
                 }
-                if (getStatisticMethod == null) {
-                    log.error("Unable to retrieve data for " + name + " because of previous failure");
-                } else {
+                if (wsStats != null) {
                     int idx = name.lastIndexOf('.');
                     String statisticName = name.substring(6, idx);
                     String propertyName = name.substring(idx+1);
                     Object statistic;
                     try {
-                        statistic = getStatisticMethod.invoke(wsStats, statisticName);
+                        statistic = wsStats.getStatistic(statisticName);
                     } catch (Exception ex) {
                         log.error("Unable to retrieve statistic with name " + statisticName, ex);
                         continue;
@@ -93,4 +68,7 @@ public class StatsEnabledMBeanResourceComponent extends MBeanResourceComponent {
         }
     }
 
+    protected WSStatsWrapper getWSStats(StatsHelper statsHelper) {
+        return statsHelper.getWSStats(getEmsBean());
+    }
 }
