@@ -5,10 +5,14 @@ import java.util.Properties;
 
 import javax.management.MBeanServer;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.mc4j.ems.impl.jmx.connection.support.providers.AbstractConnectionProvider;
 import org.mc4j.ems.impl.jmx.connection.support.providers.proxy.GenericMBeanServerProxy;
 
 public class WebsphereConnectionProvider extends AbstractConnectionProvider {
+    private static final Log log = LogFactory.getLog(WebsphereConnectionProvider.class);
+    
     private GenericMBeanServerProxy statsProxy;
     private MBeanServer mbeanServer;
 
@@ -50,7 +54,11 @@ public class WebsphereConnectionProvider extends AbstractConnectionProvider {
             } else { 
                 properties.setProperty("securityEnabled", "false");
             }
-    
+            
+            if (log.isDebugEnabled()) {
+                log.debug("Creating AdminClient with properties: " + properties);
+            }
+            
             Object adminClient;
             try {
                 adminClient = adminClientFactoryClass.getMethod("createAdminClient", Properties.class).invoke(null, properties);
