@@ -2,6 +2,7 @@ package be.fgov.kszbcss.websphere.rhq;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.logging.Log;
@@ -24,7 +25,7 @@ public class StatsHelper {
         if (bean == null) {
             throw new IllegalArgumentException("getWSStats: bean can't be null");
         }
-        EmsAttribute statsAttribute = bean.getAttribute("stats");
+        EmsAttribute statsAttribute = bean.refreshAttributes(Collections.singletonList("stats")).get(0);
         if (statsAttribute == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No stats attribute found on " + bean.getBeanName());
