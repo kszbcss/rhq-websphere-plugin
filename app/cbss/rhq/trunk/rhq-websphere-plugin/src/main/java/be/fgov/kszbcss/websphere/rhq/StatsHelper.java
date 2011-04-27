@@ -26,13 +26,13 @@ public class StatsHelper {
             throw new IllegalArgumentException("getWSStats: bean can't be null");
         }
         EmsAttribute statsAttribute = bean.refreshAttributes(Collections.singletonList("stats")).get(0);
-        if (statsAttribute == null) {
+        Object stats = statsAttribute.getValue();
+        if (stats == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No stats attribute found on " + bean.getBeanName());
             }
             return null;
         }
-        Object stats = statsAttribute.getValue();
         Object wsStats;
         try {
             wsStats = propUtils.getProperty(stats, "WSImpl");
