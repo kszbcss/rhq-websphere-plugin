@@ -105,13 +105,12 @@
                     <c:simple-property name="name" readOnly="true" type="string" description="The name of this servlet"/>
                 </plugin-configuration>
                 
-                <metric property="stats.webAppModule.servlets.responseTime.minTime" displayName="Min. Servlet Resp. Time"
-                        units="milliseconds"
-                        description="Minimum response time of a servlet"/>
-        
-                <metric property="stats.webAppModule.servlets.responseTime.maxTime" displayName="Max. Servlet Resp. Time"
-                        units="milliseconds"
-                        description="Maximum response time of a servlet"/>
+                <metric property="stats.webAppModule.servlets.responseTime.mean" displayName="Avg. Servlet Resp. Time"
+                        category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                        description="Average response time of a servlet"/>
+                <metric property="stats.webAppModule.servlets.totalRequests.count" displayName="Request Count"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="The number of requests received by the servlet"/>
             </service>
         </service>
         
@@ -141,8 +140,11 @@
                 </plugin-configuration>
                 
                 <metric property="stats.MethodResponseTime.mean" displayName="Avg. Method Resp. Time"
-                        units="milliseconds" defaultOn="true"
+                        category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                         description="The average response time in milliseconds on the remote methods of the bean"/>
+                <metric property="stats.MethodCallCount.count" displayName="Method Call Count"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="The number of calls to the remote methods of the bean"/>
             </service>
         </service>
     </service>
