@@ -166,7 +166,7 @@
                 <metric property="stats.MethodResponseTime.mean" displayName="Avg. Method Resp. Time"
                         category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                         description="The average response time in milliseconds on the remote methods of the bean"/>
-                <metric property="stats.MessageCount.count" displayName="Method Call Count"
+                <metric property="stats.MessageCount.count" displayName="Message Count"
                         category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                         description="The number of messages delivered to the onMessage method of the bean"/>
             </service>
