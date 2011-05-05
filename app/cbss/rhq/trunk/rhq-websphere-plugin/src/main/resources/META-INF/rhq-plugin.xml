@@ -23,7 +23,7 @@
             <c:simple-property name="name" type="string" description="The name of this thread pool"/>
         </plugin-configuration>
         
-        <metric displayName="Pool size" property="stats.PoolSize.current"
+        <metric displayName="Pool size" property="stats.PoolSize"
                 category="utilization" defaultOn="true" displayType="summary"
                 description="The average number of threads in a pool."/>
     </service>
@@ -56,16 +56,16 @@
                 <c:simple-property name="name" readOnly="true" type="string" description="The data source name"/>
             </plugin-configuration>
             
-            <metric property="stats.UseTime.mean" displayName="Avg. Use Time"
+            <metric property="stats.UseTime" displayName="Avg. Use Time"
                     category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                     description="The average time in milliseconds that a connection is used"/>
-            <metric property="stats.WaitTime.mean" displayName="Avg. Wait Time"
+            <metric property="stats.WaitTime" displayName="Avg. Wait Time"
                     category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                     description="The average waiting time in milliseconds until a connection is granted"/>
-            <!-- metric property="stats.PercentUsed.current" displayName="% Used"
+            <!-- metric property="stats.PercentUsed" displayName="% Used"
                     category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
                     description="Average percent of the pool that is in use. The value is based on the total number of configured connections in the ConnectionPool, not the current number of connections."/ -->
-            <metric property="stats.AllocateCount.count" displayName="Allocated Connections"
+            <metric property="stats.AllocateCount" displayName="Allocated Connections"
                     category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                     description="The total number of connections that are allocated."/>
         </service>
@@ -111,10 +111,10 @@
                     <c:simple-property name="name" readOnly="true" type="string" description="The name of this servlet"/>
                 </plugin-configuration>
                 
-                <metric property="stats.webAppModule.servlets.responseTime.mean" displayName="Avg. Servlet Resp. Time"
+                <metric property="stats.webAppModule.servlets.responseTime" displayName="Avg. Servlet Resp. Time"
                         category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                         description="Average response time of a servlet"/>
-                <metric property="stats.webAppModule.servlets.totalRequests.count" displayName="Request Count"
+                <metric property="stats.webAppModule.servlets.totalRequests" displayName="Request Count"
                         category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                         description="The number of requests received by the servlet"/>
             </service>
@@ -145,10 +145,10 @@
                     <c:simple-property name="name" readOnly="true" type="string" description="The name of this EJB"/>
                 </plugin-configuration>
                 
-                <metric property="stats.MethodResponseTime.mean" displayName="Avg. Method Resp. Time"
+                <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
                         category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                         description="The average response time in milliseconds on the remote methods of the bean"/>
-                <metric property="stats.MethodCallCount.count" displayName="Method Call Count"
+                <metric property="stats.MethodCallCount" displayName="Method Call Count"
                         category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                         description="The number of calls to the remote methods of the bean"/>
             </service>
@@ -163,10 +163,10 @@
                     <c:simple-property name="name" readOnly="true" type="string" description="The name of this bean"/>
                 </plugin-configuration>
                 
-                <metric property="stats.MethodResponseTime.mean" displayName="Avg. Method Resp. Time"
+                <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
                         category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                         description="The average response time in milliseconds on the remote methods of the bean"/>
-                <metric property="stats.MessageCount.count" displayName="Message Count"
+                <metric property="stats.MessageCount" displayName="Message Count"
                         category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                         description="The number of messages delivered to the onMessage method of the bean"/>
             </service>

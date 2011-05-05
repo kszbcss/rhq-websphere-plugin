@@ -20,6 +20,11 @@
             <artifactId>org-mc4j-ems-cbss</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
+            <version>1.0.1</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -57,10 +62,14 @@
                                     <groupId>${project.groupId}</groupId>
                                     <artifactId>org-mc4j-ems-cbss</artifactId>
                                     <version>${project.version}</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.outputDirectory}/lib</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.apache.geronimo.specs</groupId>
+                                    <artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
+                                    <version>1.0.1</version>
                                 </artifactItem>
                             </artifactItems>
+                            <outputDirectory>${project.build.outputDirectory}/lib</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
