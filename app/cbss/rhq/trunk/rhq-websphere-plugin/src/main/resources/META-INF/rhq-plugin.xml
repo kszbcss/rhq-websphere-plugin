@@ -7,169 +7,173 @@
         xmlns="urn:xmlns:rhq-plugin"
         xmlns:c="urn:xmlns:rhq-configuration">
     <depends plugin="JMX"/>
-    <service name="Thread Pool"
-             discovery="WebSphereMBeanResourceDiscoveryComponent"
-             class="StatsEnabledMBeanResourceComponent"
-             description="WebSphere Thread Pool">
-
-        <runs-inside>
-            <parent-resource-type name="JMX Server" plugin="JMX"/>
-        </runs-inside>
-
+    <server name="WebSphere Server"
+            discovery="WebSphereServerDiscoveryComponent"
+            class="WebSphereServerComponent"
+            description="WebSphere Application Server"
+            supportsManualAdd="true">
+        
         <plugin-configuration>
-            <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,type=ThreadPool"/>
-            <c:simple-property name="nameTemplate" default="{name}"/>
-            <c:simple-property name="descriptionTemplate" default="A thread pool."/>
-            <c:simple-property name="name" type="string" description="The name of this thread pool"/>
+            <c:simple-property name="host" default="localhost"/>
+            <c:simple-property name="port" default="9100" type="integer"/>
+            <c:simple-property name="principal" required="false"
+                               description="The name of the principal (i.e. user) to authenticate."/>
+            <c:simple-property name="credentials" type="password" required="false"
+                               description="The credentials (i.e. password) that should be used to authenticate the principal."/>
         </plugin-configuration>
         
-        <metric displayName="Pool size" property="stats.PoolSize"
-                category="utilization" defaultOn="true" displayType="summary"
-                description="The average number of threads in a pool."/>
-    </service>
-    <service name="JDBC Provider"
-             discovery="JDBCProviderDiscoveryComponent"
-             class="org.rhq.plugins.jmx.MBeanResourceComponent"
-             description="JDBC Provider">
-
-        <runs-inside>
-            <parent-resource-type name="JMX Server" plugin="JMX"/>
-        </runs-inside>
-
-        <plugin-configuration>
-            <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%providerName%,type=JDBCProvider"/>
-            <c:simple-property name="nameTemplate" default="{providerName}"/>
-            <c:simple-property name="descriptionTemplate" default="A JDBC provider."/>
-            <c:simple-property name="providerName" type="string" description="The name of the JDBC provider"/>
-        </plugin-configuration>
-
-        <service name="Datasource"
-                 discovery="DataSourceDiscoveryComponent"
-                 class="DataSourceComponent"
-                 description="Datasource">
+        <service name="Thread Pool"
+                 discovery="WebSphereMBeanResourceDiscoveryComponent"
+                 class="StatsEnabledMBeanResourceComponent"
+                 description="WebSphere Thread Pool">
+    
             <plugin-configuration>
-                <!-- Data sources related to the parent resource (i.e. JDBC provider) will be filtered out
-                     by DataSourceDiscoveryComponent -->
-                <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,type=DataSource"/>
+                <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,type=ThreadPool"/>
                 <c:simple-property name="nameTemplate" default="{name}"/>
-                <c:simple-property name="descriptionTemplate" default="A data source."/>
-                <c:simple-property name="name" readOnly="true" type="string" description="The data source name"/>
+                <c:simple-property name="descriptionTemplate" default="A thread pool."/>
+                <c:simple-property name="name" type="string" description="The name of this thread pool"/>
             </plugin-configuration>
             
-            <metric property="stats.UseTime" displayName="Avg. Use Time"
-                    category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
-                    description="The average time in milliseconds that a connection is used"/>
-            <metric property="stats.WaitTime" displayName="Avg. Wait Time"
-                    category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
-                    description="The average waiting time in milliseconds until a connection is granted"/>
-            <!-- metric property="stats.PercentUsed" displayName="% Used"
-                    category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
-                    description="Average percent of the pool that is in use. The value is based on the total number of configured connections in the ConnectionPool, not the current number of connections."/ -->
-            <metric property="stats.AllocateCount" displayName="Allocated Connections"
-                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
-                    description="The total number of connections that are allocated."/>
+            <metric displayName="Pool size" property="stats.PoolSize"
+                    category="utilization" defaultOn="true" displayType="summary"
+                    description="The average number of threads in a pool."/>
         </service>
-    </service>
-    <service name="Application"
-             discovery="ApplicationDiscoveryComponent"
-             class="org.rhq.plugins.jmx.MBeanResourceComponent"
-             description="Application (EAR)">
-        
-        <runs-inside>
-            <parent-resource-type name="JMX Server" plugin="JMX"/>
-        </runs-inside>
-        
-        <plugin-configuration>
-            <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%applicationName%,type=Application"/>
-            <c:simple-property name="nameTemplate" default="{applicationName}"/>
-            <c:simple-property name="descriptionTemplate" default="An enterprise application."/>
-            <c:simple-property name="applicationName" readOnly="true" type="string" description="The application name used internally by WebSphere"/>
-        </plugin-configuration>
-        
-        <service name="Web module"
-                 discovery="ModuleDiscoveryComponent"
+        <service name="JDBC Provider"
+                 discovery="JDBCProviderDiscoveryComponent"
                  class="org.rhq.plugins.jmx.MBeanResourceComponent"
-                 description="Web module">
+                 description="JDBC Provider">
+    
             <plugin-configuration>
-                <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%moduleName%,Application={applicationName},type=WebModule"/>
-                <c:simple-property name="nameTemplate" default="{moduleName}"/>
-                <c:simple-property name="descriptionTemplate" default="A Web module."/>
-                <!-- The applicationName property is necessary to make the correlation with child resources
-                     (because the moduleName is not unique) -->
-                <c:simple-property name="applicationName" readOnly="true" type="string" description="The application name used internally by WebSphere"/>
-                <c:simple-property name="moduleName" readOnly="true" type="string" description="The module name used internally by WebSphere"/>
+                <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%providerName%,type=JDBCProvider"/>
+                <c:simple-property name="nameTemplate" default="{providerName}"/>
+                <c:simple-property name="descriptionTemplate" default="A JDBC provider."/>
+                <c:simple-property name="providerName" type="string" description="The name of the JDBC provider"/>
             </plugin-configuration>
-
-            <service name="Servlet"
-                     discovery="WebSphereMBeanResourceDiscoveryComponent"
-                     class="StatsEnabledMBeanResourceComponent"
-                     description="Servlet">
+    
+            <service name="Datasource"
+                     discovery="DataSourceDiscoveryComponent"
+                     class="DataSourceComponent"
+                     description="Datasource">
                 <plugin-configuration>
-                    <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,WebModule={moduleName},Application={applicationName},type=Servlet"/>
+                    <!-- Data sources related to the parent resource (i.e. JDBC provider) will be filtered out
+                         by DataSourceDiscoveryComponent -->
+                    <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,type=DataSource"/>
                     <c:simple-property name="nameTemplate" default="{name}"/>
-                    <c:simple-property name="descriptionTemplate" default="A servlet."/>
-                    <c:simple-property name="name" readOnly="true" type="string" description="The name of this servlet"/>
+                    <c:simple-property name="descriptionTemplate" default="A data source."/>
+                    <c:simple-property name="name" readOnly="true" type="string" description="The data source name"/>
                 </plugin-configuration>
                 
-                <metric property="stats.webAppModule.servlets.responseTime" displayName="Avg. Servlet Resp. Time"
+                <metric property="stats.UseTime" displayName="Avg. Use Time"
                         category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
-                        description="Average response time of a servlet"/>
-                <metric property="stats.webAppModule.servlets.totalRequests" displayName="Request Count"
+                        description="The average time in milliseconds that a connection is used"/>
+                <metric property="stats.WaitTime" displayName="Avg. Wait Time"
+                        category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                        description="The average waiting time in milliseconds until a connection is granted"/>
+                <!-- metric property="stats.PercentUsed" displayName="% Used"
+                        category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
+                        description="Average percent of the pool that is in use. The value is based on the total number of configured connections in the ConnectionPool, not the current number of connections."/ -->
+                <metric property="stats.AllocateCount" displayName="Allocated Connections"
                         category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
-                        description="The number of requests received by the servlet"/>
+                        description="The total number of connections that are allocated."/>
             </service>
         </service>
-        
-        <service name="EJB module"
-                 discovery="ModuleDiscoveryComponent"
+        <service name="Application"
+                 discovery="ApplicationDiscoveryComponent"
                  class="org.rhq.plugins.jmx.MBeanResourceComponent"
-                 description="EJB module">
+                 description="Application (EAR)">
+            
             <plugin-configuration>
-                <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%moduleName%,Application={applicationName},type=EJBModule"/>
-                <c:simple-property name="nameTemplate" default="{moduleName}"/>
-                <c:simple-property name="descriptionTemplate" default="An EJB module."/>
-                <!-- The applicationName property is necessary to make the correlation with child resources
-                     (because the moduleName is not unique) -->
+                <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%applicationName%,type=Application"/>
+                <c:simple-property name="nameTemplate" default="{applicationName}"/>
+                <c:simple-property name="descriptionTemplate" default="An enterprise application."/>
                 <c:simple-property name="applicationName" readOnly="true" type="string" description="The application name used internally by WebSphere"/>
-                <c:simple-property name="moduleName" readOnly="true" type="string" description="The module name used internally by WebSphere"/>
             </plugin-configuration>
-
-            <service name="Stateless Session Bean"
-                     discovery="WebSphereMBeanResourceDiscoveryComponent"
-                     class="StatsEnabledMBeanResourceComponent"
-                     description="Stateless Session Bean">
+            
+            <service name="Web module"
+                     discovery="ModuleDiscoveryComponent"
+                     class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                     description="Web module">
                 <plugin-configuration>
-                    <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,EJBModule={moduleName},Application={applicationName},type=StatelessSessionBean"/>
-                    <c:simple-property name="nameTemplate" default="{name}"/>
-                    <c:simple-property name="descriptionTemplate" default="A servlet."/>
-                    <c:simple-property name="name" readOnly="true" type="string" description="The name of this EJB"/>
+                    <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%moduleName%,Application={applicationName},type=WebModule"/>
+                    <c:simple-property name="nameTemplate" default="{moduleName}"/>
+                    <c:simple-property name="descriptionTemplate" default="A Web module."/>
+                    <!-- The applicationName property is necessary to make the correlation with child resources
+                         (because the moduleName is not unique) -->
+                    <c:simple-property name="applicationName" readOnly="true" type="string" description="The application name used internally by WebSphere"/>
+                    <c:simple-property name="moduleName" readOnly="true" type="string" description="The module name used internally by WebSphere"/>
                 </plugin-configuration>
-                
-                <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
-                        category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
-                        description="The average response time in milliseconds on the remote methods of the bean"/>
-                <metric property="stats.MethodCallCount" displayName="Method Call Count"
-                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
-                        description="The number of calls to the remote methods of the bean"/>
+    
+                <service name="Servlet"
+                         discovery="WebSphereMBeanResourceDiscoveryComponent"
+                         class="StatsEnabledMBeanResourceComponent"
+                         description="Servlet">
+                    <plugin-configuration>
+                        <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,WebModule={moduleName},Application={applicationName},type=Servlet"/>
+                        <c:simple-property name="nameTemplate" default="{name}"/>
+                        <c:simple-property name="descriptionTemplate" default="A servlet."/>
+                        <c:simple-property name="name" readOnly="true" type="string" description="The name of this servlet"/>
+                    </plugin-configuration>
+                    
+                    <metric property="stats.webAppModule.servlets.responseTime" displayName="Avg. Servlet Resp. Time"
+                            category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                            description="Average response time of a servlet"/>
+                    <metric property="stats.webAppModule.servlets.totalRequests" displayName="Request Count"
+                            category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                            description="The number of requests received by the servlet"/>
+                </service>
             </service>
-            <service name="Message Driven Bean"
-                     discovery="WebSphereMBeanResourceDiscoveryComponent"
-                     class="StatsEnabledMBeanResourceComponent"
-                     description="Message Driven Bean">
+            
+            <service name="EJB module"
+                     discovery="ModuleDiscoveryComponent"
+                     class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                     description="EJB module">
                 <plugin-configuration>
-                    <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,EJBModule={moduleName},Application={applicationName},type=MessageDrivenBean"/>
-                    <c:simple-property name="nameTemplate" default="{name}"/>
-                    <c:simple-property name="descriptionTemplate" default="A message driven bean (MDB)."/>
-                    <c:simple-property name="name" readOnly="true" type="string" description="The name of this bean"/>
+                    <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%moduleName%,Application={applicationName},type=EJBModule"/>
+                    <c:simple-property name="nameTemplate" default="{moduleName}"/>
+                    <c:simple-property name="descriptionTemplate" default="An EJB module."/>
+                    <!-- The applicationName property is necessary to make the correlation with child resources
+                         (because the moduleName is not unique) -->
+                    <c:simple-property name="applicationName" readOnly="true" type="string" description="The application name used internally by WebSphere"/>
+                    <c:simple-property name="moduleName" readOnly="true" type="string" description="The module name used internally by WebSphere"/>
                 </plugin-configuration>
-                
-                <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
-                        category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
-                        description="The average response time in milliseconds on the remote methods of the bean"/>
-                <metric property="stats.MessageCount" displayName="Message Count"
-                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
-                        description="The number of messages delivered to the onMessage method of the bean"/>
+    
+                <service name="Stateless Session Bean"
+                         discovery="WebSphereMBeanResourceDiscoveryComponent"
+                         class="StatsEnabledMBeanResourceComponent"
+                         description="Stateless Session Bean">
+                    <plugin-configuration>
+                        <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,EJBModule={moduleName},Application={applicationName},type=StatelessSessionBean"/>
+                        <c:simple-property name="nameTemplate" default="{name}"/>
+                        <c:simple-property name="descriptionTemplate" default="A servlet."/>
+                        <c:simple-property name="name" readOnly="true" type="string" description="The name of this EJB"/>
+                    </plugin-configuration>
+                    
+                    <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
+                            category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                            description="The average response time in milliseconds on the remote methods of the bean"/>
+                    <metric property="stats.MethodCallCount" displayName="Method Call Count"
+                            category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                            description="The number of calls to the remote methods of the bean"/>
+                </service>
+                <service name="Message Driven Bean"
+                         discovery="WebSphereMBeanResourceDiscoveryComponent"
+                         class="StatsEnabledMBeanResourceComponent"
+                         description="Message Driven Bean">
+                    <plugin-configuration>
+                        <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,EJBModule={moduleName},Application={applicationName},type=MessageDrivenBean"/>
+                        <c:simple-property name="nameTemplate" default="{name}"/>
+                        <c:simple-property name="descriptionTemplate" default="A message driven bean (MDB)."/>
+                        <c:simple-property name="name" readOnly="true" type="string" description="The name of this bean"/>
+                    </plugin-configuration>
+                    
+                    <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
+                            category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                            description="The average response time in milliseconds on the remote methods of the bean"/>
+                    <metric property="stats.MessageCount" displayName="Message Count"
+                            category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                            description="The number of messages delivered to the onMessage method of the bean"/>
+                </service>
             </service>
         </service>
-    </service>
+    </server>
 </plugin>
