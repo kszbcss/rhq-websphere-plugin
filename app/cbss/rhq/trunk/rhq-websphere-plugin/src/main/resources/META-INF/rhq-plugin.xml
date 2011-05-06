@@ -22,6 +22,8 @@
                                description="The credentials (i.e. password) that should be used to authenticate the principal."/>
         </plugin-configuration>
         
+        <event name="RasMessage" description="RAS logging message"/>
+        
         <service name="Thread Pool"
                  discovery="WebSphereMBeanResourceDiscoveryComponent"
                  class="StatsEnabledMBeanResourceComponent"
