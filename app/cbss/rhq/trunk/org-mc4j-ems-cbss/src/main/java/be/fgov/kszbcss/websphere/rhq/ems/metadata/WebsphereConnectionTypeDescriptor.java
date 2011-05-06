@@ -14,7 +14,7 @@ public class WebsphereConnectionTypeDescriptor extends AbstractConnectionTypeDes
     }
 
     public String getDefaultPrincipal() {
-        return "admin";
+        return "";
     }
 
     public String getDefaultCredentials() {
@@ -38,11 +38,7 @@ public class WebsphereConnectionTypeDescriptor extends AbstractConnectionTypeDes
     }
 
     public String[] getConnectionClasspathEntries() {
-        return new String[] {
-            "runtimes/com.ibm.ws.admin.client_7.0.0.jar",
-            "runtimes/com.ibm.ws.ejb.thinclient_7.0.0.jar",
-            "runtimes/com.ibm.ws.orb_7.0.0.jar",
-        };
+        return null;
     }
 
     public String getConnectionNodeClassName() {
@@ -54,6 +50,6 @@ public class WebsphereConnectionTypeDescriptor extends AbstractConnectionTypeDes
     }
 
     public String getRecongnitionPath() {
-        return "runtimes/com.ibm.ws.admin.client_7.0.0.jar";
+        return null;
     }
 }
