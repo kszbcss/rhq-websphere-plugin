@@ -7,7 +7,6 @@ import javax.management.j2ee.statistics.Stats;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mc4j.ems.connection.bean.EmsBean;
-import org.mc4j.ems.connection.bean.attribute.EmsAttribute;
 import org.rhq.plugins.jmx.MBeanResourceComponent;
 
 public class DataSourceComponent extends StatsEnabledMBeanResourceComponent<MBeanResourceComponent> {
@@ -16,22 +15,23 @@ public class DataSourceComponent extends StatsEnabledMBeanResourceComponent<MBea
     @Override
     protected Stats getStats() {
         EmsBean bean = getEmsBean();
-        EmsAttribute jndiNameAttribute = bean.getAttribute("jndiName");
-        if (jndiNameAttribute == null) {
-            log.error("jndiName attribute not found on " + bean.getBeanName());
-            return null;
-        }
-        String jndiName = (String)jndiNameAttribute.getValue();
+        String dataSourceName = bean.getBeanName().toString();
         EmsBean providerBean = getResourceContext().getParentResourceComponent().getEmsBean();
         JDBCStats stats = (JDBCStats)StatsHelper.getStats(providerBean);
-        if (log.isDebugEnabled()) {
-            log.debug("Attempt to get nested statistic for " + jndiName + " on MBean " + providerBean.getBeanName());
-        }
-        for (JDBCConnectionPoolStats nestedStats : stats.getConnectionPools()) {
-            if (nestedStats.getJdbcDataSource().equals(jndiName)) {
-                return nestedStats;
+        for (JDBCConnectionPoolStats poolStats : stats.getConnectionPools()) {
+            if (poolStats.getJdbcDataSource().equals(dataSourceName)) {
+                return poolStats;
             }
         }
+        StringBuilder message = new StringBuilder();
+        message.append("Unable to retrieve JDBCConnectionPoolStats for ");
+        message.append(dataSourceName);
+        message.append("; available data sources name are:");
+        for (JDBCConnectionPoolStats poolStats : stats.getConnectionPools()) {
+            message.append("\n  ");
+            message.append(poolStats.getJdbcDataSource());
+        }
+        log.error(message.toString());
         return null;
     }
 }
