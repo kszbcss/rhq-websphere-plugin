@@ -16,9 +16,6 @@
         <ems.version>1.2.11</ems.version>
     </properties>
     <modules>
-        <module>org-mc4j-ems-cbss</module>
-        <module>org-mc4j-ems-impl-cbss</module>
-        <module>rhq-jmx-plugin-cbss</module>
         <module>rhq-websphere-plugin</module>
         <module>websphere-apis</module>
     </modules>

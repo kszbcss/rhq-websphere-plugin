@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.websphere.rhq.ems.provider;
+package be.fgov.kszbcss.websphere.rhq;
 
 import java.util.Properties;
 import java.util.Set;

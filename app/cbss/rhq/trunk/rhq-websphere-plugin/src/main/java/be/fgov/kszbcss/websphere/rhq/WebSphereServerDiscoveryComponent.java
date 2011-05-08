@@ -1,18 +1,19 @@
 package be.fgov.kszbcss.websphere.rhq;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
-import org.mc4j.ems.connection.EmsConnection;
-import org.mc4j.ems.connection.bean.EmsBean;
-import org.mc4j.ems.connection.bean.EmsBeanName;
+import javax.management.ObjectName;
+
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.pluginapi.inventory.DiscoveredResourceDetails;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ManualAddFacet;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
+
+import com.ibm.websphere.management.AdminClient;
+import com.ibm.websphere.management.exception.ConnectorException;
 
 public class WebSphereServerDiscoveryComponent implements ResourceDiscoveryComponent, ManualAddFacet {
     public Set discoverResources(ResourceDiscoveryContext context) throws InvalidPluginConfigurationException, Exception {
@@ -21,16 +22,16 @@ public class WebSphereServerDiscoveryComponent implements ResourceDiscoveryCompo
     }
 
     public DiscoveredResourceDetails discoverResource(Configuration pluginConfiguration, ResourceDiscoveryContext discoveryContext) throws InvalidPluginConfigurationException {
-        EmsConnection connection = ConnectionHelper.createConnection(pluginConfiguration);
-        List<EmsBean> servers = connection.queryBeans("WebSphere:type=Server,*");
-        if (servers.size() > 1) {
-            throw new InvalidPluginConfigurationException("Found more than one Server MBean. Are you connecting to an administrative agent?");
+        try {
+            AdminClient adminClient = ConnectionHelper.createAdminClient(pluginConfiguration);
+            ObjectName serverBeanName = adminClient.getServerMBean();
+            String cell = serverBeanName.getKeyProperty("cell");
+            String node = serverBeanName.getKeyProperty("node");
+            String process = serverBeanName.getKeyProperty("process");
+            return new DiscoveredResourceDetails(discoveryContext.getResourceType(), cell + "/" + node + "/" + process,
+                    process, null, process + " (cell " + cell + ", node " + node + ")", pluginConfiguration, null);
+        } catch (ConnectorException ex) {
+            throw new InvalidPluginConfigurationException("Unable to connect to server", ex);
         }
-        EmsBeanName serverBeanName = servers.get(0).getBeanName();
-        String cell = serverBeanName.getKeyProperty("cell");
-        String node = serverBeanName.getKeyProperty("node");
-        String process = serverBeanName.getKeyProperty("process");
-        return new DiscoveredResourceDetails(discoveryContext.getResourceType(), cell + "/" + node + "/" + process,
-                process, null, process + " (cell " + cell + ", node " + node + ")", pluginConfiguration, null);
     }
 }

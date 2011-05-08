@@ -2,30 +2,56 @@ package be.fgov.kszbcss.websphere.rhq;
 
 import java.util.Properties;
 
-import org.mc4j.ems.connection.ConnectionFactory;
-import org.mc4j.ems.connection.EmsConnection;
-import org.mc4j.ems.connection.settings.ConnectionSettings;
-import org.mc4j.ems.connection.support.ConnectionProvider;
+import javax.security.auth.Subject;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.configuration.Configuration;
 
-import be.fgov.kszbcss.websphere.rhq.ems.metadata.WebsphereConnectionTypeDescriptor;
+
+import com.ibm.websphere.management.AdminClient;
+import com.ibm.websphere.management.AdminClientFactory;
+import com.ibm.websphere.management.exception.ConnectorException;
+import com.ibm.websphere.security.WSSecurityException;
+import com.ibm.websphere.security.auth.WSSubject;
 
 public class ConnectionHelper {
-    public static EmsConnection createConnection(Configuration config) {
-        ConnectionSettings connectionSettings = new ConnectionSettings();
-        connectionSettings.initializeConnectionType(new WebsphereConnectionTypeDescriptor());
-        connectionSettings.setServerUrl(config.getSimpleValue("host", null) + ":" + config.getSimpleValue("port", null));
-        connectionSettings.setPrincipal(config.getSimpleValue("principal", null));
-        connectionSettings.setCredentials(config.getSimpleValue("credentials", null));
+    private static final Log log = LogFactory.getLog(ConnectionHelper.class);
+    
+    public static AdminClient createAdminClient(Configuration config) throws ConnectorException {
+        Properties properties = new Properties();
+        
+        properties.put(AdminClient.CONNECTOR_TYPE, AdminClient.CONNECTOR_TYPE_RMI);
+        properties.setProperty(AdminClient.CONNECTOR_HOST, config.getSimpleValue("host", null));
+        properties.setProperty(AdminClient.CONNECTOR_PORT, config.getSimpleValue("port", null));
 
-        ConnectionFactory connectionFactory = new ConnectionFactory();
-        connectionFactory.discoverServerClasses(connectionSettings);
-
-        if (connectionSettings.getAdvancedProperties() == null) {
-            connectionSettings.setAdvancedProperties(new Properties());
+        String principal = config.getSimpleValue("principal", null); 
+        if (principal != null && principal.length() > 0) { 
+            properties.setProperty(AdminClient.CONNECTOR_SECURITY_ENABLED, "true"); 
+            properties.setProperty(AdminClient.USERNAME, principal); 
+            properties.setProperty(AdminClient.PASSWORD, config.getSimpleValue("credentials", null)); 
+        } else { 
+            properties.setProperty(AdminClient.CONNECTOR_SECURITY_ENABLED, "false");
         }
-
-        ConnectionProvider connectionProvider = connectionFactory.getConnectionProvider(connectionSettings);
-        return connectionProvider.connect();
+        
+        if (log.isDebugEnabled()) {
+            log.debug("Creating AdminClient with properties: " + properties);
+        }
+        
+        AdminClient adminClient = AdminClientFactory.createAdminClient(properties);
+        try {
+            Subject subject = WSSubject.getRunAsSubject();
+            if (log.isDebugEnabled()) {
+                log.debug("Subject = " + subject);
+            }
+            if (subject != null) {
+                WSSubject.setRunAsSubject(null);
+                adminClient = new SecureAdminClient(adminClient, subject);
+            }
+        } catch (WSSecurityException ex) {
+            throw new ConnectorException(ex);
+        }
+        
+        return adminClient;
     }
 }

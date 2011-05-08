@@ -29,10 +29,15 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>rhq-jmx-plugin-cbss</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.rhq</groupId>
+            <artifactId>rhq-jmx-plugin</artifactId>
+            <version>${rhq.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>mc4j</groupId>
+            <artifactId>org-mc4j-ems-impl</artifactId>
+            <version>${ems.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -46,10 +51,15 @@
             <version>1.1.1</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
+            <version>1.0.1</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
-            <!-- plugin>
+            <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
@@ -64,7 +74,7 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin -->
+            </plugin>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
