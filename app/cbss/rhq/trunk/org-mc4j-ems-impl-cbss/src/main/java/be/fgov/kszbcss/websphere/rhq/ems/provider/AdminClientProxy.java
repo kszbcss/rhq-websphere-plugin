@@ -8,23 +8,19 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.management.MBeanServer;
-import javax.security.auth.Subject;
 
 import org.mc4j.ems.impl.jmx.connection.support.providers.proxy.StatsProxy;
 
 import com.ibm.websphere.management.AdminClient;
-import com.ibm.websphere.security.auth.WSSubject;
 
 public class AdminClientProxy implements InvocationHandler, StatsProxy {
     private final AtomicLong failures = new AtomicLong();
     private final AtomicLong roundTrips = new AtomicLong();
     private final AdminClient adminClient;
-    private final Subject subject;
     private final Map<Method,Method> methodMap = new HashMap<Method,Method>();
     
-    public AdminClientProxy(AdminClient adminClient, Subject subject) {
+    public AdminClientProxy(AdminClient adminClient) {
         this.adminClient = adminClient;
-        this.subject = subject;
         for (Method method : MBeanServer.class.getMethods()) {
             try {
                 methodMap.put(method, AdminClient.class.getMethod(method.getName(), method.getParameterTypes()));
@@ -40,7 +36,6 @@ public class AdminClientProxy implements InvocationHandler, StatsProxy {
             throw new RuntimeException("No corresponding method for " + method);
         } else {
             boolean failure = true;
-            WSSubject.setRunAsSubject(subject);
             try {
                 Object result = targetMethod.invoke(adminClient, args);
                 failure = false;
@@ -50,7 +45,6 @@ public class AdminClientProxy implements InvocationHandler, StatsProxy {
                     failures.incrementAndGet();
                 }
                 roundTrips.incrementAndGet();
-                WSSubject.setRunAsSubject(null);
             }
         }
     }

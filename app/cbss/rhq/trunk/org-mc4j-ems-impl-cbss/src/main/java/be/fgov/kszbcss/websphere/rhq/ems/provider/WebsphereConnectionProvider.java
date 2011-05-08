@@ -57,9 +57,12 @@ public class WebsphereConnectionProvider extends AbstractConnectionProvider {
         if (log.isDebugEnabled()) {
             log.debug("Subject = " + subject);
         }
-        WSSubject.setRunAsSubject(null);
+        if (subject != null) {
+            WSSubject.setRunAsSubject(null);
+            adminClient = new SecureAdminClient(adminClient, subject);
+        }
 
-        proxy = new AdminClientProxy(adminClient, subject);
+        proxy = new AdminClientProxy(adminClient);
         mbeanServer = proxy.buildServerProxy();
     }
 
