@@ -12,12 +12,13 @@ import org.mc4j.ems.connection.support.ConnectionProvider;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
+import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class WebSphereServerComponent implements WebSphereComponent {
+public class WebSphereServerComponent implements WebSphereComponent<ResourceComponent<?>> {
     private static final Log log = LogFactory.getLog(WebSphereServerComponent.class);
     
     private ResourceContext resourceContext;

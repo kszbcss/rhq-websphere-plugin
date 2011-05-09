@@ -6,6 +6,7 @@ import org.mc4j.ems.connection.bean.EmsBean;
 import org.mc4j.ems.connection.bean.attribute.EmsAttribute;
 
 import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
+import com.ibm.websphere.pmi.stat.WSRangeStatistic;
 
 public class DataSourceComponent extends StatsEnabledMBeanResourceComponent<StatsEnabledMBeanResourceComponent<?>> {
     private static final Log log = LogFactory.getLog(DataSourceComponent.class);
@@ -21,5 +22,14 @@ public class DataSourceComponent extends StatsEnabledMBeanResourceComponent<Stat
         String jndiName = (String)jndiNameAttribute.getValue();
         EmsBean providerBean = getResourceContext().getParentResourceComponent().getEmsBean();
         return Utils.getMBeanStatDescriptor(providerBean, jndiName);
+    }
+
+    @Override
+    protected double getValue(String name, WSRangeStatistic statistic) {
+        if (name.equals("PercentMaxed")) {
+            return ((double)statistic.getCurrent())/100;
+        } else {
+            return super.getValue(name, statistic);
+        }
     }
 }

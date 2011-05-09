@@ -86,7 +86,7 @@ public class StatsEnabledMBeanResourceComponent<T extends WebSphereComponent<?>>
                     if (statistic instanceof WSCountStatistic) {
                         value = ((WSCountStatistic)statistic).getCount();
                     } else if (statistic instanceof WSRangeStatistic) {
-                        value = ((WSRangeStatistic)statistic).getCurrent();
+                        value = getValue(statisticName, (WSRangeStatistic)statistic);
                     } else if (statistic instanceof WSAverageStatistic) {
                         WSAverageStatistic currentStatistic = (WSAverageStatistic)statistic;
                         WSAverageStatistic prevStatistic = lastStats.get(statisticName);
@@ -124,5 +124,9 @@ public class StatsEnabledMBeanResourceComponent<T extends WebSphereComponent<?>>
 
     protected MBeanStatDescriptor getMBeanStatDescriptor() {
         return Utils.getMBeanStatDescriptor(getEmsBean());
+    }
+    
+    protected double getValue(String name, WSRangeStatistic statistic) {
+        return statistic.getCurrent();
     }
 }

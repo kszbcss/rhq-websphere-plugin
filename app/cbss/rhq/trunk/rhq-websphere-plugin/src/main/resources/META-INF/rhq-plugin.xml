@@ -41,7 +41,7 @@
 
         <service name="Thread Pool"
                  discovery="WebSphereMBeanResourceDiscoveryComponent"
-                 class="StatsEnabledMBeanResourceComponent"
+                 class="ThreadPoolComponent"
                  description="WebSphere Thread Pool">
     
             <plugin-configuration>
