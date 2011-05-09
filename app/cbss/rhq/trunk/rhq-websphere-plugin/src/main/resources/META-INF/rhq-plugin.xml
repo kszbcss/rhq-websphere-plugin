@@ -14,16 +14,31 @@
             supportsManualAdd="true">
         
         <plugin-configuration>
-            <c:simple-property name="host" default="localhost"/>
-            <c:simple-property name="port" default="9100" type="integer"/>
-            <c:simple-property name="principal" required="false"
-                               description="The name of the principal (i.e. user) to authenticate."/>
-            <c:simple-property name="credentials" type="password" required="false"
-                               description="The credentials (i.e. password) that should be used to authenticate the principal."/>
+            <c:group name="connection" displayName="Connection Info">
+                <c:simple-property name="host" default="localhost"/>
+                <c:simple-property name="port" default="9100" type="integer"/>
+                <c:simple-property name="principal" required="false"
+                                   description="The name of the principal (i.e. user) to authenticate."/>
+                <c:simple-property name="credentials" type="password" required="false"
+                                   description="The credentials (i.e. password) that should be used to authenticate the principal."/>
+            </c:group>
+            <c:group name="advanced" displayName="Advanced" hiddenByDefault="true">
+                <c:simple-property name="childJmxServerName" displayName="WebSphere JVM Name" default="JVM"
+                                   readOnly="true" required="false"
+                                   description="The name of the WebSphere JVM resource."/>
+            </c:group>
         </plugin-configuration>
         
         <event name="RasMessage" description="RAS logging message"/>
         
+        <server name="WebSphere JVM"
+                description="JVM of the WebSphere Application Server"
+                sourcePlugin="JMX"
+                sourceType="JMX Server"
+                discovery="org.rhq.plugins.jmx.EmbeddedJMXServerDiscoveryComponent"
+                class="org.rhq.plugins.jmx.JMXServerComponent"
+                singleton="true"/>
+
         <service name="Thread Pool"
                  discovery="WebSphereMBeanResourceDiscoveryComponent"
                  class="StatsEnabledMBeanResourceComponent"

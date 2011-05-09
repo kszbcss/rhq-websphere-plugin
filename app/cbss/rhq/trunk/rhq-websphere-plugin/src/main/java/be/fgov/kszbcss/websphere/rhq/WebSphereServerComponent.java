@@ -47,6 +47,11 @@ public class WebSphereServerComponent implements WebSphereComponent {
                 // will still be used in logging:
                 connectionProvider.initialize(connectionSettings);
                 connection = connectionProvider.connect();
+                
+                // If this is not present, then EmbeddedJMXServerDiscoveryComponent will fail to
+                // discover the platform MXBeans.
+                connection.loadSynchronous(false);
+                
             } catch (ConnectorException ex) {
                 throw new EmsException(ex);
             }
