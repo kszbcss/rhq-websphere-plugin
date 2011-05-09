@@ -74,9 +74,15 @@
                 <!-- metric property="stats.PercentUsed" displayName="% Used"
                         category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
                         description="Average percent of the pool that is in use. The value is based on the total number of configured connections in the ConnectionPool, not the current number of connections."/ -->
+                <metric property="stats.PercentMaxed" displayName="% Maxed"
+                        category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
+                        description="The average percent of the time that all connections are in use."/>
                 <metric property="stats.AllocateCount" displayName="Allocated Connections"
                         category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                         description="The total number of connections that are allocated."/>
+                <metric property="stats.PrepStmtCacheDiscardCount" displayName="Disc. Prep. Stmt."
+                        category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="The number of statements that are discarded because the cache is full."/>
             </service>
         </service>
         <service name="Application"
@@ -116,13 +122,13 @@
                         <c:simple-property name="name" readOnly="true" type="string" description="The name of this servlet"/>
                     </plugin-configuration>
                     
-                    <metric property="stats.webAppModule.servlets.responseTime" displayName="Avg. Servlet Resp. Time"
+                    <metric property="stats.ServiceTime" displayName="Avg. Servlet Resp. Time"
                             category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                             description="Average response time of a servlet"/>
                     <metric property="stats.ErrorCount" displayName="Error Count"
                             category="availability" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                             description="The total number of times an error has been received from the servlet or JSP."/>
-                    <metric property="stats.webAppModule.servlets.totalRequests" displayName="Request Count"
+                    <metric property="stats.RequestCount" displayName="Request Count"
                             category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                             description="The number of requests received by the servlet"/>
                 </service>

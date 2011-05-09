@@ -28,6 +28,7 @@ public class WebSphereServer {
     private final Configuration config;
     private AdminClient adminClient;
     private ObjectName perfMBean;
+    private PmiModuleConfig[] pmiModuleConfigs;
     
     public WebSphereServer(Configuration config) {
         this.config = config;
@@ -96,40 +97,36 @@ public class WebSphereServer {
         }
         return stats;
     }
-
-    public void enableStatistics(MBeanStatDescriptor descriptor, Set<String> statisticsToEnable) {
+    
+    private synchronized PmiModuleConfig[] getPmiModuleConfigs() throws JMException, ConnectorException {
+        if (pmiModuleConfigs == null) {
+            pmiModuleConfigs = (PmiModuleConfig[])getAdminClient().invoke(getPerfMBean(), "getConfigs", new Object[0], new String[0]);
+        }
+        return pmiModuleConfigs;
+    }
+    
+    public PmiModuleConfig getPmiModuleConfig(WSStats stats) throws JMException, ConnectorException {
+        String statsType = stats.getStatsType();
+        int dashIndex = statsType.indexOf('#');
+        if (dashIndex != -1) {
+            statsType = statsType.substring(0, dashIndex);
+        }
+        for (PmiModuleConfig config : getPmiModuleConfigs()) {
+            if (config.getUID().equals(statsType)) {
+                return config;
+            }
+        }
+        log.error("Unable to locate PMI module config for " + statsType);
+        return null;
+    }
+    
+    public void enableStatistics(MBeanStatDescriptor descriptor, Set<Integer> statisticsToEnable) {
         try {
             if (log.isDebugEnabled()) {
                 log.debug("Attempting to enable statistics " + statisticsToEnable + " on " + descriptor);
             }
             AdminClient adminClient = getAdminClient();
             ObjectName perfMBean = getPerfMBean();
-            
-            // Get the WSStats object so that we can determine the stats type
-            WSStats stats = (WSStats)getAdminClient().invoke(getPerfMBean(), "getStatsObject",
-                    new Object[] { descriptor, Boolean.FALSE },
-                    new String[] { MBeanStatDescriptor.class.getName(), Boolean.class.getName() });
-            String statsType = stats.getStatsType();
-            if (log.isDebugEnabled()) {
-                log.debug("Statistics type is: " + statsType);
-            }
-            
-            // Find the corresponding module configuration
-            PmiModuleConfig[] configs = (PmiModuleConfig[])adminClient.invoke(perfMBean, "getConfigs", new Object[0], new String[0]);
-            PmiModuleConfig config = null;
-            for (PmiModuleConfig candidate : configs) {
-                if (candidate.getUID().equals(statsType)) {
-                    config = candidate;
-                    break;
-                }
-            }
-            if (config == null) {
-                log.error("Unable to find PMI config for " + statsType);
-                return;
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("PMI configuration is:\n" + config);
-            }
             
             // Load the existing instrumentation level
             MBeanLevelSpec[] specs = (MBeanLevelSpec[])adminClient.invoke(perfMBean, "getInstrumentationLevel",
@@ -149,8 +146,8 @@ public class WebSphereServer {
             int[] newEnabled = new int[oldEnabled.length+statisticsToEnable.size()];
             System.arraycopy(oldEnabled, 0, newEnabled, 0, oldEnabled.length);
             int index = oldEnabled.length;
-            for (String name : statisticsToEnable) {
-                newEnabled[index++] = config.getDataId(name);
+            for (Integer dataId : statisticsToEnable) {
+                newEnabled[index++] = dataId;
             }
             spec.setEnabled(newEnabled);
             if (log.isDebugEnabled()) {

@@ -16,6 +16,7 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.plugins.jmx.MBeanResourceComponent;
 
 import com.ibm.websphere.management.exception.ConnectorException;
+import com.ibm.websphere.pmi.PmiModuleConfig;
 import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
 import com.ibm.websphere.pmi.stat.WSAverageStatistic;
 import com.ibm.websphere.pmi.stat.WSCountStatistic;
@@ -37,14 +38,17 @@ public class StatsEnabledMBeanResourceComponent<T extends WebSphereComponent<?>>
         Set<MeasurementScheduleRequest> simpleRequests = new HashSet<MeasurementScheduleRequest>();
         MBeanStatDescriptor descriptor = null;
         WSStats stats = null;
-        Set<String> statisticsToEnable = null;
+        PmiModuleConfig pmiModuleConfig = null;
+        Set<Integer> statisticsToEnable = null;
         for (MeasurementScheduleRequest request : (Set<MeasurementScheduleRequest>)requests) {
             String name = request.getName();
             if (name.startsWith("stats.")) {
                 if (descriptor == null) {
                     descriptor = getMBeanStatDescriptor();
+                    WebSphereServer server = getServer();
                     try {
-                        stats = getServer().getWSStats(descriptor);
+                        stats = server.getWSStats(descriptor);
+                        pmiModuleConfig = server.getPmiModuleConfig(stats);
                     } catch (JMException ex) {
                         log.error("Failed to get statistics object", ex);
                     } catch (ConnectorException ex) {
@@ -53,17 +57,25 @@ public class StatsEnabledMBeanResourceComponent<T extends WebSphereComponent<?>>
                 }
                 if (stats != null) {
                     String statisticName = name.substring(6);
-                    WSStatistic statistic = stats.getStatistic(statisticName);
+                    int dataId = pmiModuleConfig.getDataId(statisticName);
+                    if (dataId == -1) {
+                        log.error("Could not find statistic with name " + statisticName + " in the PMI module configuration");
+                        continue;
+                    }
+                    // For some WSStats objects, the statistic names don't match the names used by PMI.
+                    // Therefore we translate all names to data IDs. This also makes it easier to
+                    // automatically enable the statistics if necessary.
+                    WSStatistic statistic = stats.getStatistic(dataId);
                     if (statistic == null) {
-                        log.info("Statistic with name " + statisticName + " not available; will attempt to enable it");
+                        log.info("Statistic with name " + statisticName + " (ID " + dataId + ") not available; will attempt to enable it");
                         if (statisticsToEnable == null) {
-                            statisticsToEnable = new HashSet<String>();
+                            statisticsToEnable = new HashSet<Integer>();
                         }
-                        statisticsToEnable.add(statisticName);
+                        statisticsToEnable.add(dataId);
                         continue;
                     }
                     if (log.isDebugEnabled()) {
-                        log.debug("Loaded Statistic with name " + statisticName + " and type " + statistic.getClass().getName());
+                        log.debug("Loaded Statistic with name " + statisticName + " (ID " + dataId + ") and type " + statistic.getClass().getName());
                     }
                     double value;
                     if (statistic instanceof WSCountStatistic) {

@@ -7,9 +7,9 @@ public interface WSStats {
     
     long getTime();
     
-    WSStatistic getStatistic(int arg0);
+    WSStatistic getStatistic(int dataId);
     
-    WSStatistic getStatistic(java.lang.String arg0);
+    WSStatistic getStatistic(String name);
     
     String[] getStatisticNames();
     
