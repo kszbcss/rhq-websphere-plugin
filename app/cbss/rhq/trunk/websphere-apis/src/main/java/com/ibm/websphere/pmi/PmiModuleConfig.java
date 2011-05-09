@@ -5,7 +5,7 @@ public class PmiModuleConfig {
         return -1;
     }
     
-    public String getShortName() {
+    public String getUID() {
         return null;
     }
 }

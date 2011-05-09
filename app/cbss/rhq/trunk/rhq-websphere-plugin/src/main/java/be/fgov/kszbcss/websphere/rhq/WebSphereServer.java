@@ -118,7 +118,7 @@ public class WebSphereServer {
             PmiModuleConfig[] configs = (PmiModuleConfig[])adminClient.invoke(perfMBean, "getConfigs", new Object[0], new String[0]);
             PmiModuleConfig config = null;
             for (PmiModuleConfig candidate : configs) {
-                if (candidate.getShortName().equals(statsType)) {
+                if (candidate.getUID().equals(statsType)) {
                     config = candidate;
                     break;
                 }

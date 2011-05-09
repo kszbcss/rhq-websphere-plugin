@@ -119,6 +119,9 @@
                     <metric property="stats.webAppModule.servlets.responseTime" displayName="Avg. Servlet Resp. Time"
                             category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                             description="Average response time of a servlet"/>
+                    <metric property="stats.ErrorCount" displayName="Error Count"
+                            category="availability" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                            description="The total number of times an error has been received from the servlet or JSP."/>
                     <metric property="stats.webAppModule.servlets.totalRequests" displayName="Request Count"
                             category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                             description="The number of requests received by the servlet"/>
