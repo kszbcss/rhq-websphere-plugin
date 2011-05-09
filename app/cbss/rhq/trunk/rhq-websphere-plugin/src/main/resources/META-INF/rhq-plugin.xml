@@ -42,7 +42,7 @@
         </service>
         <service name="JDBC Provider"
                  discovery="JDBCProviderDiscoveryComponent"
-                 class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                 class="StatsEnabledMBeanResourceComponent"
                  description="JDBC Provider">
     
             <plugin-configuration>
@@ -81,7 +81,7 @@
         </service>
         <service name="Application"
                  discovery="ApplicationDiscoveryComponent"
-                 class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                 class="StatsEnabledMBeanResourceComponent"
                  description="Application (EAR)">
             
             <plugin-configuration>
@@ -93,7 +93,7 @@
             
             <service name="Web module"
                      discovery="ModuleDiscoveryComponent"
-                     class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                     class="StatsEnabledMBeanResourceComponent"
                      description="Web module">
                 <plugin-configuration>
                     <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%moduleName%,Application={applicationName},type=WebModule"/>
@@ -127,7 +127,7 @@
             
             <service name="EJB module"
                      discovery="ModuleDiscoveryComponent"
-                     class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                     class="StatsEnabledMBeanResourceComponent"
                      description="EJB module">
                 <plugin-configuration>
                     <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%moduleName%,Application={applicationName},type=EJBModule"/>

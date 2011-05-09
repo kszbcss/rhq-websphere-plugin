@@ -1,7 +1,6 @@
 package be.fgov.kszbcss.websphere.rhq;
 
 import javax.management.JMException;
-import javax.management.NotificationFilterSupport;
 import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
@@ -14,53 +13,36 @@ import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
-import org.rhq.plugins.jmx.JMXComponent;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class WebSphereServerComponent implements JMXComponent {
+public class WebSphereServerComponent implements WebSphereComponent {
     private static final Log log = LogFactory.getLog(WebSphereServerComponent.class);
     
     private ResourceContext resourceContext;
-    private AdminClient adminClient;
+    private WebSphereServer server;
     private EmsConnection connection;
     private RasMessagePoller poller;
     
     public void start(ResourceContext context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
-        poller = new RasMessagePoller();
+        server = new WebSphereServer(context.getPluginConfiguration());
+        poller = new RasMessagePoller(server);
         context.getEventContext().registerEventPoller(poller, 60);
     }
 
-    public synchronized AdminClient getAdminClient() throws ConnectorException {
-        if (adminClient == null) {
-            adminClient = ConnectionHelper.createAdminClient(resourceContext.getPluginConfiguration());
-            try {
-                ObjectName rasLoggingService = adminClient.queryNames(new ObjectName("WebSphere:type=RasLoggingService,*"), null).iterator().next();
-                NotificationFilterSupport filter = new NotificationFilterSupport();
-                // TODO: use constants from NotificationConstants here
-                filter.enableType("websphere.ras.audit");
-                filter.enableType("websphere.ras.warning");
-                filter.enableType("websphere.ras.error");
-                filter.enableType("websphere.ras.fatal");
-                // TODO: unregister the listeners somewhere
-                adminClient.addNotificationListener(rasLoggingService, poller, filter, null);
-                log.info("Starting to receive logging events from " + rasLoggingService);
-            } catch (JMException ex) {
-                log.error("Unable to register notification listener for RasLoggingService", ex);
-            }
-        }
-        return adminClient;
+    public WebSphereServer getServer() {
+        return server;
     }
-    
+
     public synchronized EmsConnection getEmsConnection() {
         if (connection == null) {
             try {
                 Configuration pluginConfig = resourceContext.getPluginConfiguration();
                 ConnectionSettings connectionSettings = new ConnectionSettings();
                 connectionSettings.setServerUrl(pluginConfig.getSimpleValue("host", null) + ":" + pluginConfig.getSimpleValue("port", null));
-                ConnectionProvider connectionProvider = new WebsphereConnectionProvider(getAdminClient());
+                ConnectionProvider connectionProvider = new WebsphereConnectionProvider(server.getAdminClient());
                 // The connection settings are not required to establish the connection, but they
                 // will still be used in logging:
                 connectionProvider.initialize(connectionSettings);
@@ -75,7 +57,7 @@ public class WebSphereServerComponent implements JMXComponent {
     public AvailabilityType getAvailability() {
         AdminClient adminClient;
         try {
-            adminClient = getAdminClient();
+            adminClient = server.getAdminClient();
         } catch (ConnectorException ex) {
             log.debug("Unable to connect to server => server DOWN", ex);
             return AvailabilityType.DOWN;
@@ -108,6 +90,7 @@ public class WebSphereServerComponent implements JMXComponent {
     }
 
     public void stop() {
+        poller.unregisterListener();
         resourceContext.getEventContext().unregisterEventPoller(RasMessagePoller.EVENT_TYPE);
     }
 }
