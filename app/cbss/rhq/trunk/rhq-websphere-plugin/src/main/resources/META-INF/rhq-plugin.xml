@@ -36,9 +36,15 @@
                 <c:simple-property name="name" type="string" description="The name of this thread pool"/>
             </plugin-configuration>
             
-            <metric displayName="Pool size" property="stats.PoolSize"
-                    category="utilization" defaultOn="true" displayType="summary"
+            <metric property="stats.PoolSize" displayName="Pool size"
+                    category="utilization" displayType="summary" defaultInterval="600000"
                     description="The average number of threads in a pool."/>
+            <metric property="stats.PercentMaxed" displayName="% Maxed"
+                    category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
+                    description="The average percent of the time that all threads are in use."/>
+            <metric property="stats.ConcurrentHungThreadCount" displayName="Hung Thread Count"
+                    category="performance" displayType="summary" defaultInterval="600000"
+                    description="The number of concurrently stopped threads."/>
         </service>
         <service name="JDBC Provider"
                  discovery="JDBCProviderDiscoveryComponent"
