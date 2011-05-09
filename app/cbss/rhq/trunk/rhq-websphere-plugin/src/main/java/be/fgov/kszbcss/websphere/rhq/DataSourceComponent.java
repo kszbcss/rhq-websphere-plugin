@@ -20,19 +20,6 @@ public class DataSourceComponent extends StatsEnabledMBeanResourceComponent<Stat
         }
         String jndiName = (String)jndiNameAttribute.getValue();
         EmsBean providerBean = getResourceContext().getParentResourceComponent().getEmsBean();
-        WSStats stats = getServer().getWSStats(providerBean);
-        WSStats subStats = stats.getStats(jndiName);
-        if (subStats == null) {
-            StringBuilder message = new StringBuilder();
-            message.append("Unable to retrieve statistics for ");
-            message.append(jndiName);
-            message.append("; available data sources are:");
-            for (WSStats s : stats.getSubStats()) {
-                message.append("\n  ");
-                message.append(s.getName());
-            }
-            log.error(message.toString());
-        }
-        return subStats;
+        return getServer().getWSStats(providerBean, jndiName);
     }
 }

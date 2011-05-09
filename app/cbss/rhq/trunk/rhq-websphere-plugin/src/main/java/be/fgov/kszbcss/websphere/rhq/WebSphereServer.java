@@ -17,6 +17,8 @@ import org.rhq.core.domain.configuration.Configuration;
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.AdminClientFactory;
 import com.ibm.websphere.management.exception.ConnectorException;
+import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
+import com.ibm.websphere.pmi.stat.StatDescriptor;
 import com.ibm.websphere.pmi.stat.WSStats;
 import com.ibm.websphere.security.WSSecurityException;
 import com.ibm.websphere.security.auth.WSSubject;
@@ -79,15 +81,15 @@ public class WebSphereServer {
         return perfMBean;
     }
     
-    public WSStats getWSStats(ObjectName mbean) throws JMException, ConnectorException {
+    public WSStats getWSStats(MBeanStatDescriptor descriptor) throws JMException, ConnectorException {
         WSStats stats = (WSStats)getAdminClient().invoke(getPerfMBean(), "getStatsObject",
-                new Object[] { mbean, Boolean.TRUE },
-                new String[] { ObjectName.class.getName(), Boolean.class.getName() });
+                new Object[] { descriptor, Boolean.TRUE },
+                new String[] { MBeanStatDescriptor.class.getName(), Boolean.class.getName() });
         if (log.isDebugEnabled()) {
             if (stats == null) {
-                log.debug("No stats attribute found on " + mbean);
+                log.debug("No stats found for " + descriptor);
             } else {
-                log.debug("Loaded statistics from MBean " + mbean
+                log.debug("Loaded statistics for " + descriptor
                         + ":\n  Stats type: " + stats.getClass().getName()
                         + "\n  Available statistics: " + Arrays.asList(stats.getStatisticNames()));
             }
@@ -95,12 +97,13 @@ public class WebSphereServer {
         return stats;
     }
     
-    public WSStats getWSStats(EmsBean bean) {
+    public WSStats getWSStats(EmsBean bean, String... path) {
         if (bean == null) {
             throw new IllegalArgumentException("getWSStats: bean can't be null");
         }
         try {
-            return getWSStats(new ObjectName(bean.getBeanName().toString()));
+            ObjectName mbean = new ObjectName(bean.getBeanName().toString());
+            return getWSStats(path.length == 0 ? new MBeanStatDescriptor(mbean) : new MBeanStatDescriptor(mbean, new StatDescriptor(path)));
         } catch (JMException ex) {
             throw new EmsException(ex);
         } catch (ConnectorException ex) {
