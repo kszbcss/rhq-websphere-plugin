@@ -10,15 +10,14 @@ import javax.security.auth.Subject;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.mc4j.ems.connection.EmsException;
-import org.mc4j.ems.connection.bean.EmsBean;
 import org.rhq.core.domain.configuration.Configuration;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.AdminClientFactory;
 import com.ibm.websphere.management.exception.ConnectorException;
+import com.ibm.websphere.pmi.PmiModuleConfig;
+import com.ibm.websphere.pmi.stat.MBeanLevelSpec;
 import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
-import com.ibm.websphere.pmi.stat.StatDescriptor;
 import com.ibm.websphere.pmi.stat.WSStats;
 import com.ibm.websphere.security.WSSecurityException;
 import com.ibm.websphere.security.auth.WSSubject;
@@ -90,24 +89,82 @@ public class WebSphereServer {
                 log.debug("No stats found for " + descriptor);
             } else {
                 log.debug("Loaded statistics for " + descriptor
-                        + ":\n  Stats type: " + stats.getClass().getName()
+                        + ":\n  WSStats class: " + stats.getClass().getName()
+                        + "\n  Stats type: " + stats.getStatsType()
                         + "\n  Available statistics: " + Arrays.asList(stats.getStatisticNames()));
             }
         }
         return stats;
     }
-    
-    public WSStats getWSStats(EmsBean bean, String... path) {
-        if (bean == null) {
-            throw new IllegalArgumentException("getWSStats: bean can't be null");
-        }
+
+    public void enableStatistics(MBeanStatDescriptor descriptor, Set<String> statisticsToEnable) {
         try {
-            ObjectName mbean = new ObjectName(bean.getBeanName().toString());
-            return getWSStats(path.length == 0 ? new MBeanStatDescriptor(mbean) : new MBeanStatDescriptor(mbean, new StatDescriptor(path)));
-        } catch (JMException ex) {
-            throw new EmsException(ex);
-        } catch (ConnectorException ex) {
-            throw new EmsException(ex);
+            if (log.isDebugEnabled()) {
+                log.debug("Attempting to enable statistics " + statisticsToEnable + " on " + descriptor);
+            }
+            AdminClient adminClient = getAdminClient();
+            ObjectName perfMBean = getPerfMBean();
+            
+            // Get the WSStats object so that we can determine the stats type
+            WSStats stats = (WSStats)getAdminClient().invoke(getPerfMBean(), "getStatsObject",
+                    new Object[] { descriptor, Boolean.FALSE },
+                    new String[] { MBeanStatDescriptor.class.getName(), Boolean.class.getName() });
+            String statsType = stats.getStatsType();
+            if (log.isDebugEnabled()) {
+                log.debug("Statistics type is: " + statsType);
+            }
+            
+            // Find the corresponding module configuration
+            PmiModuleConfig[] configs = (PmiModuleConfig[])adminClient.invoke(perfMBean, "getConfigs", new Object[0], new String[0]);
+            PmiModuleConfig config = null;
+            for (PmiModuleConfig candidate : configs) {
+                if (candidate.getShortName().equals(statsType)) {
+                    config = candidate;
+                    break;
+                }
+            }
+            if (config == null) {
+                log.error("Unable to find PMI config for " + statsType);
+                return;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("PMI configuration is:\n" + config);
+            }
+            
+            // Load the existing instrumentation level
+            MBeanLevelSpec[] specs = (MBeanLevelSpec[])adminClient.invoke(perfMBean, "getInstrumentationLevel",
+                    new Object[] { descriptor, Boolean.FALSE },
+                    new String[] { MBeanStatDescriptor.class.getName(), Boolean.class.getName() });
+            if (specs.length != 1) {
+                log.error("Expected getInstrumentationLevel to return exactly one MBeanLevelSpec object");
+                return;
+            }
+            MBeanLevelSpec spec = specs[0];
+            if (log.isDebugEnabled()) {
+                log.debug("Current instrumentation level: " + spec);
+            }
+            
+            // Add the IDs of the statistics to be enabled
+            int[] oldEnabled = spec.getEnabled();
+            int[] newEnabled = new int[oldEnabled.length+statisticsToEnable.size()];
+            System.arraycopy(oldEnabled, 0, newEnabled, 0, oldEnabled.length);
+            int index = oldEnabled.length;
+            for (String name : statisticsToEnable) {
+                newEnabled[index++] = config.getDataId(name);
+            }
+            spec.setEnabled(newEnabled);
+            if (log.isDebugEnabled()) {
+                log.debug("New instrumentation level: " + spec);
+            }
+            
+            // Now update the instrumentation level
+            adminClient.invoke(perfMBean, "setInstrumentationLevel",
+                    new Object[] { spec, Boolean.FALSE },
+                    new String[] { MBeanLevelSpec.class.getName(), Boolean.class.getName() });
+            
+            log.info("Enabled statistics " + statisticsToEnable + " on " + descriptor);
+        } catch (Exception ex) {
+            log.error(ex); // TODO
         }
     }
 }

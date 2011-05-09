@@ -5,13 +5,13 @@ import org.apache.commons.logging.LogFactory;
 import org.mc4j.ems.connection.bean.EmsBean;
 import org.mc4j.ems.connection.bean.attribute.EmsAttribute;
 
-import com.ibm.websphere.pmi.stat.WSStats;
+import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
 
 public class DataSourceComponent extends StatsEnabledMBeanResourceComponent<StatsEnabledMBeanResourceComponent<?>> {
     private static final Log log = LogFactory.getLog(DataSourceComponent.class);
     
     @Override
-    protected WSStats getStats() {
+    protected MBeanStatDescriptor getMBeanStatDescriptor() {
         EmsBean bean = getEmsBean();
         EmsAttribute jndiNameAttribute = bean.getAttribute("jndiName");
         if (jndiNameAttribute == null) {
@@ -20,6 +20,6 @@ public class DataSourceComponent extends StatsEnabledMBeanResourceComponent<Stat
         }
         String jndiName = (String)jndiNameAttribute.getValue();
         EmsBean providerBean = getResourceContext().getParentResourceComponent().getEmsBean();
-        return getServer().getWSStats(providerBean, jndiName);
+        return Utils.getMBeanStatDescriptor(providerBean, jndiName);
     }
 }
