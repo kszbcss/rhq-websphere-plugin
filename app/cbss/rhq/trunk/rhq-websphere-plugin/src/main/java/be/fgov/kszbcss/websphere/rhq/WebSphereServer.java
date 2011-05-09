@@ -1,8 +1,10 @@
 package be.fgov.kszbcss.websphere.rhq;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.management.JMException;
 import javax.management.ObjectName;
@@ -142,24 +144,42 @@ public class WebSphereServer {
             }
             
             // Add the IDs of the statistics to be enabled
-            int[] oldEnabled = spec.getEnabled();
-            int[] newEnabled = new int[oldEnabled.length+statisticsToEnable.size()];
-            System.arraycopy(oldEnabled, 0, newEnabled, 0, oldEnabled.length);
-            int index = oldEnabled.length;
+            Set<Integer> enabledStatistics = new LinkedHashSet<Integer>();
+            for (int id : spec.getEnabled()) {
+                enabledStatistics.add(id);
+            }
+            Set<Integer> alreadyEnabled = new TreeSet<Integer>();
+            Set<Integer> newStats = new TreeSet<Integer>();
             for (Integer dataId : statisticsToEnable) {
-                newEnabled[index++] = dataId;
-            }
-            spec.setEnabled(newEnabled);
-            if (log.isDebugEnabled()) {
-                log.debug("New instrumentation level: " + spec);
+                if (enabledStatistics.add(dataId)) {
+                    newStats.add(dataId);
+                } else {
+                    alreadyEnabled.add(dataId);
+                }
             }
             
-            // Now update the instrumentation level
-            adminClient.invoke(perfMBean, "setInstrumentationLevel",
-                    new Object[] { spec, Boolean.FALSE },
-                    new String[] { MBeanLevelSpec.class.getName(), Boolean.class.getName() });
+            if (!alreadyEnabled.isEmpty()) {
+                log.info("The statistics " + alreadyEnabled + " appear to be already enabled on " + descriptor);
+            }
             
-            log.info("Enabled statistics " + statisticsToEnable + " on " + descriptor);
+            if (!newStats.isEmpty()) {
+                int[] enabled = new int[enabledStatistics.size()];
+                int index = 0;
+                for (Integer dataId : enabledStatistics) {
+                    enabled[index++] = dataId;
+                }
+                spec.setEnabled(enabled);
+                if (log.isDebugEnabled()) {
+                    log.debug("New instrumentation level: " + spec);
+                }
+                
+                // Now update the instrumentation level
+                adminClient.invoke(perfMBean, "setInstrumentationLevel",
+                        new Object[] { spec, Boolean.FALSE },
+                        new String[] { MBeanLevelSpec.class.getName(), Boolean.class.getName() });
+                
+                log.info("Enabled statistics " + newStats + " on " + descriptor);
+            }
         } catch (Exception ex) {
             log.error(ex); // TODO
         }
