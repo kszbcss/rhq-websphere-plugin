@@ -1,11 +1,11 @@
 package be.fgov.kszbcss.websphere.rhq;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,6 +21,7 @@ import org.rhq.core.domain.event.Event;
 import org.rhq.core.domain.event.EventSeverity;
 import org.rhq.core.pluginapi.event.EventPoller;
 
+import com.ibm.ejs.ras.RasMessageImpl2;
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.ras.RasMessage;
@@ -31,12 +32,19 @@ public class RasMessagePoller implements EventPoller, NotificationListener {
     public static final String EVENT_TYPE = "RasMessage";
     
     private static final Map<String,EventSeverity> severityMap = new HashMap<String,EventSeverity>();
+    private static final Field localizedMessageField;
     
     static {
         severityMap.put(RasMessage.AUDIT, EventSeverity.INFO);
         severityMap.put(RasMessage.WARNING, EventSeverity.WARN);
         severityMap.put(RasMessage.ERROR, EventSeverity.ERROR);
         severityMap.put(RasMessage.FATAL, EventSeverity.FATAL);
+        try {
+            localizedMessageField = RasMessageImpl2.class.getDeclaredField("ivLocalizedMessage");
+        } catch (NoSuchFieldException ex) {
+            throw new NoSuchFieldError(ex.getMessage());
+        }
+        localizedMessageField.setAccessible(true);
     }
     
     private final WebSphereServer server;
@@ -85,7 +93,17 @@ public class RasMessagePoller implements EventPoller, NotificationListener {
 
     public void handleNotification(Notification notification, Object handback) {
         RasMessage rasMessage = (RasMessage)notification.getUserData();
-        Event event = new Event(EVENT_TYPE, rasMessage.getMessageOriginator(), rasMessage.getTimeStamp(), severityMap.get(rasMessage.getMessageSeverity()), rasMessage.getLocalizedMessage(Locale.ENGLISH));
+        // We extract the localized message using reflection because
+        // getLocalizedMessage will always compare the locale. If there is a
+        // locale mismatch and the necessary resource bundle is not found,
+        // no message will be returned.
+        String localizedMessage;
+        try {
+            localizedMessage = (String)localizedMessageField.get(rasMessage);
+        } catch (IllegalAccessException ex) {
+            throw new IllegalAccessError(ex.getMessage());
+        }
+        Event event = new Event(EVENT_TYPE, rasMessage.getMessageOriginator(), rasMessage.getTimeStamp(), severityMap.get(rasMessage.getMessageSeverity()), localizedMessage);
         synchronized (events) {
             events.add(event);
         }

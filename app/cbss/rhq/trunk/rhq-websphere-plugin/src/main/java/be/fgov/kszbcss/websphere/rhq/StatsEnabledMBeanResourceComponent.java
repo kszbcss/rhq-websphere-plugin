@@ -43,12 +43,17 @@ public class StatsEnabledMBeanResourceComponent<T extends WebSphereComponent<?>>
         for (MeasurementScheduleRequest request : (Set<MeasurementScheduleRequest>)requests) {
             String name = request.getName();
             if (name.startsWith("stats.")) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Starting to get value for " + name + " on " + getResourceContext().getResourceKey());
+                }
                 if (descriptor == null) {
                     descriptor = getMBeanStatDescriptor();
                     WebSphereServer server = getServer();
                     try {
                         stats = server.getWSStats(descriptor);
-                        pmiModuleConfig = server.getPmiModuleConfig(stats);
+                        if (stats != null) {
+                            pmiModuleConfig = server.getPmiModuleConfig(stats);
+                        }
                     } catch (JMException ex) {
                         log.error("Failed to get statistics object", ex);
                     } catch (ConnectorException ex) {
