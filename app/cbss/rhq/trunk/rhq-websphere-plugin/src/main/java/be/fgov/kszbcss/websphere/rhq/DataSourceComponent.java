@@ -1,27 +1,52 @@
 package be.fgov.kszbcss.websphere.rhq;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.mc4j.ems.connection.bean.EmsBean;
-import org.mc4j.ems.connection.bean.attribute.EmsAttribute;
+import javax.management.JMException;
+import javax.management.ObjectName;
 
+import org.rhq.core.domain.measurement.AvailabilityType;
+import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
+
+import com.ibm.websphere.management.AdminClient;
+import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
+import com.ibm.websphere.pmi.stat.StatDescriptor;
 import com.ibm.websphere.pmi.stat.WSRangeStatistic;
 
-public class DataSourceComponent extends StatsEnabledMBeanResourceComponent<StatsEnabledMBeanResourceComponent<?>> {
-    private static final Log log = LogFactory.getLog(DataSourceComponent.class);
+public class DataSourceComponent extends PMIComponent<PMIComponent<?>> {
+    private MBean dataSourceMBean;
+    private MBean providerMBean;
     
     @Override
-    protected MBeanStatDescriptor getMBeanStatDescriptor() {
-        EmsBean bean = getEmsBean();
-        EmsAttribute jndiNameAttribute = bean.getAttribute("jndiName");
-        if (jndiNameAttribute == null) {
-            log.error("jndiName attribute not found on " + bean.getBeanName());
-            return null;
+    protected void start() throws InvalidPluginConfigurationException, Exception {
+    }
+
+    public void stop() {
+    }
+
+    public AvailabilityType getAvailability() {
+        // TODO
+        return AvailabilityType.UP;
+    }
+
+    private void loadMBeans() throws JMException, ConnectorException {
+        String jndiName = getResourceContext().getResourceKey();
+        WebSphereServer server = getServer();
+        AdminClient adminClient = server.getAdminClient();
+        for (ObjectName objectName : adminClient.queryNames(Utils.createObjectName("WebSphere:type=DataSource,*"), null)) {
+            if (adminClient.getAttribute(objectName, "jndiName").equals(jndiName)) {
+                // TODO: do this properly
+                dataSourceMBean = new MBean(server, objectName);
+                providerMBean = new MBean(server, adminClient.queryNames(Utils.createObjectName("WebSphere:type=JDBDProvider,name=" + objectName.getKeyProperty("JDBDProvider") + ",*"), null).iterator().next());
+            }
         }
-        String jndiName = (String)jndiNameAttribute.getValue();
-        EmsBean providerBean = getResourceContext().getParentResourceComponent().getEmsBean();
-        return Utils.getMBeanStatDescriptor(providerBean, jndiName);
+    }
+    
+    @Override
+    protected MBeanStatDescriptor getMBeanStatDescriptor() throws JMException, ConnectorException {
+        if (dataSourceMBean == null) {
+            loadMBeans();
+        }
+        return new MBeanStatDescriptor(providerMBean.getObjectName(), new StatDescriptor(new String[] { getResourceContext().getResourceKey() }));
     }
 
     @Override

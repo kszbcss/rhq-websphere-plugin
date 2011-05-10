@@ -34,6 +34,21 @@ public class MBean {
         this.objectNamePattern = objectNamePattern;
     }
     
+    public ObjectName getObjectNamePattern() {
+        return objectNamePattern;
+    }
+
+    public ObjectName getObjectName() throws JMException, ConnectorException {
+        Set<ObjectName> objectNames = server.getAdminClient().queryNames(objectNamePattern, null);
+        if (objectNames.size() == 0) {
+            throw new InstanceNotFoundException("No MBean found for pattern " + objectNamePattern);
+        } else if (objectNames.size() > 1) {
+            throw new InstanceNotFoundException("Multiple MBeans found for pattern " + objectNamePattern);
+        } else {
+            return objectNames.iterator().next();
+        }
+    }
+    
     private <T> T execute(Action<T> action) throws JMException, ConnectorException {
         AdminClient adminClient = server.getAdminClient();
         ObjectName cachedObjectName;
@@ -50,21 +65,14 @@ public class MBean {
         if (log.isDebugEnabled()) {
             log.debug("Attempting to resolve " + objectNamePattern);
         }
-        Set<ObjectName> objectNames = adminClient.queryNames(objectNamePattern, null);
-        if (objectNames.size() == 0) {
-            throw new InstanceNotFoundException("No MBean found for pattern " + objectNamePattern);
-        } else if (objectNames.size() > 1) {
-            throw new InstanceNotFoundException("Multiple MBeans found for pattern " + objectNamePattern);
-        } else {
-            cachedObjectName = objectNames.iterator().next();
-            synchronized (this) {
-                this.cachedObjectName = cachedObjectName;
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("Found MBean instance: " + cachedObjectName);
-            }
-            return action.execute(adminClient, cachedObjectName);
+        cachedObjectName = getObjectName();
+        synchronized (this) {
+            this.cachedObjectName = cachedObjectName;
         }
+        if (log.isDebugEnabled()) {
+            log.debug("Found MBean instance: " + cachedObjectName);
+        }
+        return action.execute(adminClient, cachedObjectName);
     }
     
     public Object invoke(final String operationName, final Object[] params, final String[] signature) throws JMException, ConnectorException {

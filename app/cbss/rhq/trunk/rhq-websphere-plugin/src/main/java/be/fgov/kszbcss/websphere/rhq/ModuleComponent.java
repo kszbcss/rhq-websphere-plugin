@@ -3,25 +3,32 @@ package be.fgov.kszbcss.websphere.rhq;
 import javax.management.JMException;
 
 import org.rhq.core.domain.measurement.AvailabilityType;
+import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.w3c.dom.Document;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class ApplicationComponent extends WebSphereServiceComponent<WebSphereServerComponent> {
+public abstract class ModuleComponent extends WebSphereServiceComponent<ApplicationComponent> {
     private MBean mbean;
     private DeploymentDescriptorCache deploymentDescriptorCache;
     
+    protected abstract String getMBeanType();
+    
     @Override
-    protected void start() {
-        WebSphereServer server = getServer();
-        ResourceContext<WebSphereServerComponent> context = getResourceContext();
-        mbean = new MBean(server, Utils.createObjectName("WebSphere:type=Application,name=" + context.getResourceKey() + ",*"));
-        server.registerStateChangeEventContext(mbean.getObjectNamePattern(), context.getEventContext());
+    protected void start() throws InvalidPluginConfigurationException, Exception {
+        ResourceContext<ApplicationComponent> context = getResourceContext();
+        String applicationName = context.getParentResourceComponent().getApplicationName();
+        String moduleName = context.getResourceKey();
+        mbean = new MBean(getServer(), Utils.createObjectName("WebSphere:type=" + getMBeanType() + ",Application=" + applicationName + ",name=" + moduleName + ",*"));
         deploymentDescriptorCache = new DeploymentDescriptorCache(mbean);
     }
-    
+
     public String getApplicationName() {
+        return getResourceContext().getParentResourceComponent().getApplicationName();
+    }
+    
+    public String getModuleName() {
         return getResourceContext().getResourceKey();
     }
     
@@ -39,6 +46,5 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     }
 
     public void stop() {
-        getResourceContext().getParentResourceComponent().getServer().unregisterStateChangeEventContext(mbean.getObjectNamePattern());
     }
 }

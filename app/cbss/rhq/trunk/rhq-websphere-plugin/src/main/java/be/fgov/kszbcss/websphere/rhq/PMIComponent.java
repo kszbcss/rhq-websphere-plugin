@@ -6,16 +6,13 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.management.JMException;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.mc4j.ems.connection.bean.EmsBean;
 import org.rhq.core.domain.measurement.MeasurementDataNumeric;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
-import org.rhq.plugins.jmx.MBeanResourceComponent;
+import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.PmiModuleConfig;
@@ -26,40 +23,27 @@ import com.ibm.websphere.pmi.stat.WSRangeStatistic;
 import com.ibm.websphere.pmi.stat.WSStatistic;
 import com.ibm.websphere.pmi.stat.WSStats;
 
-public class StatsEnabledMBeanResourceComponent<T extends WebSphereComponent<?>> extends MBeanResourceComponent<T> implements WebSphereComponent<T> {
-    private final Log log = LogFactory.getLog(StatsEnabledMBeanResourceComponent.class);
+public abstract class PMIComponent<T extends WebSphereComponent<?>> extends WebSphereServiceComponent<T> implements WebSphereComponent<T>, MeasurementFacet {
+    private final Log log = LogFactory.getLog(PMIComponent.class);
     
     private final Map<String,WSAverageStatistic> lastStats = new HashMap<String,WSAverageStatistic>();
     
-    public WebSphereServer getServer() {
-        return getResourceContext().getParentResourceComponent().getServer();
-    }
-    
-    protected ObjectName getMBean() {
-        try {
-            return new ObjectName(getEmsBean().getBeanName().toString());
-        } catch (MalformedObjectNameException ex) {
-            throw new RuntimeException(ex); // TODO
-        }
-    }
-    
-    @Override
-    protected void getValues(MeasurementReport report, Set requests, EmsBean bean) {
+    public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) {
         Set<MeasurementScheduleRequest> simpleRequests = new HashSet<MeasurementScheduleRequest>();
         MBeanStatDescriptor descriptor = null;
         WSStats stats = null;
         PmiModuleConfig pmiModuleConfig = null;
         Set<Integer> statisticsToEnable = null;
-        for (MeasurementScheduleRequest request : (Set<MeasurementScheduleRequest>)requests) {
+        for (MeasurementScheduleRequest request : requests) {
             String name = request.getName();
             if (name.startsWith("stats.")) {
                 if (log.isDebugEnabled()) {
                     log.debug("Starting to get value for " + name + " on " + getResourceContext().getResourceKey());
                 }
                 if (descriptor == null) {
-                    descriptor = getMBeanStatDescriptor();
-                    WebSphereServer server = getServer();
                     try {
+                        descriptor = getMBeanStatDescriptor();
+                        WebSphereServer server = getServer();
                         stats = server.getWSStats(descriptor);
                         if (stats != null) {
                             pmiModuleConfig = server.getPmiModuleConfig(stats);
@@ -128,13 +112,11 @@ public class StatsEnabledMBeanResourceComponent<T extends WebSphereComponent<?>>
             getServer().enableStatistics(descriptor, statisticsToEnable);
         }
         if (!simpleRequests.isEmpty()) {
-            super.getValues(report, simpleRequests, bean);
+//            super.getValues(report, simpleRequests, bean);
         }
     }
 
-    protected MBeanStatDescriptor getMBeanStatDescriptor() {
-        return Utils.getMBeanStatDescriptor(getEmsBean());
-    }
+    protected abstract MBeanStatDescriptor getMBeanStatDescriptor() throws JMException, ConnectorException;
     
     protected double getValue(String name, WSRangeStatistic statistic) {
         return statistic.getCurrent();
