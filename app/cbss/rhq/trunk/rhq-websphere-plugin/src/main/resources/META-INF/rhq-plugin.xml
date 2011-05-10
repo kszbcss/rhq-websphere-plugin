@@ -55,7 +55,7 @@
                     category="utilization" displayType="summary" defaultInterval="600000"
                     description="The average number of threads in a pool."/>
             <metric property="stats.PercentMaxed" displayName="% Maxed"
-                    category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
+                    category="utilization" units="percentage" defaultInterval="600000"
                     description="The average percent of the time that all threads are in use."/>
             <metric property="stats.ConcurrentHungThreadCount" displayName="Hung Thread Count"
                     category="performance" displayType="summary" defaultInterval="600000"
