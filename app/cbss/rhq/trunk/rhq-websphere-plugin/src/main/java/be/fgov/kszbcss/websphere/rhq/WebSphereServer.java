@@ -169,12 +169,12 @@ public class WebSphereServer {
         listeners.add(registration);
     }
     
-    public void registerStateChangeEventContext(ObjectName bean, EventContext context) {
-        stateEventDispatcher.registerEventContext(bean, context);
+    public void registerStateChangeEventContext(ObjectName objectNamePattern, EventContext context) {
+        stateEventDispatcher.registerEventContext(objectNamePattern, context);
     }
 
-    public void unregisterStateChangeEventContext(ObjectName bean) {
-        stateEventDispatcher.unregisterEventContext(bean);
+    public void unregisterStateChangeEventContext(ObjectName objectNamePattern) {
+        stateEventDispatcher.unregisterEventContext(objectNamePattern);
     }
 
     private synchronized ObjectName getPerfMBean() throws JMException, ConnectorException {

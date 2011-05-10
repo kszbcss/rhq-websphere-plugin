@@ -19,16 +19,22 @@ public class StateChangeEventDispatcher implements NotificationListener {
     
     private final Map<ObjectName,EventContext> contextMap = Collections.synchronizedMap(new HashMap<ObjectName,EventContext>());
     
-    public void registerEventContext(ObjectName bean, EventContext context) {
-        contextMap.put(bean, context);
+    public void registerEventContext(ObjectName objectNamePattern, EventContext context) {
+        contextMap.put(objectNamePattern, context);
     }
     
-    public void unregisterEventContext(ObjectName bean) {
-        contextMap.remove(bean);
+    public void unregisterEventContext(ObjectName objectNamePattern) {
+        contextMap.remove(objectNamePattern);
     }
 
     public void handleNotification(Notification notification, Object handback) {
-        EventContext context = contextMap.get(notification.getSource());
+        ObjectName source = (ObjectName)notification.getSource();
+        EventContext context = null;
+        for (Map.Entry<ObjectName,EventContext> entry : contextMap.entrySet()) {
+            if (entry.getKey().apply(source)) {
+                context = entry.getValue();
+            }
+        }
         if (context == null) {
             log.warn("Got a state change event for which no EventContext has been registered; source = " + notification.getSource());
         } else {
