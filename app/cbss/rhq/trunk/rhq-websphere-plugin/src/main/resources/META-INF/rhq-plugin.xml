@@ -108,7 +108,7 @@
         </service>
         <service name="Application"
                  discovery="ApplicationDiscoveryComponent"
-                 class="StatsEnabledMBeanResourceComponent"
+                 class="ApplicationComponent"
                  description="Application (EAR)">
             
             <plugin-configuration>
@@ -117,6 +117,8 @@
                 <c:simple-property name="descriptionTemplate" default="An enterprise application."/>
                 <c:simple-property name="applicationName" readOnly="true" type="string" description="The application name used internally by WebSphere"/>
             </plugin-configuration>
+            
+            <event name="StateChange" description="State change events"/>
             
             <service name="Web module"
                      discovery="ModuleDiscoveryComponent"

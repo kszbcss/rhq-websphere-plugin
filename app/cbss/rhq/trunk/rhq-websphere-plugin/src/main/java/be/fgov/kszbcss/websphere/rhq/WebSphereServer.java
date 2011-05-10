@@ -1,18 +1,27 @@
 package be.fgov.kszbcss.websphere.rhq;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
+import javax.management.ListenerNotFoundException;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotificationFilter;
+import javax.management.NotificationFilterSupport;
+import javax.management.NotificationListener;
 import javax.management.ObjectName;
 import javax.security.auth.Subject;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.configuration.Configuration;
+import org.rhq.core.pluginapi.event.EventContext;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.AdminClientFactory;
@@ -25,15 +34,82 @@ import com.ibm.websphere.security.WSSecurityException;
 import com.ibm.websphere.security.auth.WSSubject;
 
 public class WebSphereServer {
+    private static class NotificationListenerRegistration {
+        private final ObjectName name;
+        private final NotificationListener listener;
+        private final NotificationFilter filter;
+        private final Object handback;
+        private final boolean extended;
+        private boolean isRegistered;
+        
+        NotificationListenerRegistration(ObjectName name, NotificationListener listener, NotificationFilter filter, Object handback, boolean extended) {
+            this.name = name;
+            this.listener = listener;
+            this.filter = filter;
+            this.handback = handback;
+            this.extended = extended;
+        }
+        
+        synchronized void doRegister(AdminClient adminClient) throws InstanceNotFoundException, ConnectorException {
+            if (!isRegistered) {
+                if (extended) {
+                    adminClient.addNotificationListenerExtended(name, listener, filter, handback);
+                } else {
+                    adminClient.addNotificationListener(name, listener, filter, handback);
+                }
+                isRegistered = true;
+            }
+        }
+        
+        synchronized void doUnregister(AdminClient adminClient) throws InstanceNotFoundException, ListenerNotFoundException, ConnectorException {
+            if (isRegistered) {
+                if (extended) {
+                    adminClient.removeNotificationListenerExtended(name, listener);
+                } else {
+                    adminClient.removeNotificationListener(name, listener);
+                }
+                isRegistered = false;
+            }
+        }
+    }
+    
     private static final Log log = LogFactory.getLog(WebSphereServer.class);
     
     private final Configuration config;
+    private final List<NotificationListenerRegistration> listeners = new ArrayList<NotificationListenerRegistration>();
+    private final StateChangeEventDispatcher stateEventDispatcher = new StateChangeEventDispatcher();
     private AdminClient adminClient;
     private ObjectName perfMBean;
     private PmiModuleConfig[] pmiModuleConfigs;
     
     public WebSphereServer(Configuration config) {
         this.config = config;
+    }
+    
+    public void init() {
+        NotificationFilterSupport filter = new NotificationFilterSupport();
+        filter.enableType("j2ee.state.starting");
+        filter.enableType("j2ee.state.running");
+        filter.enableType("j2ee.state.stopping");
+        filter.enableType("j2ee.state.stopped");
+        filter.enableType("j2ee.state.failed");
+        try {
+            addNotificationListener(new ObjectName("WebSphere:*"), stateEventDispatcher, filter, null, true);
+        } catch (MalformedObjectNameException ex) {
+            log.error(ex);
+        }
+    }
+    
+    public void destroy() {
+        // TODO: synchronization???
+        for (NotificationListenerRegistration registration : listeners) {
+            try {
+                // TODO: skip the call to getAdminClient if the listener is actually not registered
+                registration.doUnregister(getAdminClient());
+            } catch (Exception ex) {
+                log.error("Failed to unregister listener", ex);
+            }
+        }
     }
     
     public synchronized AdminClient getAdminClient() throws ConnectorException {
@@ -70,10 +146,37 @@ public class WebSphereServer {
             } catch (WSSecurityException ex) {
                 throw new ConnectorException(ex);
             }
+            
+            for (NotificationListenerRegistration registration : listeners) {
+                try {
+                    registration.doRegister(adminClient);
+                } catch (Exception ex) {
+                    log.error("(Deferred) listener registration failed", ex); 
+                }
+            }
         }
         return adminClient;
     }
     
+    public void addNotificationListener(ObjectName name, NotificationListener listener, NotificationFilter filter, Object handback, boolean extended) {
+        NotificationListenerRegistration registration = new NotificationListenerRegistration(name, listener, filter, handback, extended);
+        try {
+            registration.doRegister(getAdminClient());
+        } catch (Exception ex) {
+            log.info("Listener registration failed; will try later");
+        }
+        // TODO: probably we need synchronization here
+        listeners.add(registration);
+    }
+    
+    public void registerStateChangeEventContext(ObjectName bean, EventContext context) {
+        stateEventDispatcher.registerEventContext(bean, context);
+    }
+
+    public void unregisterStateChangeEventContext(ObjectName bean) {
+        stateEventDispatcher.unregisterEventContext(bean);
+    }
+
     private synchronized ObjectName getPerfMBean() throws JMException, ConnectorException {
         if (perfMBean == null) {
             Set<ObjectName> names = getAdminClient().queryNames(new ObjectName("WebSphere:type=Perf,*"), null);

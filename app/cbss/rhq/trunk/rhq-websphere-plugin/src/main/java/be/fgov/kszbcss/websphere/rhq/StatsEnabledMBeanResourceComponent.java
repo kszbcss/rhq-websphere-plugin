@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.management.JMException;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,7 +34,15 @@ public class StatsEnabledMBeanResourceComponent<T extends WebSphereComponent<?>>
     public WebSphereServer getServer() {
         return getResourceContext().getParentResourceComponent().getServer();
     }
-
+    
+    protected ObjectName getMBean() {
+        try {
+            return new ObjectName(getEmsBean().getBeanName().toString());
+        } catch (MalformedObjectNameException ex) {
+            throw new RuntimeException(ex); // TODO
+        }
+    }
+    
     @Override
     protected void getValues(MeasurementReport report, Set requests, EmsBean bean) {
         Set<MeasurementScheduleRequest> simpleRequests = new HashSet<MeasurementScheduleRequest>();

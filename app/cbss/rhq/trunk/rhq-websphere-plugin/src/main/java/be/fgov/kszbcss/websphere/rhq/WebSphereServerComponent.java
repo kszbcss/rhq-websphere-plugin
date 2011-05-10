@@ -29,6 +29,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     public void start(ResourceContext context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
         server = new WebSphereServer(context.getPluginConfiguration());
+        server.init();
         poller = new RasMessagePoller(server);
         context.getEventContext().registerEventPoller(poller, 60);
     }
@@ -96,6 +97,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     }
 
     public void stop() {
+        server.destroy();
         poller.unregisterListener();
         resourceContext.getEventContext().unregisterEventPoller(RasMessagePoller.EVENT_TYPE);
     }
