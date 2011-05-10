@@ -1,6 +1,7 @@
 package be.fgov.kszbcss.websphere.rhq;
 
 import javax.management.JMException;
+import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import org.mc4j.ems.connection.EmsException;
@@ -11,6 +12,14 @@ import com.ibm.websphere.pmi.stat.StatDescriptor;
 
 public class Utils {
     private Utils() {}
+    
+    public static ObjectName createObjectName(String s) {
+        try {
+            return new ObjectName(s);
+        } catch (MalformedObjectNameException ex) {
+            throw new IllegalArgumentException(ex.getMessage());
+        }
+    }
     
     public static MBeanStatDescriptor getMBeanStatDescriptor(EmsBean bean, String... path) {
         try {

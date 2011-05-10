@@ -62,6 +62,23 @@
                     category="performance" displayType="summary" defaultInterval="600000"
                     description="The number of concurrently stopped threads."/>
         </service>
+        <service name="DynaCache"
+                 discovery="DynaCacheDiscoveryComponent"
+                 class="DynaCacheComponent"
+                 description="WebSphere Dynamic Cache">
+    
+            <operation name="clearCache" description="Clear the cache."/>
+            
+            <metric property="CacheHits" displayName="Cache Hits"
+                    category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of cache hits."/>
+            <metric property="CacheMisses" displayName="Cache Misses"
+                    category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of cache misses."/>
+            <metric property="MemoryCacheEntries" displayName="Memory Cache Entries"
+                    category="utilization" displayType="summary" defaultInterval="600000"
+                    description="The number of in-memory cache entries."/>
+        </service>
         <service name="JDBC Provider"
                  discovery="JDBCProviderDiscoveryComponent"
                  class="StatsEnabledMBeanResourceComponent"
