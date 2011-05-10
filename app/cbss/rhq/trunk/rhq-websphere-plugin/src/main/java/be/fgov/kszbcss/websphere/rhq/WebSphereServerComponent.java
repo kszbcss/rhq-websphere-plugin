@@ -1,6 +1,9 @@
 package be.fgov.kszbcss.websphere.rhq;
 
 import javax.management.JMException;
+import javax.management.Notification;
+import javax.management.NotificationFilterSupport;
+import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
@@ -10,12 +13,16 @@ import org.mc4j.ems.connection.EmsException;
 import org.mc4j.ems.connection.settings.ConnectionSettings;
 import org.mc4j.ems.connection.support.ConnectionProvider;
 import org.rhq.core.domain.configuration.Configuration;
+import org.rhq.core.domain.event.Event;
+import org.rhq.core.domain.event.EventSeverity;
 import org.rhq.core.domain.measurement.AvailabilityType;
+import org.rhq.core.pluginapi.event.EventContext;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 
 import com.ibm.websphere.management.AdminClient;
+import com.ibm.websphere.management.NotificationConstants;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class WebSphereServerComponent implements WebSphereComponent<ResourceComponent<?>> {
@@ -31,7 +38,19 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         server = new WebSphereServer(context.getPluginConfiguration());
         server.init();
         poller = new RasMessagePoller(server);
-        context.getEventContext().registerEventPoller(poller, 60);
+        final EventContext eventContext = context.getEventContext();
+        eventContext.registerEventPoller(poller, 60);
+        
+        NotificationListener listener = new NotificationListener() {
+            public void handleNotification(Notification notification, Object handback) {
+                eventContext.publishEvent(new Event("ThreadMonitor", null, notification.getTimeStamp(), EventSeverity.INFO,
+                        "source=" + notification.getSource() + "; type=" + notification.getType() + "; userData=" + notification.getUserData()));
+            }
+        };
+        NotificationFilterSupport filter = new NotificationFilterSupport();
+        filter.enableType(NotificationConstants.TYPE_THREAD_MONITOR_THREAD_HUNG);
+        filter.enableType(NotificationConstants.TYPE_THREAD_MONITOR_THREAD_CLEAR);
+        server.addNotificationListener(new ObjectName("WebSphere:*"), listener, filter, null, true);
     }
 
     public WebSphereServer getServer() {

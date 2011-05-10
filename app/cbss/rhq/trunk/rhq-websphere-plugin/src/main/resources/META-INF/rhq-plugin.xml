@@ -30,6 +30,7 @@
         </plugin-configuration>
         
         <event name="RasMessage" description="RAS logging message"/>
+        <event name="ThreadMonitor" description="Thread monitor event"/>
         
         <server name="WebSphere JVM"
                 description="JVM of the WebSphere Application Server"
