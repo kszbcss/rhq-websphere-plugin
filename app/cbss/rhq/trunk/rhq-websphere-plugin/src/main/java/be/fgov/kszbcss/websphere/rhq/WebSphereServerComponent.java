@@ -31,15 +31,12 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     private ResourceContext resourceContext;
     private WebSphereServer server;
     private EmsConnection connection;
-    private RasMessagePoller poller;
     
     public void start(ResourceContext context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
         server = new WebSphereServer(context.getPluginConfiguration());
         server.init();
-        poller = new RasMessagePoller(server);
         final EventContext eventContext = context.getEventContext();
-        eventContext.registerEventPoller(poller, 60);
         
         NotificationListener listener = new NotificationListener() {
             public void handleNotification(Notification notification, Object handback) {
@@ -51,6 +48,14 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         filter.enableType(NotificationConstants.TYPE_THREAD_MONITOR_THREAD_HUNG);
         filter.enableType(NotificationConstants.TYPE_THREAD_MONITOR_THREAD_CLEAR);
         server.addNotificationListener(new ObjectName("WebSphere:*"), listener, filter, null, true);
+        
+        filter = new NotificationFilterSupport();
+        // TODO: use constants from NotificationConstants here
+        filter.enableType("websphere.ras.audit");
+        filter.enableType("websphere.ras.warning");
+        filter.enableType("websphere.ras.error");
+        filter.enableType("websphere.ras.fatal");
+        server.addNotificationListener(new ObjectName("WebSphere:type=RasLoggingService,*"), new RasLoggingNotificationListener(eventContext), filter, null, true);
     }
 
     public WebSphereServer getServer() {
@@ -117,7 +122,6 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
 
     public void stop() {
         server.destroy();
-        poller.unregisterListener();
-        resourceContext.getEventContext().unregisterEventPoller(RasMessagePoller.EVENT_TYPE);
+        resourceContext.getEventContext().unregisterEventPoller(RasLoggingNotificationListener.EVENT_TYPE);
     }
 }
