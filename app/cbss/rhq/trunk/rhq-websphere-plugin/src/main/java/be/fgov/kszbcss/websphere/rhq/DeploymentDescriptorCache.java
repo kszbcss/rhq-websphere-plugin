@@ -31,7 +31,7 @@ public class DeploymentDescriptorCache {
     public synchronized Document getContent() throws JMException, ConnectorException {
         if (content == null || System.currentTimeMillis() - timestamp > 10*60*1000) {
             if (log.isDebugEnabled()) {
-                log.debug("Attempting to load deployment descriptor from " + mbean.getObjectNamePattern());
+                log.debug("Attempting to load deployment descriptor from " + mbean.getLocator());
             }
             String xml = (String)mbean.getAttribute("deploymentDescriptor");
             try {
@@ -48,11 +48,11 @@ public class DeploymentDescriptorCache {
                 throw new Error(ex); // TODO
             }
             if (log.isDebugEnabled()) {
-                log.debug("Successfully loaded deployment descriptor from " + mbean.getObjectNamePattern());
+                log.debug("Successfully loaded deployment descriptor from " + mbean.getLocator());
             }
         } else {
             if (log.isDebugEnabled()) {
-                log.debug("Using cached version of deployment descriptor for " + mbean.getObjectNamePattern());
+                log.debug("Using cached version of deployment descriptor for " + mbean.getLocator());
             }
         }
         return content;

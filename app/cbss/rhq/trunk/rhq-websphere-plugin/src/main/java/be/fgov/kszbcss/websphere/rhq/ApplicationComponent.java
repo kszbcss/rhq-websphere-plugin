@@ -1,6 +1,7 @@
 package be.fgov.kszbcss.websphere.rhq;
 
 import javax.management.JMException;
+import javax.management.ObjectName;
 
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
@@ -9,6 +10,7 @@ import org.w3c.dom.Document;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class ApplicationComponent extends WebSphereServiceComponent<WebSphereServerComponent> {
+    private ObjectName pattern;
     private MBean mbean;
     private DeploymentDescriptorCache deploymentDescriptorCache;
     
@@ -16,8 +18,9 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     protected void start() {
         WebSphereServer server = getServer();
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
-        mbean = new MBean(server, Utils.createObjectName("WebSphere:type=Application,name=" + context.getResourceKey() + ",*"));
-        server.registerStateChangeEventContext(mbean.getObjectNamePattern(), context.getEventContext());
+        pattern = Utils.createObjectName("WebSphere:type=Application,name=" + context.getResourceKey() + ",*");
+        mbean = new MBean(server, pattern);
+        server.registerStateChangeEventContext(pattern, context.getEventContext());
         deploymentDescriptorCache = new DeploymentDescriptorCache(mbean);
     }
     
@@ -39,6 +42,6 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     }
 
     public void stop() {
-        getResourceContext().getParentResourceComponent().getServer().unregisterStateChangeEventContext(mbean.getObjectNamePattern());
+        getResourceContext().getParentResourceComponent().getServer().unregisterStateChangeEventContext(pattern);
     }
 }

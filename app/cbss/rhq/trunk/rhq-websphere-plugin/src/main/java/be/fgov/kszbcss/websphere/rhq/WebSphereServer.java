@@ -78,12 +78,14 @@ public class WebSphereServer {
     private final Configuration config;
     private final List<NotificationListenerRegistration> listeners = new ArrayList<NotificationListenerRegistration>();
     private final StateChangeEventDispatcher stateEventDispatcher = new StateChangeEventDispatcher();
+    private final MBean serverMBean;
     private AdminClient adminClient;
     private ObjectName perfMBean;
     private PmiModuleConfig[] pmiModuleConfigs;
     
     public WebSphereServer(Configuration config) {
         this.config = config;
+        serverMBean = new MBean(this, Utils.createObjectName("WebSphere:type=Server,*"));
     }
     
     public void init() {
@@ -112,6 +114,10 @@ public class WebSphereServer {
         }
     }
     
+    public MBean getServerMBean() {
+        return serverMBean;
+    }
+
     public synchronized AdminClient getAdminClient() throws ConnectorException {
         if (adminClient == null) {
             Properties properties = new Properties();

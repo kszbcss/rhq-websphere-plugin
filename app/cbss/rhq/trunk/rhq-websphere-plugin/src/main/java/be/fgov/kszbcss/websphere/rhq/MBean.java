@@ -1,7 +1,5 @@
 package be.fgov.kszbcss.websphere.rhq;
 
-import java.util.Set;
-
 import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.ObjectName;
@@ -26,27 +24,24 @@ public class MBean {
     }
     
     private final WebSphereServer server;
-    private final ObjectName objectNamePattern;
+    private final MBeanLocator locator;
     private ObjectName cachedObjectName;
     
-    public MBean(WebSphereServer server, ObjectName objectNamePattern) {
+    public MBean(WebSphereServer server, MBeanLocator locator) {
         this.server = server;
-        this.objectNamePattern = objectNamePattern;
+        this.locator = locator;
     }
     
-    public ObjectName getObjectNamePattern() {
-        return objectNamePattern;
+    public MBean(WebSphereServer server, ObjectName objectNamePattern) {
+        this(server, new MBeanObjectNamePatternLocator(objectNamePattern));
+    }
+    
+    public MBeanLocator getLocator() {
+        return locator;
     }
 
     public ObjectName getObjectName() throws JMException, ConnectorException {
-        Set<ObjectName> objectNames = server.getAdminClient().queryNames(objectNamePattern, null);
-        if (objectNames.size() == 0) {
-            throw new InstanceNotFoundException("No MBean found for pattern " + objectNamePattern);
-        } else if (objectNames.size() > 1) {
-            throw new InstanceNotFoundException("Multiple MBeans found for pattern " + objectNamePattern);
-        } else {
-            return objectNames.iterator().next();
-        }
+        return locator.locate(server.getAdminClient());
     }
     
     private <T> T execute(Action<T> action) throws JMException, ConnectorException {
@@ -63,7 +58,7 @@ public class MBean {
             }
         }
         if (log.isDebugEnabled()) {
-            log.debug("Attempting to resolve " + objectNamePattern);
+            log.debug("Attempting to resolve " + locator);
         }
         cachedObjectName = getObjectName();
         synchronized (this) {
