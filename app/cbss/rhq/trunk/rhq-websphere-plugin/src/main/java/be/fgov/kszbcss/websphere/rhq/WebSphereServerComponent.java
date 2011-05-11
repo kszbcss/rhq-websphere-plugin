@@ -40,7 +40,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         
         NotificationListener listener = new NotificationListener() {
             public void handleNotification(Notification notification, Object handback) {
-                eventContext.publishEvent(new Event("ThreadMonitor", null, notification.getTimeStamp(), EventSeverity.INFO,
+                Utils.publishEvent(eventContext, new Event("ThreadMonitor", null, notification.getTimeStamp(), EventSeverity.INFO,
                         "source=" + notification.getSource() + "; type=" + notification.getType() + "; userData=" + notification.getUserData()));
             }
         };

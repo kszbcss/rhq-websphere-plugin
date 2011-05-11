@@ -51,6 +51,6 @@ public class RasLoggingNotificationListener implements NotificationListener {
         } catch (IllegalAccessException ex) {
             throw new IllegalAccessError(ex.getMessage());
         }
-        eventContext.publishEvent(new Event(EVENT_TYPE, rasMessage.getMessageOriginator(), rasMessage.getTimeStamp(), severityMap.get(rasMessage.getMessageSeverity()), localizedMessage));
+        Utils.publishEvent(eventContext, new Event(EVENT_TYPE, rasMessage.getMessageOriginator(), rasMessage.getTimeStamp(), severityMap.get(rasMessage.getMessageSeverity()), localizedMessage));
     }
 }

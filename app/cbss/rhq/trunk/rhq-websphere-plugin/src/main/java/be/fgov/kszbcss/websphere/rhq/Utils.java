@@ -9,6 +9,8 @@ import javax.management.ObjectName;
 
 import org.mc4j.ems.connection.EmsException;
 import org.mc4j.ems.connection.bean.EmsBean;
+import org.rhq.core.domain.event.Event;
+import org.rhq.core.pluginapi.event.EventContext;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -56,5 +58,16 @@ public class Utils {
             child = child.getNextSibling();
         }
         return null;
+    }
+    
+    private static final Object eventPublishLock = new Object();
+    
+    // TODO: this is necessary because EventManager#publishEvents doesn't correctly
+    //       synchronize access to the EventReport; this causes corruption of the
+    //       report, which will eventually result in an HTTP 500 error from the server
+    public static void publishEvent(EventContext context, Event event) {
+        synchronized (eventPublishLock) {
+            context.publishEvent(event);
+        }
     }
 }

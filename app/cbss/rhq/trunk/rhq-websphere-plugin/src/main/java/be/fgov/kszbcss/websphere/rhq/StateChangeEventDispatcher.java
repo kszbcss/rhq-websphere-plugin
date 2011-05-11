@@ -38,7 +38,7 @@ public class StateChangeEventDispatcher implements NotificationListener {
         if (context == null) {
             log.warn("Got a state change event for which no EventContext has been registered; source = " + notification.getSource());
         } else {
-            context.publishEvent(new Event("StateChange", notification.getType(), notification.getTimeStamp(), EventSeverity.INFO, notification.getMessage()));
+            Utils.publishEvent(context, new Event("StateChange", notification.getType(), notification.getTimeStamp(), EventSeverity.INFO, notification.getMessage()));
         }
     }
 }
