@@ -159,5 +159,11 @@
                 </service>
             </service>
         </service>
+        
+        <service name="Messaging Engine"
+                 discovery="SIBMessagingEngineDiscoveryComponent"
+                 class="SIBMessagingEngineComponent"
+                 description="SIBus Messaging Engine">
+        </service>
     </server>
 </plugin>
