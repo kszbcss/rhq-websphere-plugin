@@ -1,5 +1,6 @@
 package be.fgov.kszbcss.websphere.rhq;
 
+import javax.management.AttributeList;
 import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.ObjectName;
@@ -82,6 +83,14 @@ public class MBean {
         return execute(new Action<Object>() {
             public Object execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException {
                 return adminClient.getAttribute(objectName, attribute);
+            }
+        });
+    }
+    
+    public AttributeList getAttributes(final String[] attributes) throws JMException, ConnectorException {
+        return execute(new Action<AttributeList>() {
+            public AttributeList execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException {
+                return adminClient.getAttributes(objectName, attributes);
             }
         });
     }

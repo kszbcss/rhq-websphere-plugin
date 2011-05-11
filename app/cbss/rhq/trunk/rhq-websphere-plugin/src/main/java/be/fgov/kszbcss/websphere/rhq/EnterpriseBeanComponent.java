@@ -1,29 +1,34 @@
 package be.fgov.kszbcss.websphere.rhq;
 
-import javax.management.JMException;
+import java.util.Set;
 
 import org.rhq.core.domain.measurement.AvailabilityType;
+import org.rhq.core.domain.measurement.MeasurementReport;
+import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
+import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import com.ibm.websphere.management.exception.ConnectorException;
-import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
+import be.fgov.kszbcss.websphere.rhq.measurement.MeasurementFacetSupport;
+import be.fgov.kszbcss.websphere.rhq.measurement.PMIMeasurementHandler;
 
-public abstract class EnterpriseBeanComponent extends PMIComponent<EJBModuleComponent> {
-    private MBean mbean;
+public abstract class EnterpriseBeanComponent extends WebSphereServiceComponent<EJBModuleComponent> implements MeasurementFacet {
+    private MeasurementFacetSupport measurementFacetSupport;
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         ResourceContext<EJBModuleComponent> context = getResourceContext();
         ModuleComponent parent = context.getParentResourceComponent();
-        mbean = new MBean(getServer(), Utils.createObjectName("WebSphere:type=" + getMBeanType() + ",Application=" + parent.getApplicationName() + ",EJBModule=" + parent.getModuleName() + ",name=" + context.getResourceKey() + ",*"));
+        WebSphereServer server = getServer();
+        measurementFacetSupport = new MeasurementFacetSupport(server);
+        MBean mbean = new MBean(server, Utils.createObjectName("WebSphere:type=" + getMBeanType() + ",Application=" + parent.getApplicationName() + ",EJBModule=" + parent.getModuleName() + ",name=" + context.getResourceKey() + ",*"));
+        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(mbean));
     }
     
     protected abstract String getMBeanType();
     
-    @Override
-    protected MBeanStatDescriptor getMBeanStatDescriptor() throws JMException, ConnectorException {
-        return new MBeanStatDescriptor(mbean.getObjectName());
+    public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
+        measurementFacetSupport.getValues(report, requests);
     }
 
     public AvailabilityType getAvailability() {

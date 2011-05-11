@@ -29,6 +29,10 @@
             </c:group>
         </plugin-configuration>
         
+        <metric property="pid" displayName="PID" dataType="trait"
+                displayType="summary" defaultOn="true"
+                description="The process ID of the WebSphere JVM."/>
+        
         <event name="RasMessage" description="RAS logging message"/>
         <event name="ThreadMonitor" description="Thread monitor event"/>
         

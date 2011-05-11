@@ -1,5 +1,7 @@
 package be.fgov.kszbcss.websphere.rhq;
 
+import java.util.Set;
+
 import javax.management.JMException;
 import javax.management.Notification;
 import javax.management.NotificationFilterSupport;
@@ -16,26 +18,37 @@ import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.event.Event;
 import org.rhq.core.domain.event.EventSeverity;
 import org.rhq.core.domain.measurement.AvailabilityType;
+import org.rhq.core.domain.measurement.MeasurementReport;
+import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.event.EventContext;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
+import org.rhq.core.pluginapi.measurement.MeasurementFacet;
+
+import be.fgov.kszbcss.websphere.rhq.measurement.JMXMeasurementHandler;
+import be.fgov.kszbcss.websphere.rhq.measurement.MeasurementFacetSupport;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.NotificationConstants;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class WebSphereServerComponent implements WebSphereComponent<ResourceComponent<?>> {
+public class WebSphereServerComponent implements WebSphereComponent<ResourceComponent<?>>, MeasurementFacet {
     private static final Log log = LogFactory.getLog(WebSphereServerComponent.class);
     
-    private ResourceContext resourceContext;
+    private ResourceContext<ResourceComponent<?>> resourceContext;
     private WebSphereServer server;
     private EmsConnection connection;
+    private MeasurementFacetSupport measurementFacetSupport;
     
-    public void start(ResourceContext context) throws InvalidPluginConfigurationException, Exception {
+    public void start(ResourceContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
         server = new WebSphereServer(context.getPluginConfiguration());
         server.init();
+        
+        measurementFacetSupport = new MeasurementFacetSupport(server);
+        measurementFacetSupport.setDefaultHandler(new JMXMeasurementHandler(server.getServerMBean()));
+        
         final EventContext eventContext = context.getEventContext();
         
         NotificationListener listener = new NotificationListener() {
@@ -118,6 +131,10 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         } else {
             return AvailabilityType.DOWN;
         }
+    }
+
+    public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
+        measurementFacetSupport.getValues(report, requests);
     }
 
     public void stop() {
