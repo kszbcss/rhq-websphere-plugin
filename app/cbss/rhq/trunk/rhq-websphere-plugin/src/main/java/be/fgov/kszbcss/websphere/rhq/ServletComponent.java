@@ -20,7 +20,7 @@ public class ServletComponent extends WebSphereServiceComponent<WebModuleCompone
         ResourceContext<WebModuleComponent> context = getResourceContext();
         ModuleComponent parent = context.getParentResourceComponent();
         WebSphereServer server = getServer();
-        measurementFacetSupport = new MeasurementFacetSupport(server);
+        measurementFacetSupport = new MeasurementFacetSupport(this);
         MBean mbean = new MBean(server, Utils.createObjectName("WebSphere:type=Servlet,Application=" + parent.getApplicationName() + ",WebModule=" + parent.getModuleName() + ",name=" + context.getResourceKey() + ",*"));
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(mbean));
     }

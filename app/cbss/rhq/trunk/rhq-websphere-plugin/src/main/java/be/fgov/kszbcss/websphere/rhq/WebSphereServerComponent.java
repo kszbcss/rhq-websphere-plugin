@@ -46,7 +46,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         server = new WebSphereServer(context.getPluginConfiguration());
         server.init();
         
-        measurementFacetSupport = new MeasurementFacetSupport(server);
+        measurementFacetSupport = new MeasurementFacetSupport(this);
         measurementFacetSupport.setDefaultHandler(new JMXMeasurementHandler(server.getServerMBean()));
         
         final EventContext eventContext = context.getEventContext();
@@ -69,6 +69,10 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         filter.enableType("websphere.ras.error");
         filter.enableType("websphere.ras.fatal");
         server.addNotificationListener(new ObjectName("WebSphere:type=RasLoggingService,*"), new RasLoggingNotificationListener(eventContext), filter, null, true);
+    }
+
+    public ResourceContext<ResourceComponent<?>> getResourceContext() {
+        return resourceContext;
     }
 
     public WebSphereServer getServer() {

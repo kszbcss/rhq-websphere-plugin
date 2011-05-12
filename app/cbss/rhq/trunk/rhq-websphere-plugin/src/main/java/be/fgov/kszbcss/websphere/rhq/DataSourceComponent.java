@@ -25,7 +25,7 @@ public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServ
         final String jndiName = getResourceContext().getResourceKey();
         WebSphereServer server = getServer();
         final MBean mbean = new MBean(server, new MBeanAttributeMatcherLocator(Utils.createObjectName("WebSphere:type=DataSource,*"), "jndiName", jndiName));
-        measurementFacetSupport = new MeasurementFacetSupport(server);
+        measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException {
                 String providerName = mbean.getObjectName().getKeyProperty("JDBCProvider");

@@ -10,17 +10,17 @@ import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.websphere.rhq.WebSphereServer;
+import be.fgov.kszbcss.websphere.rhq.WebSphereComponent;
 
 public class MeasurementFacetSupport implements MeasurementFacet {
     private static final Log log = LogFactory.getLog(MeasurementFacetSupport.class);
     
-    private final WebSphereServer server;
+    private final WebSphereComponent<?> component;
     private final Map<String,MeasurementHandler> namedHandlers = new HashMap<String,MeasurementHandler>();
     private MeasurementHandler defaultHandler;
     
-    public MeasurementFacetSupport(WebSphereServer server) {
-        this.server = server;
+    public MeasurementFacetSupport(WebSphereComponent<?> component) {
+        this.component = component;
     }
     
     public void addHandler(String prefix, MeasurementHandler handler) {
@@ -55,13 +55,13 @@ public class MeasurementFacetSupport implements MeasurementFacet {
         }
         
         for (Map.Entry<String,Map<String,MeasurementScheduleRequest>> entry : namedRequestMap.entrySet()) {
-            namedHandlers.get(entry.getKey()).getValues(server, report, entry.getValue());
+            namedHandlers.get(entry.getKey()).getValues(component.getServer(), report, entry.getValue());
         }
         if (!defaultRequests.isEmpty()) {
             if (defaultHandler == null) {
                 log.error("The following measurements could not be collected because no default handler is defined: " + defaultRequests.keySet());
             } else {
-                defaultHandler.getValues(server, report, defaultRequests);
+                defaultHandler.getValues(component.getServer(), report, defaultRequests);
             }
         }
     }

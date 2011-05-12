@@ -20,7 +20,7 @@ public abstract class EnterpriseBeanComponent extends WebSphereServiceComponent<
         ResourceContext<EJBModuleComponent> context = getResourceContext();
         ModuleComponent parent = context.getParentResourceComponent();
         WebSphereServer server = getServer();
-        measurementFacetSupport = new MeasurementFacetSupport(server);
+        measurementFacetSupport = new MeasurementFacetSupport(this);
         MBean mbean = new MBean(server, Utils.createObjectName("WebSphere:type=" + getMBeanType() + ",Application=" + parent.getApplicationName() + ",EJBModule=" + parent.getModuleName() + ",name=" + context.getResourceKey() + ",*"));
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(mbean));
     }

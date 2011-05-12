@@ -58,6 +58,17 @@
             <metric property="stats.ConcurrentHungThreadCount" displayName="Hung Thread Count"
                     category="performance" displayType="summary" defaultInterval="600000"
                     description="The number of concurrently stopped threads."/>
+
+            <resource-configuration>
+                <c:simple-property name="minimumSize" displayName="Minimum Size" type="integer"
+                                   description="Minimum size of the thread pool."/>
+                <c:simple-property name="maximumSize" displayName="Maximum Size" type="integer"
+                                   description="Maximum size of the thread pool."/>
+                <c:simple-property name="inactivityTimeout" displayName="Inactivity Timeout" type="long"
+                                   description="The number of milliseconds to keep threads alive waiting for a new request (-1 = infinite, 0 = immediate)."/>
+                <c:simple-property name="growable" displayName="Growable" type="boolean"
+                                   description="Allow the thread pool to grow past the maximum size."/>
+            </resource-configuration>
         </service>
         <service name="DynaCache"
                  discovery="DynaCacheDiscoveryComponent"
