@@ -26,7 +26,7 @@ import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.websphere.rhq.measurement.JMXMeasurementHandler;
+import be.fgov.kszbcss.websphere.rhq.measurement.JMXAttributeGroupHandler;
 import be.fgov.kszbcss.websphere.rhq.measurement.MeasurementFacetSupport;
 
 import com.ibm.websphere.management.AdminClient;
@@ -47,7 +47,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         server.init();
         
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        measurementFacetSupport.setDefaultHandler(new JMXMeasurementHandler(server.getServerMBean()));
+        measurementFacetSupport.setDefaultHandler(new JMXAttributeGroupHandler(server.getServerMBean()));
         
         final EventContext eventContext = context.getEventContext();
         

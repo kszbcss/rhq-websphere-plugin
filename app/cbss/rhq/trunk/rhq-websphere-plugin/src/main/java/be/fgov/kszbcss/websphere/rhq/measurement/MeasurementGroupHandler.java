@@ -7,6 +7,9 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
 import be.fgov.kszbcss.websphere.rhq.WebSphereServer;
 
-public interface MeasurementHandler {
+/**
+ * Handles a group of measurements on behalf of {@link MeasurementFacetSupport}.
+ */
+public interface MeasurementGroupHandler {
     void getValues(WebSphereServer server, MeasurementReport report, Map<String,MeasurementScheduleRequest> requests);
 }

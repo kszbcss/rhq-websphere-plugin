@@ -25,7 +25,7 @@ import com.ibm.websphere.pmi.stat.WSRangeStatistic;
 import com.ibm.websphere.pmi.stat.WSStatistic;
 import com.ibm.websphere.pmi.stat.WSStats;
 
-public class PMIMeasurementHandler implements MeasurementHandler {
+public class PMIMeasurementHandler implements MeasurementGroupHandler {
     private static final Log log = LogFactory.getLog(PMIMeasurementHandler.class);
     
     private final MBean mbean;

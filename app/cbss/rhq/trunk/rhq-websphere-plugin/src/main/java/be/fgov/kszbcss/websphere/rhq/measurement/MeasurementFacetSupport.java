@@ -16,18 +16,18 @@ public class MeasurementFacetSupport implements MeasurementFacet {
     private static final Log log = LogFactory.getLog(MeasurementFacetSupport.class);
     
     private final WebSphereComponent<?> component;
-    private final Map<String,MeasurementHandler> namedHandlers = new HashMap<String,MeasurementHandler>();
-    private MeasurementHandler defaultHandler;
+    private final Map<String,MeasurementGroupHandler> groupHandlers = new HashMap<String,MeasurementGroupHandler>();
+    private MeasurementGroupHandler defaultHandler;
     
     public MeasurementFacetSupport(WebSphereComponent<?> component) {
         this.component = component;
     }
     
-    public void addHandler(String prefix, MeasurementHandler handler) {
-        namedHandlers.put(prefix, handler);
+    public void addHandler(String prefix, MeasurementGroupHandler handler) {
+        groupHandlers.put(prefix, handler);
     }
     
-    public void setDefaultHandler(MeasurementHandler defaultHandler) {
+    public void setDefaultHandler(MeasurementGroupHandler defaultHandler) {
         this.defaultHandler = defaultHandler;
     }
 
@@ -41,7 +41,7 @@ public class MeasurementFacetSupport implements MeasurementFacet {
                 defaultRequests.put(name, request);
             } else {
                 String prefix = name.substring(0, idx);
-                if (namedHandlers.containsKey(prefix)) {
+                if (groupHandlers.containsKey(prefix)) {
                     Map<String,MeasurementScheduleRequest> namedRequests = namedRequestMap.get(prefix);
                     if (namedRequests == null) {
                         namedRequests = new HashMap<String,MeasurementScheduleRequest>();
@@ -55,7 +55,7 @@ public class MeasurementFacetSupport implements MeasurementFacet {
         }
         
         for (Map.Entry<String,Map<String,MeasurementScheduleRequest>> entry : namedRequestMap.entrySet()) {
-            namedHandlers.get(entry.getKey()).getValues(component.getServer(), report, entry.getValue());
+            groupHandlers.get(entry.getKey()).getValues(component.getServer(), report, entry.getValue());
         }
         if (!defaultRequests.isEmpty()) {
             if (defaultHandler == null) {
