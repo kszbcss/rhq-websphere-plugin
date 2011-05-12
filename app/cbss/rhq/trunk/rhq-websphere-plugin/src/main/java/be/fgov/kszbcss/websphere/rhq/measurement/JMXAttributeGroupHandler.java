@@ -8,7 +8,6 @@ import javax.management.AttributeList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.rhq.core.domain.measurement.MeasurementDataTrait;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
@@ -38,19 +37,7 @@ public class JMXAttributeGroupHandler implements MeasurementGroupHandler {
             log.debug("Fetched attributes from " + mbean + ": " + Arrays.asList(attributes) + "=" + list);
         }
         for (int i=0; i<attributes.length; i++) {
-            MeasurementScheduleRequest request = requests.get(attributes[i]);
-            Attribute attribute = (Attribute)list.get(i);
-            Object value = attribute.getValue();
-            switch (request.getDataType()) {
-                case TRAIT:
-                    if (log.isDebugEnabled()) {
-                        log.debug("Adding measurement (trait) for " + request.getName() + "; value=" + value);
-                    }
-                    report.addData(new MeasurementDataTrait(request, String.valueOf(value)));
-                    break;
-                default:
-                    log.error("Data type " + request.getDataType() + " not supported");
-            }
+            JMXMeasurementDataUtils.addData(report, requests.get(attributes[i]), ((Attribute)list.get(i)).getValue());
         }
     }
 }

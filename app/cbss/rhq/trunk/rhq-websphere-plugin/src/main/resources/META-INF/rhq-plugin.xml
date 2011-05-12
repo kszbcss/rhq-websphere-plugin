@@ -179,6 +179,10 @@
                  discovery="SIBMessagingEngineDiscoveryComponent"
                  class="SIBMessagingEngineComponent"
                  description="SIBus Messaging Engine">
+            
+            <metric property="health" displayName="Health" dataType="trait"
+                    displayType="summary" defaultOn="true"
+                    description="The current Health of the Messaging Engine."/>
         </service>
     </server>
 </plugin>
