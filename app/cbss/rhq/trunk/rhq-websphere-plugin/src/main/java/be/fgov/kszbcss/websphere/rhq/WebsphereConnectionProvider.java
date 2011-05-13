@@ -4,11 +4,14 @@ import javax.management.MBeanServer;
 
 import org.mc4j.ems.impl.jmx.connection.support.providers.AbstractConnectionProvider;
 
+import be.fgov.kszbcss.websphere.rhq.connector.AdminClientMBeanServer;
+import be.fgov.kszbcss.websphere.rhq.connector.MBeanServerStatsProxy;
+
 import com.ibm.websphere.management.AdminClient;
 
 public class WebsphereConnectionProvider extends AbstractConnectionProvider {
     private final AdminClient adminClient;
-    private AdminClientProxy proxy;
+    private MBeanServerStatsProxy proxy;
     private MBeanServer mbeanServer;
 
     public WebsphereConnectionProvider(AdminClient adminClient) {
@@ -16,7 +19,7 @@ public class WebsphereConnectionProvider extends AbstractConnectionProvider {
     }
 
     protected void doConnect() throws Exception {
-        proxy = new AdminClientProxy(adminClient);
+        proxy = new MBeanServerStatsProxy(new AdminClientMBeanServer(adminClient));
         mbeanServer = proxy.buildServerProxy();
     }
 
