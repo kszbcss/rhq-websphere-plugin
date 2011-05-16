@@ -9,6 +9,8 @@ import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.configuration.Configuration;
 
 
+import be.fgov.kszbcss.websphere.rhq.connector.SecureAdminClient;
+
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.AdminClientFactory;
 import com.ibm.websphere.management.exception.ConnectorException;

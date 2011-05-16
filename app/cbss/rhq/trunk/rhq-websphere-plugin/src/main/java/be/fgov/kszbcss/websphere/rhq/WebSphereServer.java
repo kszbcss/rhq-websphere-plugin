@@ -23,6 +23,10 @@ import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.pluginapi.event.EventContext;
 
+import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsCollector;
+import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsWrapper;
+import be.fgov.kszbcss.websphere.rhq.connector.SecureAdminClient;
+
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.AdminClientFactory;
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -140,6 +144,9 @@ public class WebSphereServer {
             }
             
             adminClient = AdminClientFactory.createAdminClient(properties);
+            
+            adminClient = new AdminClientStatsWrapper(adminClient, AdminClientStatsCollector.INSTANCE);
+            
             try {
                 Subject subject = WSSubject.getRunAsSubject();
                 if (log.isDebugEnabled()) {

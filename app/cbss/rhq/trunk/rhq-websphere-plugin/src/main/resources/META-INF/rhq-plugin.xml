@@ -185,4 +185,19 @@
                     description="The current Health of the Messaging Engine."/>
         </service>
     </server>
+    
+    <service name="WebSphere Connector Subsystem"
+             discovery="be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsDiscoveryComponent"
+             class="be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsComponent"
+             description="WebSphere Connector Subsystem"
+             singleton="true">
+        
+        <runs-inside>
+            <parent-resource-type name="RHQ Agent" plugin="RHQAgent"/>
+        </runs-inside>
+        
+        <metric property="InvocationTime" dataType="calltime" units="milliseconds"
+                defaultOn="false" defaultInterval="600000" destinationType="Operation/Attribute Name"
+                description="The minimum, maximum, and average invocation times for JMX invocations."/>
+    </service>
 </plugin>

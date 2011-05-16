@@ -1,6 +1,5 @@
-package be.fgov.kszbcss.websphere.rhq;
+package be.fgov.kszbcss.websphere.rhq.connector;
 
-import java.util.Properties;
 import java.util.Set;
 
 import javax.management.Attribute;
@@ -26,12 +25,11 @@ import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.security.WSSecurityException;
 import com.ibm.websphere.security.auth.WSSubject;
 
-public class SecureAdminClient implements AdminClient {
-    private final AdminClient target;
+public class SecureAdminClient extends AdminClientWrapper {
     private final Subject subject;
     
     public SecureAdminClient(AdminClient target, Subject subject) {
-        this.target = target;
+        super(target);
         this.subject = subject;
     }
 
@@ -39,7 +37,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                target.addNotificationListener(name, listener, filter, handback);
+                super.addNotificationListener(name, listener, filter, handback);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -52,7 +50,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                target.addNotificationListener(name, listener, filter, handback);
+                super.addNotificationListener(name, listener, filter, handback);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -65,7 +63,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                target.addNotificationListenerExtended(name, listener, filter, handback);
+                super.addNotificationListenerExtended(name, listener, filter, handback);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -78,7 +76,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.getAttribute(name, attribute);
+                return super.getAttribute(name, attribute);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -91,7 +89,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.getAttributes(name, attributes);
+                return super.getAttributes(name, attributes);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -104,7 +102,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.getClassLoader(name);
+                return super.getClassLoader(name);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -117,7 +115,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.getClassLoaderFor(name);
+                return super.getClassLoaderFor(name);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -126,15 +124,11 @@ public class SecureAdminClient implements AdminClient {
         }
     }
     
-    public Properties getConnectorProperties() {
-        return target.getConnectorProperties();
-    }
-    
     public String getDefaultDomain() throws ConnectorException {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.getDefaultDomain();
+                return super.getDefaultDomain();
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -147,7 +141,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.getDomainName();
+                return super.getDomainName();
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -160,7 +154,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.getMBeanCount();
+                return super.getMBeanCount();
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -173,7 +167,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.getMBeanInfo(name);
+                return super.getMBeanInfo(name);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -186,7 +180,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.getObjectInstance(objectName);
+                return super.getObjectInstance(objectName);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -199,7 +193,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.getServerMBean();
+                return super.getServerMBean();
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -208,15 +202,11 @@ public class SecureAdminClient implements AdminClient {
         }
     }
     
-    public String getType() {
-        return target.getType();
-    }
-    
     public Object invoke(ObjectName name, String operationName, Object[] params, String[] signature) throws InstanceNotFoundException, MBeanException, ReflectionException, ConnectorException {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.invoke(name, operationName, params, signature);
+                return super.invoke(name, operationName, params, signature);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -229,7 +219,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.isAlive();
+                return super.isAlive();
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -242,7 +232,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.isAlive(timeout);
+                return super.isAlive(timeout);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -255,7 +245,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.isInstanceOf(name, className);
+                return super.isInstanceOf(name, className);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -268,7 +258,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.isRegistered(name);
+                return super.isRegistered(name);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -281,7 +271,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.queryMBeans(name, query);
+                return super.queryMBeans(name, query);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -294,7 +284,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.queryNames(name, query);
+                return super.queryNames(name, query);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -307,7 +297,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                target.removeNotificationListener(name, listener);
+                super.removeNotificationListener(name, listener);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -320,7 +310,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                target.removeNotificationListener(name, listener);
+                super.removeNotificationListener(name, listener);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -333,7 +323,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                target.removeNotificationListener(name, listener, filter, handback);
+                super.removeNotificationListener(name, listener, filter, handback);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -342,12 +332,11 @@ public class SecureAdminClient implements AdminClient {
         }
     }
     
-    @SuppressWarnings("deprecation")
     public void removeNotificationListenerExtended(NotificationListener listener) throws ListenerNotFoundException, ConnectorException {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                target.removeNotificationListenerExtended(listener);
+                super.removeNotificationListenerExtended(listener);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -360,7 +349,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                target.removeNotificationListenerExtended(name, listener);
+                super.removeNotificationListenerExtended(name, listener);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -373,7 +362,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                target.setAttribute(name, attribute);
+                super.setAttribute(name, attribute);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
@@ -386,7 +375,7 @@ public class SecureAdminClient implements AdminClient {
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return target.setAttributes(name, attributes);
+                return super.setAttributes(name, attributes);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
