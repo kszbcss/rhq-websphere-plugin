@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.websphere.rhq.configuration;
+package be.fgov.kszbcss.websphere.rhq.support.configuration;
 
 import java.util.HashSet;
 import java.util.Set;

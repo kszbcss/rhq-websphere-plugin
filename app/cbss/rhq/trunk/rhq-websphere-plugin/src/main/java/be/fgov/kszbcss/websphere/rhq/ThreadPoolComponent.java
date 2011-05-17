@@ -12,9 +12,9 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.websphere.rhq.configuration.ConfigurationFacetSupport;
-import be.fgov.kszbcss.websphere.rhq.measurement.MeasurementFacetSupport;
-import be.fgov.kszbcss.websphere.rhq.measurement.PMIMeasurementHandler;
+import be.fgov.kszbcss.websphere.rhq.support.configuration.ConfigurationFacetSupport;
+import be.fgov.kszbcss.websphere.rhq.support.measurement.MeasurementFacetSupport;
+import be.fgov.kszbcss.websphere.rhq.support.measurement.PMIMeasurementHandler;
 
 import com.ibm.websphere.pmi.stat.WSRangeStatistic;
 

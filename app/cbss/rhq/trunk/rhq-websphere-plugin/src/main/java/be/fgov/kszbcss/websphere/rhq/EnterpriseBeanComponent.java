@@ -9,8 +9,8 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.websphere.rhq.measurement.MeasurementFacetSupport;
-import be.fgov.kszbcss.websphere.rhq.measurement.PMIMeasurementHandler;
+import be.fgov.kszbcss.websphere.rhq.support.measurement.MeasurementFacetSupport;
+import be.fgov.kszbcss.websphere.rhq.support.measurement.PMIMeasurementHandler;
 
 public abstract class EnterpriseBeanComponent extends WebSphereServiceComponent<EJBModuleComponent> implements MeasurementFacet {
     private MeasurementFacetSupport measurementFacetSupport;

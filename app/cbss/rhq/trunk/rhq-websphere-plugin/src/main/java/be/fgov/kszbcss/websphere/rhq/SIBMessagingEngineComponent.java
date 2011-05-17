@@ -12,8 +12,8 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.websphere.rhq.measurement.JMXOperationMeasurementHandler;
-import be.fgov.kszbcss.websphere.rhq.measurement.MeasurementFacetSupport;
+import be.fgov.kszbcss.websphere.rhq.support.measurement.JMXOperationMeasurementHandler;
+import be.fgov.kszbcss.websphere.rhq.support.measurement.MeasurementFacetSupport;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 

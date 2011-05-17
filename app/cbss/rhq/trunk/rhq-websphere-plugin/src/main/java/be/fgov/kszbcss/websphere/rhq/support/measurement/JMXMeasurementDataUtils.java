@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.websphere.rhq.measurement;
+package be.fgov.kszbcss.websphere.rhq.support.measurement;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

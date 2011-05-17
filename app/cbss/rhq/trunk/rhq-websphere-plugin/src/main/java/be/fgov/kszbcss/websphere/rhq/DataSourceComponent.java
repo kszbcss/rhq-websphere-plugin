@@ -10,9 +10,9 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.websphere.rhq.measurement.MeasurementFacetSupport;
-import be.fgov.kszbcss.websphere.rhq.measurement.PMIMeasurementHandler;
-import be.fgov.kszbcss.websphere.rhq.measurement.PMIModuleSelector;
+import be.fgov.kszbcss.websphere.rhq.support.measurement.MeasurementFacetSupport;
+import be.fgov.kszbcss.websphere.rhq.support.measurement.PMIMeasurementHandler;
+import be.fgov.kszbcss.websphere.rhq.support.measurement.PMIModuleSelector;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.stat.WSRangeStatistic;
