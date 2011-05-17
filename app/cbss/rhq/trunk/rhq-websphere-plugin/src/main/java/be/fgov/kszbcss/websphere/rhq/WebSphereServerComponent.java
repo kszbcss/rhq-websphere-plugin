@@ -43,7 +43,10 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     
     public void start(ResourceContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
-        server = new WebSphereServer(context.getPluginConfiguration());
+        
+        String[] parts = context.getResourceKey().split("/");
+        
+        server = new WebSphereServer(parts[0], parts[1], parts[2], context.getPluginConfiguration());
         server.init();
         
         measurementFacetSupport = new MeasurementFacetSupport(this);

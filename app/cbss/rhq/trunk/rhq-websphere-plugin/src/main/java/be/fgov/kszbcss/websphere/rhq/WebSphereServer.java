@@ -18,6 +18,11 @@ import javax.management.NotificationListener;
 import javax.management.ObjectName;
 import javax.security.auth.Subject;
 
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Ehcache;
+import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.constructs.blocking.UpdatingSelfPopulatingCache;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.configuration.Configuration;
@@ -26,6 +31,8 @@ import org.rhq.core.pluginapi.event.EventContext;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsWrapper;
 import be.fgov.kszbcss.websphere.rhq.connector.SecureAdminClient;
+import be.fgov.kszbcss.websphere.rhq.repository.ConfigDocument;
+import be.fgov.kszbcss.websphere.rhq.repository.ConfigDocumentFactory;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.AdminClientFactory;
@@ -79,6 +86,9 @@ public class WebSphereServer {
     
     private static final Log log = LogFactory.getLog(WebSphereServer.class);
     
+    private final String cell;
+    private final String node;
+    private final String server;
     private final Configuration config;
     private final List<NotificationListenerRegistration> listeners = new ArrayList<NotificationListenerRegistration>();
     private final StateChangeEventDispatcher stateEventDispatcher = new StateChangeEventDispatcher();
@@ -86,13 +96,39 @@ public class WebSphereServer {
     private AdminClient adminClient;
     private ObjectName perfMBean;
     private PmiModuleConfig[] pmiModuleConfigs;
+    private CacheManager cacheManager;
+    private Ehcache configDocumentCache;
     
-    public WebSphereServer(Configuration config) {
+    public WebSphereServer(String cell, String node, String server, Configuration config) {
         this.config = config;
+        // TODO: we should check somewhere that we are connecting to the right server
+        this.cell = cell;
+        this.node = node;
+        this.server = server;
         serverMBean = new MBean(this, Utils.createObjectName("WebSphere:type=Server,*"));
     }
     
+    public String getCell() {
+        return cell;
+    }
+
+    public String getNode() {
+        return node;
+    }
+
+    public String getServer() {
+        return server;
+    }
+
     public void init() {
+        net.sf.ehcache.config.Configuration config = new net.sf.ehcache.config.Configuration();
+        config.setUpdateCheck(false);
+        CacheConfiguration cacheConfig = new CacheConfiguration("ConfigRepository", 100);
+        config.addCache(cacheConfig);
+        cacheManager = CacheManager.create(config);
+        configDocumentCache = new UpdatingSelfPopulatingCache(cacheManager.getCache("ConfigRepository"),
+                new ConfigDocumentFactory(new MBean(this, Utils.createObjectName("WebSphere:type=ConfigRepository,*"))));
+        
         NotificationFilterSupport filter = new NotificationFilterSupport();
         filter.enableType("j2ee.state.starting");
         filter.enableType("j2ee.state.running");
@@ -116,6 +152,8 @@ public class WebSphereServer {
                 log.error("Failed to unregister listener", ex);
             }
         }
+        
+        cacheManager.shutdown();
     }
     
     public MBean getServerMBean() {
@@ -299,5 +337,9 @@ public class WebSphereServer {
         } catch (Exception ex) {
             log.error(ex); // TODO
         }
+    }
+    
+    public ConfigDocument getConfigDocument(String uri) {
+        return (ConfigDocument)configDocumentCache.get(uri).getObjectValue();
     }
 }
