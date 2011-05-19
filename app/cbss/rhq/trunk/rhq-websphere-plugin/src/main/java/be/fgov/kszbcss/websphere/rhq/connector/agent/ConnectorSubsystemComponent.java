@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -95,6 +96,9 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
                 } finally {
                     in.close();
                 }
+                if (log.isDebugEnabled()) {
+                    log.debug("Trust store has " + truststore.size() + " existing entries");
+                }
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("Trust store " + truststoreFile + " doesn't exist yet; will create a new one");
@@ -108,16 +112,29 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
                 DeployIndividualPackageResponse packageResponse = new DeployIndividualPackageResponse(pkg.getKey());
                 packageResponse.setResult(ContentResponseResult.SUCCESS);
                 try {
-                    contentServices.downloadPackageBits(resourceContext.getContentContext(), pkg.getKey(), baos, true);
+                    long size = contentServices.downloadPackageBits(resourceContext.getContentContext(), pkg.getKey(), baos, true);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Downloaded package content; size = " + size);
+                    }
                     Collection<? extends Certificate> certs = cf.generateCertificates(new ByteArrayInputStream(baos.toByteArray()));
                     for (Certificate cert : certs) {
-                        truststore.setCertificateEntry(pkg.getFileName() + "#" + pkg.getVersion(), cert);
+                        String alias = pkg.getFileName() + "#" + pkg.getVersion();
+                        if (log.isDebugEnabled()) {
+                            log.debug("Adding certificate for " + ((X509Certificate)cert).getSubjectDN() + " with alias " + alias);
+                        }
+                        truststore.setCertificateEntry(alias, cert);
                     }
                 } catch (Exception ex) {
+                    log.error("Failed to add certificate from " + pkg.getFileName(), ex);
                     packageResponse.setResult(ContentResponseResult.FAILURE);
                     packageResponse.setErrorMessage(ex.getMessage());
+                    response.setOverallRequestResult(ContentResponseResult.FAILURE);
+                    response.setOverallRequestErrorMessage("Deployment of at least one certificate failed");
                 }
                 response.addPackageResponse(packageResponse);
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Writing trust store with " + truststore.size() + " entries to " + truststoreFile);
             }
             OutputStream out = new FileOutputStream(truststoreFile);
             try {
