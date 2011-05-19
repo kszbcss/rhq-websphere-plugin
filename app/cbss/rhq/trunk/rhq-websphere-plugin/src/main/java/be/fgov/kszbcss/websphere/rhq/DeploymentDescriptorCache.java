@@ -15,6 +15,8 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class DeploymentDescriptorCache {

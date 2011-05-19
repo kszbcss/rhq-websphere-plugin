@@ -11,8 +11,8 @@ import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
-import be.fgov.kszbcss.websphere.rhq.MBean;
 import be.fgov.kszbcss.websphere.rhq.WebSphereServer;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
 
 public class JMXAttributeGroupHandler implements MeasurementGroupHandler {
     private static final Log log = LogFactory.getLog(JMXAttributeGroupHandler.class);

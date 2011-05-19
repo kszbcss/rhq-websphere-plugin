@@ -7,6 +7,8 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.w3c.dom.Document;
 
+import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public abstract class ModuleComponent extends WebSphereServiceComponent<ApplicationComponent> {

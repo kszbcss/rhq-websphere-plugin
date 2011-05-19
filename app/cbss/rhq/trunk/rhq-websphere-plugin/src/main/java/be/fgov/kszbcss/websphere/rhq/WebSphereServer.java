@@ -31,6 +31,7 @@ import org.rhq.core.pluginapi.event.EventContext;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsWrapper;
 import be.fgov.kszbcss.websphere.rhq.connector.SecureAdminClient;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
 import be.fgov.kszbcss.websphere.rhq.repository.ConfigDocument;
 import be.fgov.kszbcss.websphere.rhq.repository.ConfigDocumentFactory;
 

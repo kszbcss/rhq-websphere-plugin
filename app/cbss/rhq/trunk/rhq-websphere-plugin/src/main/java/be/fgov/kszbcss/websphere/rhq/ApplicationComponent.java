@@ -7,6 +7,8 @@ import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.w3c.dom.Document;
 
+import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class ApplicationComponent extends WebSphereServiceComponent<WebSphereServerComponent> {

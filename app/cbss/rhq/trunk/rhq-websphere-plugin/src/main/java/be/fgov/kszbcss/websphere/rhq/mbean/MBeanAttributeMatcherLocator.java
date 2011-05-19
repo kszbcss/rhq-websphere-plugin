@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.websphere.rhq;
+package be.fgov.kszbcss.websphere.rhq.mbean;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.JMException;

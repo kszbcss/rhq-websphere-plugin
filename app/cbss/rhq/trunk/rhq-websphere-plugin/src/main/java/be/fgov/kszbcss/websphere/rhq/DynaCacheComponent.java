@@ -16,6 +16,8 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
+import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+
 public class DynaCacheComponent implements ResourceComponent<WebSphereServerComponent>, MeasurementFacet, OperationFacet {
     private static final Log log = LogFactory.getLog(DynaCacheComponent.class);
     

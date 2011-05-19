@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.websphere.rhq;
+package be.fgov.kszbcss.websphere.rhq.mbean;
 
 import javax.management.AttributeList;
 import javax.management.InstanceNotFoundException;
@@ -7,6 +7,8 @@ import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import be.fgov.kszbcss.websphere.rhq.WebSphereServer;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;

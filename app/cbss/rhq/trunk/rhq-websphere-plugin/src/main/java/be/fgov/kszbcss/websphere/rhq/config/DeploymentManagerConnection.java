@@ -3,9 +3,9 @@ package be.fgov.kszbcss.websphere.rhq.config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.websphere.rhq.MBean;
 import be.fgov.kszbcss.websphere.rhq.Utils;
 import be.fgov.kszbcss.websphere.rhq.WebSphereServer;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
 
 import com.ibm.websphere.management.configservice.ConfigService;
 import com.ibm.websphere.management.configservice.ConfigServiceProxy;

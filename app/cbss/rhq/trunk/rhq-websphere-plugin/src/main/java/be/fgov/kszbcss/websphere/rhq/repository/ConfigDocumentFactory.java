@@ -6,7 +6,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.websphere.rhq.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
 
 import com.ibm.websphere.management.repository.DocumentContentSource;
 import com.ibm.websphere.management.repository.DocumentDigest;
