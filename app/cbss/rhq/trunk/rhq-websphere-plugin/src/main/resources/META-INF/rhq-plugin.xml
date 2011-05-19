@@ -199,5 +199,8 @@
         <metric property="InvocationTime" dataType="calltime" units="milliseconds"
                 defaultOn="false" defaultInterval="600000" destinationType="Operation/Attribute Name"
                 description="The minimum, maximum, and average invocation times for JMX invocations."/>
+        
+        <content name="certificate" displayName="Certificate" category="configuration"
+                 description="Trusted certificate"/>
     </service>
 </plugin>

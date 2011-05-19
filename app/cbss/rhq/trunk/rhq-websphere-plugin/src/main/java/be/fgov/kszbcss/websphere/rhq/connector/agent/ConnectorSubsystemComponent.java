@@ -1,13 +1,37 @@
 package be.fgov.kszbcss.websphere.rhq.connector.agent;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.rhq.core.domain.content.PackageDetailsKey;
+import org.rhq.core.domain.content.PackageType;
+import org.rhq.core.domain.content.transfer.ContentResponseResult;
+import org.rhq.core.domain.content.transfer.DeployIndividualPackageResponse;
+import org.rhq.core.domain.content.transfer.DeployPackageStep;
+import org.rhq.core.domain.content.transfer.DeployPackagesResponse;
+import org.rhq.core.domain.content.transfer.RemovePackagesResponse;
+import org.rhq.core.domain.content.transfer.ResourcePackageDetails;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.domain.measurement.calltime.CallTimeData;
+import org.rhq.core.pluginapi.content.ContentFacet;
+import org.rhq.core.pluginapi.content.ContentServices;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
@@ -17,11 +41,16 @@ import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStats;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsData;
 
-public class ConnectorSubsystemComponent implements ResourceComponent<ResourceComponent<?>>, MeasurementFacet {
+public class ConnectorSubsystemComponent implements ResourceComponent<ResourceComponent<?>>, MeasurementFacet, ContentFacet {
     private static final Log log = LogFactory.getLog(ConnectorSubsystemComponent.class);
+    
+    private ResourceContext<ResourceComponent<?>> resourceContext;
+    private File truststoreFile;
     
     public void start(ResourceContext<ResourceComponent<?>> context)
             throws InvalidPluginConfigurationException, Exception {
+        resourceContext = context;
+        truststoreFile = new File(context.getDataDirectory(), "trust.jks");
     }
 
     public AvailabilityType getAvailability() {
@@ -49,6 +78,101 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
         if (!dataAdded) {
             log.debug("No call time data requested. Nothing has been added to the report.");
         }
+    }
+
+    public DeployPackagesResponse deployPackages(Set<ResourcePackageDetails> packages, ContentServices contentServices) {
+        DeployPackagesResponse response = new DeployPackagesResponse();
+        response.setOverallRequestResult(ContentResponseResult.SUCCESS);
+        try {
+            KeyStore truststore = KeyStore.getInstance("JKS");
+            if (truststoreFile.exists()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Loading existing trust store from " + truststoreFile);
+                }
+                InputStream in = new FileInputStream(truststoreFile);
+                try {
+                    truststore.load(in, new char[0]);
+                } finally {
+                    in.close();
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Trust store " + truststoreFile + " doesn't exist yet; will create a new one");
+                }
+                truststore.load(null);
+            }
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            for (ResourcePackageDetails pkg : packages) {
+                baos.reset();
+                DeployIndividualPackageResponse packageResponse = new DeployIndividualPackageResponse(pkg.getKey());
+                packageResponse.setResult(ContentResponseResult.SUCCESS);
+                try {
+                    contentServices.downloadPackageBits(resourceContext.getContentContext(), pkg.getKey(), baos, true);
+                    Collection<? extends Certificate> certs = cf.generateCertificates(new ByteArrayInputStream(baos.toByteArray()));
+                    for (Certificate cert : certs) {
+                        truststore.setCertificateEntry(pkg.getFileName() + "#" + pkg.getVersion(), cert);
+                    }
+                } catch (Exception ex) {
+                    packageResponse.setResult(ContentResponseResult.FAILURE);
+                    packageResponse.setErrorMessage(ex.getMessage());
+                }
+                response.addPackageResponse(packageResponse);
+            }
+            OutputStream out = new FileOutputStream(truststoreFile);
+            try {
+                truststore.store(out, new char[0]);
+            } finally {
+                out.close();
+            }
+        } catch (Exception ex) {
+            response.setOverallRequestResult(ContentResponseResult.FAILURE);
+            response.setOverallRequestErrorMessage(ex.getMessage());
+        }
+        return response;
+    }
+
+    public Set<ResourcePackageDetails> discoverDeployedPackages(PackageType packageType) {
+        Set<ResourcePackageDetails> result = new HashSet<ResourcePackageDetails>();
+        if (truststoreFile.exists()) {
+            try {
+                KeyStore truststore = KeyStore.getInstance("JKS");
+                InputStream in = new FileInputStream(truststoreFile);
+                try {
+                    truststore.load(in, new char[0]);
+                } finally {
+                    in.close();
+                }
+                for (Enumeration<String> aliases = truststore.aliases(); aliases.hasMoreElements(); ) {
+                    String alias = aliases.nextElement();
+                    int idx = alias.indexOf('#');
+                    if (idx != -1) {
+                        PackageDetailsKey key = new PackageDetailsKey(alias.substring(0, idx), alias.substring(idx+1), packageType.getName(), "noarch");
+                        ResourcePackageDetails pkg = new ResourcePackageDetails(key);
+                        result.add(pkg);
+                    }
+                }
+            } catch (Exception ex) {
+                // Just continue and return an empty result
+            }
+        }
+        return result;
+    }
+
+    public List<DeployPackageStep> generateInstallationSteps(ResourcePackageDetails arg0) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public RemovePackagesResponse removePackages(
+            Set<ResourcePackageDetails> arg0) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public InputStream retrievePackageBits(ResourcePackageDetails arg0) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     public void stop() {
