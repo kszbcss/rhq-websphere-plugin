@@ -98,7 +98,7 @@ public class WebSphereServer {
     private final StateChangeEventDispatcher stateEventDispatcher = new StateChangeEventDispatcher();
     private final MBeanClient serverMBean;
     private AdminClient adminClient;
-    private ObjectName perfMBean;
+    private final Perf perf;
     private PmiModuleConfig[] pmiModuleConfigs;
     private CacheManager cacheManager;
     private Ehcache configDocumentCache;
@@ -111,6 +111,7 @@ public class WebSphereServer {
         this.server = server;
         mbeanClientFactory = new MBeanClientFactory(this);
         serverMBean = getMBeanClient("WebSphere:type=Server,*");
+        perf = getMBeanClient("WebSphere:type=Perf,*").getProxy(Perf.class);
     }
     
     public String getCell() {
@@ -245,19 +246,8 @@ public class WebSphereServer {
         stateEventDispatcher.unregisterEventContext(objectNamePattern);
     }
 
-    private synchronized ObjectName getPerfMBean() throws JMException, ConnectorException {
-        if (perfMBean == null) {
-            Set<ObjectName> names = getAdminClient().queryNames(new ObjectName("WebSphere:type=Perf,*"), null);
-            // TODO: check that there is exactly one result
-            perfMBean = names.iterator().next();
-        }
-        return perfMBean;
-    }
-    
     public WSStats getWSStats(MBeanStatDescriptor descriptor) throws JMException, ConnectorException {
-        WSStats stats = (WSStats)getAdminClient().invoke(getPerfMBean(), "getStatsObject",
-                new Object[] { descriptor, Boolean.TRUE },
-                new String[] { MBeanStatDescriptor.class.getName(), Boolean.class.getName() });
+        WSStats stats = perf.getStatsObject(descriptor, Boolean.TRUE);
         if (log.isDebugEnabled()) {
             if (stats == null) {
                 log.debug("No stats found for " + descriptor);
@@ -273,7 +263,7 @@ public class WebSphereServer {
     
     private synchronized PmiModuleConfig[] getPmiModuleConfigs() throws JMException, ConnectorException {
         if (pmiModuleConfigs == null) {
-            pmiModuleConfigs = (PmiModuleConfig[])getAdminClient().invoke(getPerfMBean(), "getConfigs", new Object[0], new String[0]);
+            pmiModuleConfigs = perf.getConfigs();
         }
         return pmiModuleConfigs;
     }
@@ -298,13 +288,9 @@ public class WebSphereServer {
             if (log.isDebugEnabled()) {
                 log.debug("Attempting to enable statistics " + statisticsToEnable + " on " + descriptor);
             }
-            AdminClient adminClient = getAdminClient();
-            ObjectName perfMBean = getPerfMBean();
             
             // Load the existing instrumentation level
-            MBeanLevelSpec[] specs = (MBeanLevelSpec[])adminClient.invoke(perfMBean, "getInstrumentationLevel",
-                    new Object[] { descriptor, Boolean.FALSE },
-                    new String[] { MBeanStatDescriptor.class.getName(), Boolean.class.getName() });
+            MBeanLevelSpec[] specs = perf.getInstrumentationLevel(descriptor, Boolean.FALSE);
             if (specs.length != 1) {
                 log.error("Expected getInstrumentationLevel to return exactly one MBeanLevelSpec object");
                 return;
@@ -345,9 +331,7 @@ public class WebSphereServer {
                 }
                 
                 // Now update the instrumentation level
-                adminClient.invoke(perfMBean, "setInstrumentationLevel",
-                        new Object[] { spec, Boolean.FALSE },
-                        new String[] { MBeanLevelSpec.class.getName(), Boolean.class.getName() });
+                perf.setInstrumentationLevel(spec, Boolean.FALSE);
                 
                 log.info("Enabled statistics " + newStats + " on " + descriptor);
             }
