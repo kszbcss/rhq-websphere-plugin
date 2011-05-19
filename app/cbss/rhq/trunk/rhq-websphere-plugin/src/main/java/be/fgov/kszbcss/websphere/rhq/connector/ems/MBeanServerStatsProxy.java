@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.websphere.rhq.connector;
+package be.fgov.kszbcss.websphere.rhq.connector.ems;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

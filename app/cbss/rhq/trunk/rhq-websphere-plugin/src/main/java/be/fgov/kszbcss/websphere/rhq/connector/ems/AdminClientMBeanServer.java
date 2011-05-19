@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.websphere.rhq.connector;
+package be.fgov.kszbcss.websphere.rhq.connector.ems;
 
 import java.io.ObjectInputStream;
 import java.util.Set;
@@ -26,6 +26,8 @@ import javax.management.ReflectionException;
 import javax.management.loading.ClassLoaderRepository;
 
 import org.mc4j.ems.connection.EmsException;
+
+import be.fgov.kszbcss.websphere.rhq.connector.ObjectNameMapper;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;

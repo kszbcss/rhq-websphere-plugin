@@ -1,11 +1,8 @@
-package be.fgov.kszbcss.websphere.rhq;
+package be.fgov.kszbcss.websphere.rhq.connector.ems;
 
 import javax.management.MBeanServer;
 
 import org.mc4j.ems.impl.jmx.connection.support.providers.AbstractConnectionProvider;
-
-import be.fgov.kszbcss.websphere.rhq.connector.AdminClientMBeanServer;
-import be.fgov.kszbcss.websphere.rhq.connector.MBeanServerStatsProxy;
 
 import com.ibm.websphere.management.AdminClient;
 
