@@ -187,8 +187,8 @@
     </server>
     
     <service name="WebSphere Connector Subsystem"
-             discovery="be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsDiscoveryComponent"
-             class="be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsComponent"
+             discovery="be.fgov.kszbcss.websphere.rhq.connector.agent.ConnectorSubsystemDiscoveryComponent"
+             class="be.fgov.kszbcss.websphere.rhq.connector.agent.ConnectorSubsystemComponent"
              description="WebSphere Connector Subsystem"
              singleton="true">
         

@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.websphere.rhq.connector;
+package be.fgov.kszbcss.websphere.rhq.connector.agent;
 
 import java.util.Collections;
 import java.util.Set;
@@ -9,7 +9,7 @@ import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-public class AdminClientStatsDiscoveryComponent implements ResourceDiscoveryComponent<ResourceComponent<?>> {
+public class ConnectorSubsystemDiscoveryComponent implements ResourceDiscoveryComponent<ResourceComponent<?>> {
     public Set<DiscoveredResourceDetails> discoverResources(
             ResourceDiscoveryContext<ResourceComponent<?>> context)
             throws InvalidPluginConfigurationException, Exception {

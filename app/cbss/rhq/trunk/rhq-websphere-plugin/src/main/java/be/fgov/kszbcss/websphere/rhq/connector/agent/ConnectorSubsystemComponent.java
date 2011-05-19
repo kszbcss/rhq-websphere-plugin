@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.websphere.rhq.connector;
+package be.fgov.kszbcss.websphere.rhq.connector.agent;
 
 import java.util.Set;
 
@@ -13,8 +13,12 @@ import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-public class AdminClientStatsComponent implements ResourceComponent<ResourceComponent<?>>, MeasurementFacet {
-    private static final Log log = LogFactory.getLog(AdminClientStatsComponent.class);
+import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStats;
+import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsCollector;
+import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsData;
+
+public class ConnectorSubsystemComponent implements ResourceComponent<ResourceComponent<?>>, MeasurementFacet {
+    private static final Log log = LogFactory.getLog(ConnectorSubsystemComponent.class);
     
     public void start(ResourceContext<ResourceComponent<?>> context)
             throws InvalidPluginConfigurationException, Exception {
