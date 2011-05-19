@@ -6,7 +6,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 
 import com.ibm.websphere.management.repository.DocumentContentSource;
 import com.ibm.websphere.management.repository.DocumentDigest;
@@ -14,9 +14,9 @@ import com.ibm.websphere.management.repository.DocumentDigest;
 public class ConfigDocumentFactory implements UpdatingCacheEntryFactory {
     private static final Log log = LogFactory.getLog(ConfigDocumentFactory.class);
     
-    private final MBean configRepositoryMBean;
+    private final MBeanClient configRepositoryMBean;
     
-    public ConfigDocumentFactory(MBean configRepositoryMBean) {
+    public ConfigDocumentFactory(MBeanClient configRepositoryMBean) {
         this.configRepositoryMBean = configRepositoryMBean;
     }
 

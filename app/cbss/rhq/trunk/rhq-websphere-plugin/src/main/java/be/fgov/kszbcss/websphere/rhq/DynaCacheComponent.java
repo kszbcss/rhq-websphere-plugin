@@ -16,23 +16,21 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
-
 public class DynaCacheComponent implements ResourceComponent<WebSphereServerComponent>, MeasurementFacet, OperationFacet {
     private static final Log log = LogFactory.getLog(DynaCacheComponent.class);
     
-    private MBean mbean;
+    private DynaCache cache;
     private String instanceName;
 
     public void start(ResourceContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
-        mbean = new MBean(context.getParentResourceComponent().getServer(), Utils.createObjectName("WebSphere:type=DynaCache,*"));
+        cache = context.getParentResourceComponent().getServer().getMBeanClient("WebSphere:type=DynaCache,*").getProxy(DynaCache.class);
         instanceName = context.getResourceKey();
     }
 
     public AvailabilityType getAvailability() {
         String[] instanceNames;
         try {
-            instanceNames = (String[])mbean.invoke("getCacheInstanceNames", new Object[0], new String[0]);
+            instanceNames = cache.getCacheInstanceNames();
         } catch (Exception ex) {
             log.error("Unable to get cache instance names", ex);
             return AvailabilityType.DOWN;
@@ -46,7 +44,7 @@ public class DynaCacheComponent implements ResourceComponent<WebSphereServerComp
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
-        String[] stats = (String[])mbean.invoke("getAllCacheStatistics", new Object[] { instanceName }, new String[] { String.class.getName() });
+        String[] stats = cache.getAllCacheStatistics(instanceName);
         for (MeasurementScheduleRequest request : requests) {
             String name = request.getName();
             String value = null;
@@ -64,7 +62,7 @@ public class DynaCacheComponent implements ResourceComponent<WebSphereServerComp
 
     public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("clearCache")) {
-            mbean.invoke("clearCache", new Object[] { instanceName }, new String[] { String.class.getName() });
+            cache.clearCache(instanceName);
         }
         return null;
     }

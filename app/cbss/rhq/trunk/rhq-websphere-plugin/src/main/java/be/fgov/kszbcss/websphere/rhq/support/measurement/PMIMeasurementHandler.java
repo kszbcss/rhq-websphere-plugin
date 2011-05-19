@@ -14,7 +14,7 @@ import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
 import be.fgov.kszbcss.websphere.rhq.WebSphereServer;
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 
 import com.ibm.websphere.pmi.PmiModuleConfig;
 import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
@@ -28,15 +28,15 @@ import com.ibm.websphere.pmi.stat.WSStats;
 public class PMIMeasurementHandler implements MeasurementGroupHandler {
     private static final Log log = LogFactory.getLog(PMIMeasurementHandler.class);
     
-    private final MBean mbean;
+    private final MBeanClient mbean;
     private final PMIModuleSelector moduleSelector;
     private final Map<String,WSAverageStatistic> lastStats = new HashMap<String,WSAverageStatistic>();
     
-    public PMIMeasurementHandler(MBean mbean, String... path) {
+    public PMIMeasurementHandler(MBeanClient mbean, String... path) {
         this(mbean, new StaticPMIModuleSelector(path));
     }
     
-    public PMIMeasurementHandler(MBean mbean, PMIModuleSelector moduleSelector) {
+    public PMIMeasurementHandler(MBeanClient mbean, PMIModuleSelector moduleSelector) {
         this.mbean = mbean;
         this.moduleSelector = moduleSelector;
     }

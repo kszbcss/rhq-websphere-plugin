@@ -12,7 +12,7 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 import be.fgov.kszbcss.websphere.rhq.support.configuration.ConfigurationFacetSupport;
 import be.fgov.kszbcss.websphere.rhq.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.websphere.rhq.support.measurement.PMIMeasurementHandler;
@@ -27,7 +27,7 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
     protected void start() throws InvalidPluginConfigurationException, Exception {
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        MBean mbean = new MBean(getServer(), Utils.createObjectName("WebSphere:type=ThreadPool,name=" + context.getResourceKey() + ",*"));
+        MBeanClient mbean = getServer().getMBeanClient("WebSphere:type=ThreadPool,name=" + context.getResourceKey() + ",*");
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(mbean) {
             @Override
             protected double getValue(String name, WSRangeStatistic statistic) {

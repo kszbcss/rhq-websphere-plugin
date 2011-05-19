@@ -3,12 +3,9 @@ package be.fgov.kszbcss.websphere.rhq.config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.websphere.rhq.Utils;
 import be.fgov.kszbcss.websphere.rhq.WebSphereServer;
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
 
 import com.ibm.websphere.management.configservice.ConfigService;
-import com.ibm.websphere.management.configservice.ConfigServiceProxy;
 import com.ibm.websphere.management.repository.ConfigEpoch;
 
 /**
@@ -19,20 +16,20 @@ import com.ibm.websphere.management.repository.ConfigEpoch;
 class DeploymentManagerConnection implements Runnable {
     private static final Log log = LogFactory.getLog(DeploymentManagerConnection.class);
 
-    private final MBean configRepositoryMBean;
+    private final ConfigRepository configRepository;
     private ConfigEpoch epoch;
     private ConfigService configService;
     
     DeploymentManagerConnection(WebSphereServer server) {
         // TODO: maybe we should handle the routing stuff somewhere else?
-        configRepositoryMBean = new MBean(server, Utils.createObjectName("WebSphere:type=ConfigRepository,cell=" + server.getCell() + ",node=" + server.getNode() + ",process=" + server.getServer() + ",*"));
+        configRepository = server.getMBeanClient("WebSphere:type=ConfigRepository,cell=" + server.getCell() + ",node=" + server.getNode() + ",process=" + server.getServer() + ",*").getProxy(ConfigRepository.class);
     }
     
     public void run() {
         ConfigEpoch epoch = null;
         Exception exception = null;
         try {
-            epoch = (ConfigEpoch)configRepositoryMBean.invoke("getRepositoryEpoch", new Object[0], new String[0]);
+            epoch = configRepository.getRepositoryEpoch();
         } catch (Exception ex) {
             exception = ex;
         }

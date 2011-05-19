@@ -9,7 +9,7 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 import be.fgov.kszbcss.websphere.rhq.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.websphere.rhq.support.measurement.PMIMeasurementHandler;
 
@@ -22,7 +22,7 @@ public class ServletComponent extends WebSphereServiceComponent<WebModuleCompone
         ModuleComponent parent = context.getParentResourceComponent();
         WebSphereServer server = getServer();
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        MBean mbean = new MBean(server, Utils.createObjectName("WebSphere:type=Servlet,Application=" + parent.getApplicationName() + ",WebModule=" + parent.getModuleName() + ",name=" + context.getResourceKey() + ",*"));
+        MBeanClient mbean = server.getMBeanClient("WebSphere:type=Servlet,Application=" + parent.getApplicationName() + ",WebModule=" + parent.getModuleName() + ",name=" + context.getResourceKey() + ",*");
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(mbean));
     }
 

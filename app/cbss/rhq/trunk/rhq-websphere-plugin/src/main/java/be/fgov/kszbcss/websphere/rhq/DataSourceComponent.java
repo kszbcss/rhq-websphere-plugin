@@ -10,7 +10,7 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 import be.fgov.kszbcss.websphere.rhq.mbean.MBeanAttributeMatcherLocator;
 import be.fgov.kszbcss.websphere.rhq.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.websphere.rhq.support.measurement.PMIMeasurementHandler;
@@ -26,7 +26,7 @@ public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServ
     protected void start() throws InvalidPluginConfigurationException, Exception {
         final String jndiName = getResourceContext().getResourceKey();
         WebSphereServer server = getServer();
-        final MBean mbean = new MBean(server, new MBeanAttributeMatcherLocator(Utils.createObjectName("WebSphere:type=DataSource,*"), "jndiName", jndiName));
+        final MBeanClient mbean = server.getMBeanClient(new MBeanAttributeMatcherLocator(Utils.createObjectName("WebSphere:type=DataSource,*"), "jndiName", jndiName));
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException {

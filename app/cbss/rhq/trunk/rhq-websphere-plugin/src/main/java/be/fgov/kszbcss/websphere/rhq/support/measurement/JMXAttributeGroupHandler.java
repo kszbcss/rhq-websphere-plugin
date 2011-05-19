@@ -12,14 +12,14 @@ import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
 import be.fgov.kszbcss.websphere.rhq.WebSphereServer;
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 
 public class JMXAttributeGroupHandler implements MeasurementGroupHandler {
     private static final Log log = LogFactory.getLog(JMXAttributeGroupHandler.class);
     
-    private final MBean mbean;
+    private final MBeanClient mbean;
     
-    public JMXAttributeGroupHandler(MBean mbean) {
+    public JMXAttributeGroupHandler(MBeanClient mbean) {
         this.mbean = mbean;
     }
     

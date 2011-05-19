@@ -31,7 +31,9 @@ import org.rhq.core.pluginapi.event.EventContext;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsWrapper;
 import be.fgov.kszbcss.websphere.rhq.connector.SecureAdminClient;
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClientFactory;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanLocator;
 import be.fgov.kszbcss.websphere.rhq.repository.ConfigDocument;
 import be.fgov.kszbcss.websphere.rhq.repository.ConfigDocumentFactory;
 
@@ -91,9 +93,10 @@ public class WebSphereServer {
     private final String node;
     private final String server;
     private final Configuration config;
+    private final MBeanClientFactory mbeanClientFactory;
     private final List<NotificationListenerRegistration> listeners = new ArrayList<NotificationListenerRegistration>();
     private final StateChangeEventDispatcher stateEventDispatcher = new StateChangeEventDispatcher();
-    private final MBean serverMBean;
+    private final MBeanClient serverMBean;
     private AdminClient adminClient;
     private ObjectName perfMBean;
     private PmiModuleConfig[] pmiModuleConfigs;
@@ -106,7 +109,8 @@ public class WebSphereServer {
         this.cell = cell;
         this.node = node;
         this.server = server;
-        serverMBean = new MBean(this, Utils.createObjectName("WebSphere:type=Server,*"));
+        mbeanClientFactory = new MBeanClientFactory(this);
+        serverMBean = getMBeanClient("WebSphere:type=Server,*");
     }
     
     public String getCell() {
@@ -128,7 +132,7 @@ public class WebSphereServer {
         config.addCache(cacheConfig);
         cacheManager = CacheManager.create(config);
         configDocumentCache = new UpdatingSelfPopulatingCache(cacheManager.getCache("ConfigRepository"),
-                new ConfigDocumentFactory(new MBean(this, Utils.createObjectName("WebSphere:type=ConfigRepository,*"))));
+                new ConfigDocumentFactory(getMBeanClient("WebSphere:type=ConfigRepository,*")));
         
         NotificationFilterSupport filter = new NotificationFilterSupport();
         filter.enableType("j2ee.state.starting");
@@ -157,7 +161,19 @@ public class WebSphereServer {
         cacheManager.shutdown();
     }
     
-    public MBean getServerMBean() {
+    public MBeanClient getMBeanClient(MBeanLocator locator) {
+        return mbeanClientFactory.getMBeanClient(locator);
+    }
+
+    public MBeanClient getMBeanClient(ObjectName objectNamePattern) {
+        return mbeanClientFactory.getMBeanClient(objectNamePattern);
+    }
+
+    public MBeanClient getMBeanClient(String objectNamePattern) {
+        return mbeanClientFactory.getMBeanClient(objectNamePattern);
+    }
+
+    public MBeanClient getServerMBean() {
         return serverMBean;
     }
 

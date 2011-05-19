@@ -8,16 +8,16 @@ import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
 import be.fgov.kszbcss.websphere.rhq.WebSphereServer;
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 
 public class JMXOperationMeasurementHandler implements MeasurementHandler {
     private static final Log log = LogFactory.getLog(JMXOperationMeasurementHandler.class);
     
-    private final MBean mbean;
+    private final MBeanClient mbean;
     private final String operationName;
     private final boolean ignoreInstanceNotFound;
 
-    public JMXOperationMeasurementHandler(MBean mbean, String operationName, boolean ignoreInstanceNotFound) {
+    public JMXOperationMeasurementHandler(MBeanClient mbean, String operationName, boolean ignoreInstanceNotFound) {
         this.mbean = mbean;
         this.operationName = operationName;
         this.ignoreInstanceNotFound = ignoreInstanceNotFound;

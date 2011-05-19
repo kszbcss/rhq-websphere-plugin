@@ -15,18 +15,18 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class DeploymentDescriptorCache {
     private static final Log log = LogFactory.getLog(DeploymentDescriptorCache.class);
     
-    private final MBean mbean;
+    private final MBeanClient mbean;
     private long timestamp;
     private Document content;
     
-    public DeploymentDescriptorCache(MBean mbean) {
+    public DeploymentDescriptorCache(MBeanClient mbean) {
         this.mbean = mbean;
     }
 

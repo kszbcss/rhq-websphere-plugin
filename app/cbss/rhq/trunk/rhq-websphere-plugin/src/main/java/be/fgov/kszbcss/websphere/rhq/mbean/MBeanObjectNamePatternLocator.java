@@ -34,4 +34,15 @@ public class MBeanObjectNamePatternLocator implements MBeanLocator {
     public String toString() {
         return pattern.toString();
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof MBeanObjectNamePatternLocator
+                && pattern.equals(((MBeanObjectNamePatternLocator)obj).pattern);
+    }
+
+    @Override
+    public int hashCode() {
+        return pattern.hashCode();
+    }
 }

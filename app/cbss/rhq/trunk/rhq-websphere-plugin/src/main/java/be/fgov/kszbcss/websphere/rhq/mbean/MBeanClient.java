@@ -1,5 +1,9 @@
 package be.fgov.kszbcss.websphere.rhq.mbean;
 
+import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.management.AttributeList;
 import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
@@ -18,9 +22,8 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * (completes) the object name and also handles the case where the object name changes (e.g. after a
  * server upgrade).
  */
-// TODO: we could actually cache instances of this class in WebSphereServer
-public class MBean {
-    private static final Log log = LogFactory.getLog(MBean.class.getName());
+public class MBeanClient {
+    private static final Log log = LogFactory.getLog(MBeanClient.class);
     
     private interface Action<T> {
         public T execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException;
@@ -28,23 +31,36 @@ public class MBean {
     
     private final WebSphereServer server;
     private final MBeanLocator locator;
+    private final Map<Class<?>,Object> proxies = new HashMap<Class<?>,Object>();
     private ObjectName cachedObjectName;
     
-    public MBean(WebSphereServer server, MBeanLocator locator) {
+    MBeanClient(WebSphereServer server, MBeanLocator locator) {
         this.server = server;
         this.locator = locator;
-    }
-    
-    public MBean(WebSphereServer server, ObjectName objectNamePattern) {
-        this(server, new MBeanObjectNamePatternLocator(objectNamePattern));
     }
     
     public MBeanLocator getLocator() {
         return locator;
     }
 
+    // TODO: need to decide in which case we can return the cached object name here
     public ObjectName getObjectName() throws JMException, ConnectorException {
         return locator.locate(server.getAdminClient());
+    }
+    
+    public <T> T getProxy(Class<T> iface) {
+        synchronized (proxies) {
+            Object proxy = proxies.get(iface);
+            if (proxy == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Creating dynamic proxy for MBean " + locator);
+                }
+                proxy = Proxy.newProxyInstance(MBeanClient.class.getClassLoader(), new Class<?>[] { iface },
+                        new MBeanClientInvocationHandler(this));
+                proxies.put(iface, proxy);
+            }
+            return iface.cast(proxy);
+        }
     }
     
     private <T> T execute(Action<T> action) throws JMException, ConnectorException {

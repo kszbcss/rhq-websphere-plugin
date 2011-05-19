@@ -35,4 +35,22 @@ public class MBeanAttributeMatcherLocator implements MBeanLocator {
     public String toString() {
         return pattern + "[" + attributeName + "=" + attributeValue + "]";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof MBeanAttributeMatcherLocator) {
+            MBeanAttributeMatcherLocator other = (MBeanAttributeMatcherLocator)obj;
+            return pattern.equals(other.pattern) && attributeName.equals(other.attributeName) && attributeValue.equals(other.attributeValue);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int result = pattern.hashCode();
+        result = 31*result + attributeName.hashCode();
+        result = 31*result + attributeValue.hashCode();
+        return result;
+    }
 }

@@ -15,13 +15,13 @@ import org.rhq.core.pluginapi.configuration.ConfigurationFacet;
 import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
 
 import be.fgov.kszbcss.websphere.rhq.WebSphereComponent;
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 
 public class ConfigurationFacetSupport implements ConfigurationFacet {
     private final WebSphereComponent<?> component;
-    private final MBean mbean;
+    private final MBeanClient mbean;
     
-    public ConfigurationFacetSupport(WebSphereComponent<?> component, MBean mbean) {
+    public ConfigurationFacetSupport(WebSphereComponent<?> component, MBeanClient mbean) {
         this.component = component;
         this.mbean = mbean;
     }

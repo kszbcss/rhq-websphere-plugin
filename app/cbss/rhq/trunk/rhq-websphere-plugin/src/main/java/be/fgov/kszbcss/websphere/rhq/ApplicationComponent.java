@@ -7,13 +7,13 @@ import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.w3c.dom.Document;
 
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class ApplicationComponent extends WebSphereServiceComponent<WebSphereServerComponent> {
     private ObjectName pattern;
-    private MBean mbean;
+    private MBeanClient mbean;
     private DeploymentDescriptorCache deploymentDescriptorCache;
     
     @Override
@@ -21,7 +21,7 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
         WebSphereServer server = getServer();
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
         pattern = Utils.createObjectName("WebSphere:type=Application,name=" + context.getResourceKey() + ",*");
-        mbean = new MBean(server, pattern);
+        mbean = server.getMBeanClient(pattern);
         server.registerStateChangeEventContext(pattern, context.getEventContext());
         deploymentDescriptorCache = new DeploymentDescriptorCache(mbean);
     }

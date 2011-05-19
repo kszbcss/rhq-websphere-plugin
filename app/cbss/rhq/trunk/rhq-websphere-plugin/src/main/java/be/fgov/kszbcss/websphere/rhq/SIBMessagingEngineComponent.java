@@ -12,7 +12,7 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 import be.fgov.kszbcss.websphere.rhq.support.measurement.JMXOperationMeasurementHandler;
 import be.fgov.kszbcss.websphere.rhq.support.measurement.MeasurementFacetSupport;
 
@@ -22,17 +22,19 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     private static final Log log = LogFactory.getLog(SIBMessagingEngineComponent.class);
     
     private MeasurementFacetSupport measurementFacetSupport;
-    private MBean sibMainMBean;
-    private MBean sibMessagingEngineMBean;
+    private SIBMain sibMain;
+    private SIBMessagingEngine sibMessagingEngine;
     private String name;
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         name = getResourceContext().getResourceKey();
-        sibMainMBean = new MBean(getServer(), Utils.createObjectName("WebSphere:type=SIBMain,*"));
-        sibMessagingEngineMBean = new MBean(getServer(), Utils.createObjectName("WebSphere:type=SIBMessagingEngine,name=" + name + ",*"));
+        WebSphereServer server = getServer();
+        sibMain = server.getMBeanClient("WebSphere:type=SIBMain,*").getProxy(SIBMain.class);
+        MBeanClient sibMessagingEngineMBeanClient = server.getMBeanClient("WebSphere:type=SIBMessagingEngine,name=" + name + ",*");
+        sibMessagingEngine = sibMessagingEngineMBeanClient.getProxy(SIBMessagingEngine.class);
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        measurementFacetSupport.addHandler("health", new JMXOperationMeasurementHandler(sibMessagingEngineMBean, "getHealth", true));
+        measurementFacetSupport.addHandler("health", new JMXOperationMeasurementHandler(sibMessagingEngineMBeanClient, "getHealth", true));
     }
 
     public AvailabilityType getAvailability() {
@@ -60,7 +62,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         } else if (state.equals("Started")) {
             String health;
             try {
-                health = (String)sibMessagingEngineMBean.invoke("getHealth", new Object[0], new String[0]);
+                health = sibMessagingEngine.getHealth();
             } catch (Exception ex) {
                 if (log.isDebugEnabled()) {
                     log.debug("Failed to get messaging engine health => messaging engine DOWN", ex);
@@ -87,7 +89,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     }
 
     private String getState() throws JMException, ConnectorException {
-        for (String line: (String[])sibMainMBean.invoke("showMessagingEngines", new Object[0], new String[0])) {
+        for (String line: sibMain.showMessagingEngines()) {
             String[] parts = line.split(":");
             if (parts[1].equals(name)) {
                 return parts[2];

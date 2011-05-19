@@ -10,8 +10,6 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-import be.fgov.kszbcss.websphere.rhq.mbean.MBean;
-
 public class SIBMessagingEngineDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
     private static final Log log = LogFactory.getLog(SIBMessagingEngineDiscoveryComponent.class);
     
@@ -19,7 +17,7 @@ public class SIBMessagingEngineDiscoveryComponent implements ResourceDiscoveryCo
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         WebSphereServer server = context.getParentResourceComponent().getServer();
         log.debug("Retrieving list of messaging engines");
-        for (String line : (String[])new MBean(server, Utils.createObjectName("WebSphere:type=SIBMain,*")).invoke("showMessagingEngines", new Object[0], new String[0])) {
+        for (String line : server.getMBeanClient("WebSphere:type=SIBMain,*").getProxy(SIBMain.class).showMessagingEngines()) {
             String[] parts = line.split(":");
             String busName = parts[0];
             String meName = parts[1];
