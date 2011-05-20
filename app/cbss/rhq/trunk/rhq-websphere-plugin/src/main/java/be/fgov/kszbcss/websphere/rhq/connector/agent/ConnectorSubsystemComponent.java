@@ -160,17 +160,24 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
                 } finally {
                     in.close();
                 }
+                if (log.isDebugEnabled()) {
+                    log.debug("Loaded trust store " + truststoreFile + " with " + truststore.size() + " entries; building package list");
+                }
                 for (Enumeration<String> aliases = truststore.aliases(); aliases.hasMoreElements(); ) {
                     String alias = aliases.nextElement();
-                    int idx = alias.indexOf('#');
-                    if (idx != -1) {
-                        PackageDetailsKey key = new PackageDetailsKey(alias.substring(0, idx), alias.substring(idx+1), packageType.getName(), "noarch");
-                        ResourcePackageDetails pkg = new ResourcePackageDetails(key);
-                        result.add(pkg);
-                    }
+                    X509Certificate cert = (X509Certificate)truststore.getCertificate(alias);
+                    PackageDetailsKey key = new PackageDetailsKey(cert.getSubjectDN().toString(), cert.getSerialNumber().toString(), packageType.getName(), "noarch");
+                    ResourcePackageDetails pkg = new ResourcePackageDetails(key);
+                    pkg.setFileName(alias);
+                    result.add(pkg);
                 }
             } catch (Exception ex) {
                 // Just continue and return an empty result
+                log.error("Failed to read trust store " + truststoreFile, ex);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Trust store " + truststoreFile + " doesn't exist; returning empty result");
             }
         }
         return result;
