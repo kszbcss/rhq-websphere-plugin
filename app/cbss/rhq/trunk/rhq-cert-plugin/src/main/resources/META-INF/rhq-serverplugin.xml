@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<content-plugin name="CertContentSourcePlugin"
+                displayName="Cryptographic Content"
+                description="Provides the ability to obtain content from a key store"
+                xmlns="urn:xmlns:rhq-serverplugin.content"
+                xmlns:serverplugin="urn:xmlns:rhq-serverplugin"
+                xmlns:c="urn:xmlns:rhq-configuration">
+
+    <serverplugin:help><![CDATA[
+        Provides a content source that retrieves certificates from a trust store.
+    ]]></serverplugin:help>
+
+    <contentSourceType name="TrustStoreSource"
+                       displayName="Trust Store Content Source"
+                       description="Retrieves certificates from a trust store."
+                       lazyLoad="true"
+                       downloadMode="never"
+                       apiClass="be.fgov.kszbcss.rhq.cert.TrustStoreSource">
+        <configuration>
+            <c:simple-property name="rootDirectory" type="directory" required="true"
+                               description="The location of the trust store."/>
+        </configuration>
+    </contentSourceType>
+</content-plugin>

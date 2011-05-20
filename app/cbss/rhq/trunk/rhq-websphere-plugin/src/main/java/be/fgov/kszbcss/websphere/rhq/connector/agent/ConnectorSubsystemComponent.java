@@ -38,6 +38,8 @@ import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
+import be.fgov.kszbcss.rhq.cert.util.CertContentConstants;
+import be.fgov.kszbcss.rhq.cert.util.CertContentUtils;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStats;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsData;
@@ -164,12 +166,10 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
                     log.debug("Loaded trust store " + truststoreFile + " with " + truststore.size() + " entries; building package list");
                 }
                 for (Enumeration<String> aliases = truststore.aliases(); aliases.hasMoreElements(); ) {
-                    String alias = aliases.nextElement();
-                    X509Certificate cert = (X509Certificate)truststore.getCertificate(alias);
-                    PackageDetailsKey key = new PackageDetailsKey(cert.getSubjectDN().toString(), cert.getSerialNumber().toString(), packageType.getName(), "noarch");
-                    ResourcePackageDetails pkg = new ResourcePackageDetails(key);
-                    pkg.setFileName(alias);
-                    result.add(pkg);
+                    X509Certificate cert = (X509Certificate)truststore.getCertificate(aliases.nextElement());
+                    result.add(new ResourcePackageDetails(new PackageDetailsKey(CertContentUtils.getPackageName(cert),
+                            CertContentUtils.getVersion(cert), CertContentConstants.PACKAGE_TYPE_NAME,
+                            CertContentConstants.ARCHITECTURE_NAME)));
                 }
             } catch (Exception ex) {
                 // Just continue and return an empty result

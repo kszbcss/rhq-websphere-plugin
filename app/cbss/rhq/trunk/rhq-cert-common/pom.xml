@@ -1,0 +1,26 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>be.fgov.kszbcss.rhq</groupId>
+        <artifactId>rhq</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>rhq-cert-common</artifactId>
+    <name>RHQ Certificate Common Classes</name>
+    <description>Common classes to work with certificates as content in RHQ</description>
+    <dependencies>
+        <dependency>
+            <groupId>org.rhq</groupId>
+            <artifactId>rhq-core-domain</artifactId>
+            <version>${rhq.version}</version>
+            <scope>provided</scope>
+        </dependency> 
+        <dependency> 
+            <groupId>jboss.jboss-embeddable-ejb3</groupId> 
+            <artifactId>hibernate-all</artifactId> 
+            <version>1.0.0.Alpha9</version> 
+            <scope>provided</scope> 
+        </dependency> 
+    </dependencies>
+</project>

@@ -6,15 +6,21 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>rhq-websphere-plugin</artifactId>
-    <name>RHQ WebSphere Plugin</name>
-    <description>RHQ plugin for managing WebSphere Application Server</description>
+    <artifactId>rhq-cert-plugin</artifactId>
+    <name>RHQ Certificate Plugin</name>
+    <description>RHQ plugin for managing certificates</description>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>rhq-cert-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.rhq</groupId>
+            <artifactId>rhq-enterprise-server</artifactId>
+            <version>${rhq.version}</version>
+            <scope>provided</scope>
+        </dependency> 
         <dependency>
             <groupId>org.rhq</groupId>
             <artifactId>rhq-core-domain</artifactId>
@@ -27,61 +33,6 @@
             <version>1.0.0.Alpha9</version> 
             <scope>provided</scope> 
         </dependency> 
-        <dependency>
-            <groupId>org.rhq</groupId>
-            <artifactId>rhq-core-plugin-api</artifactId>
-            <version>${rhq.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.rhq</groupId>
-            <artifactId>rhq-jmx-plugin</artifactId>
-            <version>${rhq.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>mc4j</groupId>
-            <artifactId>org-mc4j-ems-impl</artifactId>
-            <version>${ems.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>websphere-apis</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>1.1.1</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache-core</artifactId>
-            <version>2.4.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jcl</artifactId>
-            <version>1.6.1</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.8.2</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
-            <version>1.0.1</version>
-        </dependency -->
     </dependencies>
     <build>
         <plugins>
