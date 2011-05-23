@@ -25,6 +25,10 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
         // properties dynamically (in contrast to the SSL properties)
         System.setProperty("com.ibm.CORBA.ConfigURL", WebSpherePluginLifecycleListener.class.getResource("sas.client.props").toExternalForm());
         
+        // TODO: we should specify com.ibm.ssl.customTrustManagers and set com.ibm.ssl.skipDefaultTrustManagerWhenCustomDefined=true
+        //       to use our own trust manager so that we can reload the trust store without restarting the agent;
+        //       the TrustManagerExtendedInfo interface may also be interesting
+        
         sslConfig = new SSLConfig();
         sslConfig.setProperty("com.ibm.ssl.dynamicSelectionInfo", "IIOP,*,*");
         sslConfig.setProperty("com.ibm.ssl.trustStore", TrustStoreManager.getInstance().getTruststoreFile().getAbsolutePath());
