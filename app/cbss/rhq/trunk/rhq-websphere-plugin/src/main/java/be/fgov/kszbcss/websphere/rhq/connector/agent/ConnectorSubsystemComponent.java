@@ -43,6 +43,7 @@ import be.fgov.kszbcss.rhq.cert.util.CertContentUtils;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStats;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsData;
+import be.fgov.kszbcss.websphere.rhq.connector.security.TrustStoreManager;
 
 public class ConnectorSubsystemComponent implements ResourceComponent<ResourceComponent<?>>, MeasurementFacet, ContentFacet {
     private static final Log log = LogFactory.getLog(ConnectorSubsystemComponent.class);
@@ -53,7 +54,7 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
     public void start(ResourceContext<ResourceComponent<?>> context)
             throws InvalidPluginConfigurationException, Exception {
         resourceContext = context;
-        truststoreFile = new File(context.getDataDirectory(), "trust.jks");
+        truststoreFile = TrustStoreManager.getInstance().getTruststoreFile();
     }
 
     public AvailabilityType getAvailability() {

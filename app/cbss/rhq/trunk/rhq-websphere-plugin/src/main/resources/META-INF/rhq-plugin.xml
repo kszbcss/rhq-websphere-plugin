@@ -2,6 +2,7 @@
 <plugin name="WebSphere"
         displayName="WebSphere Application Server"
         package="be.fgov.kszbcss.websphere.rhq"
+        pluginLifecycleListener="WebSpherePluginLifecycleListener"
         description="Supports management and monitoring of WebSphere Application Server"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="urn:xmlns:rhq-plugin"
