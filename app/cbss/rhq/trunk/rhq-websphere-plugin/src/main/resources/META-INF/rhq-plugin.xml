@@ -92,15 +92,18 @@
                  discovery="DataSourceDiscoveryComponent"
                  class="DataSourceComponent"
                  description="Datasource">
+            <metric property="stats.PoolSize" displayName="Pool size"
+                    category="utilization" displayType="summary" defaultInterval="600000"
+                    description="The size of the connection pool."/>
             <metric property="stats.UseTime" displayName="Avg. Use Time"
                     category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                     description="The average time in milliseconds that a connection is used"/>
             <metric property="stats.WaitTime" displayName="Avg. Wait Time"
                     category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                     description="The average waiting time in milliseconds until a connection is granted"/>
-            <!-- metric property="stats.PercentUsed" displayName="% Used"
+            <metric property="stats.PercentUsed" displayName="% Used"
                     category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
-                    description="Average percent of the pool that is in use. The value is based on the total number of configured connections in the ConnectionPool, not the current number of connections."/ -->
+                    description="Average percent of the pool that is in use. The value is based on the total number of configured connections in the ConnectionPool, not the current number of connections."/>
             <metric property="stats.PercentMaxed" displayName="% Maxed"
                     category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
                     description="The average percent of the time that all connections are in use."/>
@@ -110,6 +113,43 @@
             <metric property="stats.PrepStmtCacheDiscardCount" displayName="Disc. Prep. Stmt."
                     category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                     description="The number of statements that are discarded because the cache is full."/>
+            
+            <resource-configuration>
+                <c:simple-property name="loginTimeout" displayName="Login Timeout" type="integer" readOnly="true"
+                                   description="Login timeout."/>
+                <c:simple-property name="statementCacheSize" displayName="Statement Cache Size" type="integer" readOnly="true"
+                                   description="The size of the prepared statement cache."/>
+                <c:simple-property name="jtaEnabled" displayName="JTA Enabled" type="boolean" readOnly="true"
+                                   description="Indicates whether JTA is enabled for this data source."/>
+                <c:simple-property name="testConnection" displayName="Test Connection" type="boolean"
+                                   description="Specifies to test pooled connections from the free pool."/>
+                <c:simple-property name="testConnectionInterval" displayName="Test Connection Interval" type="integer"
+                                   description="Specifies the retry interval for the connection pool that is down."/>
+                <c:simple-property name="stuckTimerTime" displayName="Stuck Timer Frequence" type="integer"
+                                   description="Frequency of stuck time thread."/>
+                <c:simple-property name="stuckTime" displayName="Stuck Time" type="integer"
+                                   description="Connection stuck time."/>
+                <c:simple-property name="stuckThreshold" displayName="Stuck Threshold" type="integer"
+                                   description="Number of connections threshold."/>
+                <c:simple-property name="surgeThreshhold" displayName="Surge Threshold" type="integer"
+                                   description="Connection creation will be restricted when this number is exceeded by the amount of surge time."/>
+                <c:simple-property name="surgeCreationInterval" displayName="Surge Creation Interval" type="integer"
+                                   description="A connection will be created every surge time seconds while in surge threshold mode."/>
+                <c:simple-property name="connectionTimeout" displayName="Connection Timeout" type="integer"
+                                   description="Interval, in seconds after which a connection request times out and a ConnectionWaitTimeoutException is thrown."/>
+                <c:simple-property name="minConnections" displayName="Minimum Size" type="integer"
+                                   description="The minimum number of managed connection that should be maintained for all cases except if agedTimeout is set."/>
+                <c:simple-property name="maxConnections" displayName="Maximum Size" type="integer"
+                                   description="The maximun number of managed connections that can be created in this connection pool."/>
+                <c:simple-property name="purgePolicy" displayName="Purge Policy" type="string"
+                                   description="Specifies how to purge the connections when a connection error occurs (EntirePool or FailingConnectionOnly)."/>
+                <c:simple-property name="reapTime" displayName="Reap Time" type="integer"
+                                   description="Interval in seconds between runs of the connection pool maintenance thread."/>
+                <c:simple-property name="unusedTimeout" displayName="Unused Timeout" type="integer"
+                                   description="Interval in seconds after which an unused connection is discarded by the connection pool maintenance thread."/>
+                <c:simple-property name="agedTimeout" displayName="Aged Timeout" type="integer"
+                                   description="Interval in seconds after which an unused aged connection is discarded by the connection pool maintenance thread."/>
+            </resource-configuration>
         </service>
         <service name="Application"
                  discovery="ApplicationDiscoveryComponent"
