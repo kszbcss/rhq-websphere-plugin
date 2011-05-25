@@ -30,6 +30,8 @@
             </c:group>
         </plugin-configuration>
         
+        <operation name="restart" description="Restart the server process."/>
+        
         <metric property="pid" displayName="PID" dataType="trait"
                 displayType="summary" defaultOn="true"
                 description="The process ID of the WebSphere JVM."/>

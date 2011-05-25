@@ -25,6 +25,8 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
+import org.rhq.core.pluginapi.operation.OperationFacet;
+import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.websphere.rhq.connector.ems.WebsphereConnectionProvider;
 import be.fgov.kszbcss.websphere.rhq.support.measurement.JMXAttributeGroupHandler;
@@ -34,7 +36,7 @@ import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.NotificationConstants;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class WebSphereServerComponent implements WebSphereComponent<ResourceComponent<?>>, MeasurementFacet {
+public class WebSphereServerComponent implements WebSphereComponent<ResourceComponent<?>>, MeasurementFacet, OperationFacet {
     private static final Log log = LogFactory.getLog(WebSphereServerComponent.class);
     
     private ResourceContext<ResourceComponent<?>> resourceContext;
@@ -143,6 +145,15 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
         measurementFacetSupport.getValues(report, requests);
+    }
+
+    public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+        // TODO: we have too many stuff called "server" here
+        Server server = getServer().getServerMBean().getProxy(Server.class);
+        if (name.equals("restart")) {
+            server.restart();
+        }
+        return null;
     }
 
     public void stop() {
