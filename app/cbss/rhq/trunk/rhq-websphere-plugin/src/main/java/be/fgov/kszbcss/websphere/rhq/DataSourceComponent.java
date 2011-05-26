@@ -4,6 +4,8 @@ import java.util.Set;
 
 import javax.management.JMException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
@@ -24,14 +26,20 @@ import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.stat.WSRangeStatistic;
 
 public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, ConfigurationFacet {
+    private static final Log log = LogFactory.getLog(DataSourceComponent.class);
+    
+    private String jndiName;
+    private MBeanClient mbean;
     private MeasurementFacetSupport measurementFacetSupport;
     private ConfigurationFacetSupport configurationFacetSupport;
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         final String jndiName = getResourceContext().getResourceKey();
+        this.jndiName = jndiName;
         WebSphereServer server = getServer();
         final MBeanClient mbean = server.getMBeanClient(new MBeanAttributeMatcherLocator(Utils.createObjectName("WebSphere:type=DataSource,*"), "jndiName", jndiName));
+        this.mbean = mbean;
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException {
@@ -65,7 +73,19 @@ public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServ
     }
 
     public Configuration loadResourceConfiguration() throws Exception {
-        return configurationFacetSupport.loadResourceConfiguration();
+        // Data source are initialized lazily upon first lookup. If a data source has not been initialized yet,
+        // some configuration attributes are unavailable. This state can be detected by checking the dataSourceName
+        // attribute.
+        if (mbean.getAttribute("dataSourceName") == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Data source " + jndiName + " is not initialized; configuration will not be loaded");
+            }
+            // There seems to be no way to let the plugin container know that the configuration
+            // is not available. But the plugin container code does a null check (and throws an exception).
+            return null;
+        } else {
+            return configurationFacetSupport.loadResourceConfiguration();
+        }
     }
 
     public void updateResourceConfiguration(ConfigurationUpdateReport report) {
