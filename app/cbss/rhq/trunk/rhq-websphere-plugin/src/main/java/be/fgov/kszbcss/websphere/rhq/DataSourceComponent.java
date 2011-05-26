@@ -15,14 +15,15 @@ import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 import be.fgov.kszbcss.websphere.rhq.mbean.MBeanAttributeMatcherLocator;
+import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 import be.fgov.kszbcss.websphere.rhq.support.configuration.ConfigurationFacetSupport;
 import be.fgov.kszbcss.websphere.rhq.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.websphere.rhq.support.measurement.PMIMeasurementHandler;
 import be.fgov.kszbcss.websphere.rhq.support.measurement.PMIModuleSelector;
 
 import com.ibm.websphere.management.exception.ConnectorException;
+import com.ibm.websphere.pmi.PmiConstants;
 import com.ibm.websphere.pmi.stat.WSRangeStatistic;
 
 public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, ConfigurationFacet {
@@ -44,7 +45,7 @@ public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServ
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException {
                 String providerName = mbean.getObjectName().getKeyProperty("JDBCProvider");
-                return new String[] { "connectionPoolModule", providerName, jndiName };
+                return new String[] { PmiConstants.CONNPOOL_MODULE, providerName, jndiName };
             }
         };
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(server.getServerMBean(), moduleSelector) {
