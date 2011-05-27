@@ -8,6 +8,7 @@ import org.rhq.core.pluginapi.plugin.PluginLifecycleListener;
 import com.ibm.ws.ssl.config.SSLConfig;
 import com.ibm.ws.ssl.config.SSLConfigManager;
 
+import be.fgov.kszbcss.websphere.rhq.connector.security.DummyTrustManager;
 import be.fgov.kszbcss.websphere.rhq.connector.security.TrustStoreManager;
 
 public class WebSpherePluginLifecycleListener implements PluginLifecycleListener {
@@ -37,6 +38,9 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
         sslConfig.setProperty("com.ibm.ssl.trustStoreProvider", "IBMJCE");
         sslConfig.setProperty("com.ibm.ssl.trustStoreFileBased", "true");
         sslConfig.setProperty("com.ibm.ssl.trustStoreReadOnly", "true");
+        // TODO: for the moment, use a dummy trust manager
+        sslConfig.setProperty("com.ibm.ssl.customTrustManagers", DummyTrustManager.class.getName());
+        sslConfig.setProperty("com.ibm.ssl.skipDefaultTrustManagerWhenCustomDefined", "true");
         
         SSLConfigManager configManager = SSLConfigManager.getInstance();
         configManager.addSSLConfigToMap(SSL_CONFIG_ALIAS, sslConfig);
