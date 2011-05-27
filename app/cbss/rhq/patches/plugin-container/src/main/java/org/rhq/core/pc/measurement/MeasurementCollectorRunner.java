@@ -71,7 +71,7 @@ public class MeasurementCollectorRunner implements Callable<MeasurementReport>, 
                     log.debug("Measurement collection is falling behind... Missed requested time by ["
                         + (System.currentTimeMillis() - requests.iterator().next().getNextCollection()) + "ms]");
 
-                    this.measurementManager.reschedule(requests);
+                    this.measurementManager.reschedule(requests, 30000L);
                     return report;
                 }
 
