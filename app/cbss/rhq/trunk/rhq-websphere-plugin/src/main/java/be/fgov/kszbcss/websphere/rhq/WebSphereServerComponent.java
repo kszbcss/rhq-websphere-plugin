@@ -40,7 +40,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     private static final Log log = LogFactory.getLog(WebSphereServerComponent.class);
     
     private ResourceContext<ResourceComponent<?>> resourceContext;
-    private WebSphereServer server;
+    private ManagedServer server;
     private EmsConnection connection;
     private MeasurementFacetSupport measurementFacetSupport;
     
@@ -49,7 +49,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         
         String[] parts = context.getResourceKey().split("/");
         
-        server = new WebSphereServer(parts[0], parts[1], parts[2], context.getPluginConfiguration());
+        server = new ManagedServer(parts[0], parts[1], parts[2], context.getPluginConfiguration());
         server.init();
         
         measurementFacetSupport = new MeasurementFacetSupport(this);
@@ -81,7 +81,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         return resourceContext;
     }
 
-    public WebSphereServer getServer() {
+    public ManagedServer getServer() {
         return server;
     }
 

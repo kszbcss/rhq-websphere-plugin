@@ -18,7 +18,7 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     
     @Override
     protected void start() {
-        WebSphereServer server = getServer();
+        ManagedServer server = getServer();
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
         pattern = Utils.createObjectName("WebSphere:type=Application,name=" + context.getResourceKey() + ",*");
         mbean = server.getMBeanClient(pattern);

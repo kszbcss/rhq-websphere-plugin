@@ -11,22 +11,13 @@ import java.util.TreeSet;
 import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.ListenerNotFoundException;
-import javax.management.MalformedObjectNameException;
 import javax.management.NotificationFilter;
-import javax.management.NotificationFilterSupport;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
 import javax.security.auth.Subject;
 
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Ehcache;
-import net.sf.ehcache.config.CacheConfiguration;
-import net.sf.ehcache.constructs.blocking.UpdatingSelfPopulatingCache;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.rhq.core.domain.configuration.Configuration;
-import org.rhq.core.pluginapi.event.EventContext;
 
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.websphere.rhq.connector.AdminClientStatsWrapper;
@@ -34,8 +25,6 @@ import be.fgov.kszbcss.websphere.rhq.connector.SecureAdminClient;
 import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClientFactory;
 import be.fgov.kszbcss.websphere.rhq.mbean.MBeanLocator;
-import be.fgov.kszbcss.websphere.rhq.repository.ConfigDocument;
-import be.fgov.kszbcss.websphere.rhq.repository.ConfigDocumentFactory;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.AdminClientFactory;
@@ -47,7 +36,7 @@ import com.ibm.websphere.pmi.stat.WSStats;
 import com.ibm.websphere.security.WSSecurityException;
 import com.ibm.websphere.security.auth.WSSubject;
 
-public class WebSphereServer {
+public abstract class WebSphereServer {
     private static class NotificationListenerRegistration {
         private final ObjectName name;
         private final NotificationListener listener;
@@ -92,19 +81,14 @@ public class WebSphereServer {
     private final String cell;
     private final String node;
     private final String server;
-    private final Configuration config;
     private final MBeanClientFactory mbeanClientFactory;
     private final List<NotificationListenerRegistration> listeners = new ArrayList<NotificationListenerRegistration>();
-    private final StateChangeEventDispatcher stateEventDispatcher = new StateChangeEventDispatcher();
     private final MBeanClient serverMBean;
     private AdminClient adminClient;
     private final Perf perf;
     private PmiModuleConfig[] pmiModuleConfigs;
-    private CacheManager cacheManager;
-    private Ehcache configDocumentCache;
     
-    public WebSphereServer(String cell, String node, String server, Configuration config) {
-        this.config = config;
+    public WebSphereServer(String cell, String node, String server) {
         // TODO: we should check somewhere that we are connecting to the right server
         this.cell = cell;
         this.node = node;
@@ -127,25 +111,6 @@ public class WebSphereServer {
     }
 
     public void init() {
-        net.sf.ehcache.config.Configuration config = new net.sf.ehcache.config.Configuration();
-        config.setUpdateCheck(false);
-        CacheConfiguration cacheConfig = new CacheConfiguration("ConfigRepository", 100);
-        config.addCache(cacheConfig);
-        cacheManager = CacheManager.create(config);
-        configDocumentCache = new UpdatingSelfPopulatingCache(cacheManager.getCache("ConfigRepository"),
-                new ConfigDocumentFactory(getMBeanClient("WebSphere:type=ConfigRepository,*")));
-        
-        NotificationFilterSupport filter = new NotificationFilterSupport();
-        filter.enableType("j2ee.state.starting");
-        filter.enableType("j2ee.state.running");
-        filter.enableType("j2ee.state.stopping");
-        filter.enableType("j2ee.state.stopped");
-        filter.enableType("j2ee.state.failed");
-        try {
-            addNotificationListener(new ObjectName("WebSphere:*"), stateEventDispatcher, filter, null, true);
-        } catch (MalformedObjectNameException ex) {
-            log.error(ex);
-        }
     }
     
     public void destroy() {
@@ -158,8 +123,6 @@ public class WebSphereServer {
                 log.error("Failed to unregister listener", ex);
             }
         }
-        
-        cacheManager.shutdown();
     }
     
     public MBeanClient getMBeanClient(MBeanLocator locator) {
@@ -178,22 +141,13 @@ public class WebSphereServer {
         return serverMBean;
     }
 
+    protected abstract void getAdminClientProperties(Properties properties);
+    
     public synchronized AdminClient getAdminClient() throws ConnectorException {
         if (adminClient == null) {
             Properties properties = new Properties();
             
-            properties.put(AdminClient.CONNECTOR_TYPE, AdminClient.CONNECTOR_TYPE_RMI);
-            properties.setProperty(AdminClient.CONNECTOR_HOST, config.getSimpleValue("host", null));
-            properties.setProperty(AdminClient.CONNECTOR_PORT, config.getSimpleValue("port", null));
-
-            String principal = config.getSimpleValue("principal", null); 
-            if (principal != null && principal.length() > 0) { 
-                properties.setProperty(AdminClient.CONNECTOR_SECURITY_ENABLED, "true"); 
-                properties.setProperty(AdminClient.USERNAME, principal); 
-                properties.setProperty(AdminClient.PASSWORD, config.getSimpleValue("credentials", null)); 
-            } else { 
-                properties.setProperty(AdminClient.CONNECTOR_SECURITY_ENABLED, "false");
-            }
+            getAdminClientProperties(properties);
             
             if (log.isDebugEnabled()) {
                 log.debug("Creating AdminClient with properties: " + properties);
@@ -238,14 +192,6 @@ public class WebSphereServer {
         listeners.add(registration);
     }
     
-    public void registerStateChangeEventContext(ObjectName objectNamePattern, EventContext context) {
-        stateEventDispatcher.registerEventContext(objectNamePattern, context);
-    }
-
-    public void unregisterStateChangeEventContext(ObjectName objectNamePattern) {
-        stateEventDispatcher.unregisterEventContext(objectNamePattern);
-    }
-
     public WSStats getWSStats(MBeanStatDescriptor descriptor) throws JMException, ConnectorException {
         WSStats stats = perf.getStatsObject(descriptor, Boolean.TRUE);
         if (log.isDebugEnabled()) {
@@ -338,9 +284,5 @@ public class WebSphereServer {
         } catch (Exception ex) {
             log.error(ex); // TODO
         }
-    }
-    
-    public ConfigDocument getConfigDocument(String uri) {
-        return (ConfigDocument)configDocumentCache.get(uri).getObjectValue();
     }
 }

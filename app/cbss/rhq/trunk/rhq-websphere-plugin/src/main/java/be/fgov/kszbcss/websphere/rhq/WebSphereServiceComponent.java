@@ -22,7 +22,7 @@ public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>>
         return context.getParentResourceComponent().getEmsConnection();
     }
 
-    public final WebSphereServer getServer() {
+    public final ManagedServer getServer() {
         return context.getParentResourceComponent().getServer();
     }
 }

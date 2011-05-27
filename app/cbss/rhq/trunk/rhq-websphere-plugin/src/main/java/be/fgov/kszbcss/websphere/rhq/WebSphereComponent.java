@@ -6,5 +6,5 @@ import org.rhq.plugins.jmx.JMXComponent;
 
 public interface WebSphereComponent<T extends ResourceComponent<?>> extends JMXComponent<T> {
     ResourceContext<T> getResourceContext();
-    WebSphereServer getServer();
+    ManagedServer getServer();
 }
