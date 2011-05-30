@@ -1,15 +1,17 @@
 package be.fgov.kszbcss.websphere.rhq;
 
+import java.security.Security;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rhq.core.pluginapi.plugin.PluginContext;
 import org.rhq.core.pluginapi.plugin.PluginLifecycleListener;
 
+import be.fgov.kszbcss.websphere.rhq.connector.security.CustomProvider;
+import be.fgov.kszbcss.websphere.rhq.connector.security.TrustStoreManager;
+
 import com.ibm.ws.ssl.config.SSLConfig;
 import com.ibm.ws.ssl.config.SSLConfigManager;
-
-import be.fgov.kszbcss.websphere.rhq.connector.security.DummyTrustManager;
-import be.fgov.kszbcss.websphere.rhq.connector.security.TrustStoreManager;
 
 public class WebSpherePluginLifecycleListener implements PluginLifecycleListener {
     private static final Log log = LogFactory.getLog(WebSpherePluginLifecycleListener.class);
@@ -30,17 +32,14 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
         //       to use our own trust manager so that we can reload the trust store without restarting the agent;
         //       the TrustManagerExtendedInfo interface may also be interesting
         
+        Security.addProvider(new CustomProvider());
+        
         sslConfig = new SSLConfig();
         sslConfig.setProperty("com.ibm.ssl.dynamicSelectionInfo", "IIOP,*,*");
-        sslConfig.setProperty("com.ibm.ssl.trustStore", TrustStoreManager.getInstance().getTruststoreFile().getAbsolutePath());
-        sslConfig.setProperty("com.ibm.ssl.trustStorePassword", "");
-        sslConfig.setProperty("com.ibm.ssl.trustStoreType", "JKS");
-        sslConfig.setProperty("com.ibm.ssl.trustStoreProvider", "IBMJCE");
-        sslConfig.setProperty("com.ibm.ssl.trustStoreFileBased", "true");
-        sslConfig.setProperty("com.ibm.ssl.trustStoreReadOnly", "true");
+        sslConfig.setProperty("com.ibm.ssl.trustStore", "dummy");
+        sslConfig.setProperty("com.ibm.ssl.trustStorePassword", "dummy");
         // TODO: for the moment, use a dummy trust manager
-        sslConfig.setProperty("com.ibm.ssl.customTrustManagers", DummyTrustManager.class.getName());
-        sslConfig.setProperty("com.ibm.ssl.skipDefaultTrustManagerWhenCustomDefined", "true");
+        sslConfig.setProperty("com.ibm.ssl.trustManager", "Dummy|" + CustomProvider.NAME);
         
         SSLConfigManager configManager = SSLConfigManager.getInstance();
         configManager.addSSLConfigToMap(SSL_CONFIG_ALIAS, sslConfig);
@@ -56,5 +55,6 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
         TrustStoreManager.destroy();
         configManager = null;
         sslConfig = null;
+        Security.removeProvider(CustomProvider.NAME);
     }
 }
