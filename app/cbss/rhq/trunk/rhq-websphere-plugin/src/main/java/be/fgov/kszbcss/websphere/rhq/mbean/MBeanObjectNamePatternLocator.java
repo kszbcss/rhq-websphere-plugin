@@ -2,9 +2,11 @@ package be.fgov.kszbcss.websphere.rhq.mbean;
 
 import java.util.Set;
 
-import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.ObjectName;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -13,21 +15,31 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * Locates an MBean based on an object name pattern.
  */
 public class MBeanObjectNamePatternLocator implements MBeanLocator {
-    private final ObjectName pattern;
+    private static final Log log = LogFactory.getLog(MBeanObjectNamePatternLocator.class.getName());
     
-    public MBeanObjectNamePatternLocator(ObjectName pattern) {
+    private final ObjectName pattern;
+    private final boolean recursive;
+    
+    public MBeanObjectNamePatternLocator(ObjectName pattern, boolean recursive) {
         this.pattern = pattern;
+        this.recursive = recursive;
     }
 
-    public ObjectName locate(AdminClient adminClient) throws JMException, ConnectorException {
-        Set<ObjectName> objectNames = adminClient.queryNames(pattern, null);
-        if (objectNames.size() == 0) {
-            throw new InstanceNotFoundException("No MBean found for pattern " + pattern);
-        } else if (objectNames.size() > 1) {
-            throw new InstanceNotFoundException("Multiple MBeans found for pattern " + pattern);
+    public MBeanObjectNamePatternLocator(ObjectName pattern) {
+        this(pattern, false);
+    }
+    
+    public Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
+        ObjectName actualPattern;
+        if (recursive || processInfo.getProcessType().equals("ManagedProcess")) {
+            actualPattern = pattern;
         } else {
-            return objectNames.iterator().next();
+            actualPattern = new ObjectName(pattern + ",cell=" + processInfo.getCell() + ",node=" + processInfo.getNode() + ",process=" + processInfo.getProcess());
         }
+        if (log.isDebugEnabled()) {
+            log.debug("Query names for pattern " + actualPattern);
+        }
+        return adminClient.queryNames(actualPattern, null);
     }
 
     @Override

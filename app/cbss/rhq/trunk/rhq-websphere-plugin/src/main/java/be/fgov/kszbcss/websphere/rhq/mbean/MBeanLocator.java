@@ -1,5 +1,7 @@
 package be.fgov.kszbcss.websphere.rhq.mbean;
 
+import java.util.Set;
+
 import javax.management.JMException;
 import javax.management.ObjectName;
 
@@ -12,5 +14,5 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * {@link Object#hashCode()}.
  */
 public interface MBeanLocator {
-    ObjectName locate(AdminClient adminClient) throws JMException, ConnectorException;
+    Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException;
 }

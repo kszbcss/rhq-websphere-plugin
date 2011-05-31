@@ -2,10 +2,10 @@ package be.fgov.kszbcss.websphere.rhq.config;
 
 import java.io.Serializable;
 
-import com.ibm.websphere.management.configservice.ConfigService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import net.sf.ehcache.Ehcache;
-import net.sf.ehcache.constructs.blocking.UpdatingSelfPopulatingCache;
 
 /**
  * Supports sending queries for configuration data to a deployment manager. There is a single
@@ -17,20 +17,28 @@ import net.sf.ehcache.constructs.blocking.UpdatingSelfPopulatingCache;
  * disappear when all servers for a given cell are removed from the inventory.
  */
 public class ConfigQueryService {
+    private static final Log log = LogFactory.getLog(ConfigQueryService.class);
+    
     private final Ehcache cache;
     private final String cell;
+    private DeploymentManagerConnection dmc;
     
-    ConfigQueryService(Ehcache cache, String cell) {
+    ConfigQueryService(Ehcache cache, String cell, DeploymentManagerConnection dmc) {
         this.cache = cache;
         this.cell = cell;
+        this.dmc = dmc;
     }
     
     @SuppressWarnings("unchecked")
     public <T extends Serializable> T query(ConfigQuery<T> query) {
-        return (T)cache.get(query).getObjectValue();
+        return (T)((ConfigQueryResult)cache.get(new ConfigQueryKey(cell, query)).getObjectValue()).object;
     }
     
     public void release() {
-        // TODO
+        if (log.isDebugEnabled()) {
+            log.debug("Releasing one instance of ConfigQueryService for cell " + cell);
+        }
+        dmc.decrementRefCount();
+        dmc = null;
     }
 }

@@ -1,11 +1,15 @@
 package be.fgov.kszbcss.websphere.rhq.config;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.websphere.rhq.WebSphereServer;
+import be.fgov.kszbcss.websphere.rhq.DeploymentManager;
 
-import com.ibm.websphere.management.configservice.ConfigService;
+import com.ibm.websphere.management.Session;
 import com.ibm.websphere.management.repository.ConfigEpoch;
 
 /**
@@ -16,13 +20,19 @@ import com.ibm.websphere.management.repository.ConfigEpoch;
 class DeploymentManagerConnection implements Runnable {
     private static final Log log = LogFactory.getLog(DeploymentManagerConnection.class);
 
+    private final ConfigQueryServiceFactory factory;
     private final ConfigRepository configRepository;
+    private final ConfigServiceWrapper configService;
+    private final ScheduledFuture<?> future;
     private ConfigEpoch epoch;
-    private ConfigService configService;
+    private int refCount;
+    private boolean polled;
     
-    DeploymentManagerConnection(WebSphereServer server) {
-        // TODO: maybe we should handle the routing stuff somewhere else?
-        configRepository = server.getMBeanClient("WebSphere:type=ConfigRepository,cell=" + server.getCell() + ",node=" + server.getNode() + ",process=" + server.getServer() + ",*").getProxy(ConfigRepository.class);
+    DeploymentManagerConnection(ConfigQueryServiceFactory factory, DeploymentManager dm, ScheduledExecutorService executorService) {
+        this.factory = factory;
+        configRepository = dm.getMBeanClient("WebSphere:type=ConfigRepository,*").getProxy(ConfigRepository.class);
+        configService = new ConfigServiceWrapper(dm.getMBeanClient("WebSphere:type=ConfigService,*").getProxy(ConfigService.class), new Session());
+        future = executorService.scheduleWithFixedDelay(this, 0, 30, TimeUnit.SECONDS);
     }
     
     public void run() {
@@ -36,23 +46,58 @@ class DeploymentManagerConnection implements Runnable {
         synchronized (this) {
             if (this.epoch != null && exception != null) {
                 log.error("Lost connection to the deployment manager", exception);
+            } else if (!polled && exception != null) {
+                log.error("Connection to deployment manager unavailable", exception);
             } else if (this.epoch == null && exception == null) {
-                log.info("Connection to deployment manager reestablished");
+                if (polled) {
+                    log.info("Connection to deployment manager reestablished");
+                } else {
+                    log.info("Connection to deployment manager established");
+                }
             }
             this.epoch = epoch;
+            if (!polled) {
+                polled = true;
+                notifyAll();
+            }
         }
     }
     
     synchronized ConfigEpoch getEpoch() {
+        if (!polled) {
+            log.debug("Waiting for connection to deployment manager");
+            do {
+                try {
+                    wait();
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+            } while (!polled);
+        }
         return epoch;
     }
     
-    synchronized ConfigService getConfigService() {
-        // TODO
-        return null;
+    synchronized ConfigServiceWrapper getConfigService() {
+        return configService;
     }
 
-    void decrementRefCount() {
-        
+    synchronized void incrementRefCount() {
+        refCount++;
+        if (log.isDebugEnabled()) {
+            log.debug("New ref count is " + refCount);
+        }
+    }
+
+    synchronized void decrementRefCount() {
+        refCount--;
+        if (log.isDebugEnabled()) {
+            log.debug("New ref count is " + refCount);
+        }
+        if (refCount == 0) {
+            log.debug("Destroying DeploymentManagerConnection");
+            configService.destroy();
+            future.cancel(false);
+            factory.removeDeploymentManagerConnection(this);
+        }
     }
 }

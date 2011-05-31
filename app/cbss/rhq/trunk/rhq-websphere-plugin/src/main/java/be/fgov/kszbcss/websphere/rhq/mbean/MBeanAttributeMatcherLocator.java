@@ -1,6 +1,8 @@
 package be.fgov.kszbcss.websphere.rhq.mbean;
 
-import javax.management.InstanceNotFoundException;
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.management.JMException;
 import javax.management.ObjectName;
 
@@ -11,36 +13,42 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * Locates an MBean based on an object name pattern and an attribute value to match.
  */
 public class MBeanAttributeMatcherLocator implements MBeanLocator {
-    private final ObjectName pattern;
+    private final MBeanLocator parent;
     private final String attributeName;
     private final String attributeValue;
     
-    public MBeanAttributeMatcherLocator(ObjectName pattern,
+    public MBeanAttributeMatcherLocator(MBeanLocator parent,
             String attributeName, String attributeValue) {
-        this.pattern = pattern;
+        this.parent = parent;
         this.attributeName = attributeName;
         this.attributeValue = attributeValue;
     }
 
-    public ObjectName locate(AdminClient adminClient) throws JMException, ConnectorException {
-        for (ObjectName objectName : adminClient.queryNames(pattern, null)) {
+    public MBeanAttributeMatcherLocator(ObjectName pattern,
+            String attributeName, String attributeValue) {
+        this(new MBeanObjectNamePatternLocator(pattern), attributeName, attributeValue);
+    }
+
+    public Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
+        Set<ObjectName> result = new HashSet<ObjectName>();
+        for (ObjectName objectName : parent.queryNames(processInfo, adminClient)) {
             if (adminClient.getAttribute(objectName, attributeName).equals(attributeValue)) {
-                return objectName;
+                result.add(objectName);
             }
         }
-        throw new InstanceNotFoundException("No MBean instance found for pattern " + pattern + " and " + attributeName + "=" + attributeValue);
+        return result;
     }
 
     @Override
     public String toString() {
-        return pattern + "[" + attributeName + "=" + attributeValue + "]";
+        return parent + "[" + attributeName + "=" + attributeValue + "]";
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof MBeanAttributeMatcherLocator) {
             MBeanAttributeMatcherLocator other = (MBeanAttributeMatcherLocator)obj;
-            return pattern.equals(other.pattern) && attributeName.equals(other.attributeName) && attributeValue.equals(other.attributeValue);
+            return parent.equals(other.parent) && attributeName.equals(other.attributeName) && attributeValue.equals(other.attributeValue);
         } else {
             return false;
         }
@@ -48,7 +56,7 @@ public class MBeanAttributeMatcherLocator implements MBeanLocator {
 
     @Override
     public int hashCode() {
-        int result = pattern.hashCode();
+        int result = parent.hashCode();
         result = 31*result + attributeName.hashCode();
         result = 31*result + attributeValue.hashCode();
         return result;

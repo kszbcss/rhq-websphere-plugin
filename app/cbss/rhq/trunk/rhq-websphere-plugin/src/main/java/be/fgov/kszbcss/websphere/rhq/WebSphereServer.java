@@ -2,6 +2,7 @@ package be.fgov.kszbcss.websphere.rhq;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
@@ -25,6 +26,7 @@ import be.fgov.kszbcss.websphere.rhq.connector.SecureAdminClient;
 import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClient;
 import be.fgov.kszbcss.websphere.rhq.mbean.MBeanClientFactory;
 import be.fgov.kszbcss.websphere.rhq.mbean.MBeanLocator;
+import be.fgov.kszbcss.websphere.rhq.mbean.ProcessInfo;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.AdminClientFactory;
@@ -78,9 +80,7 @@ public abstract class WebSphereServer {
     
     private static final Log log = LogFactory.getLog(WebSphereServer.class);
     
-    private final String cell;
-    private final String node;
-    private final String server;
+    private final ProcessLocator processLocator;
     private final MBeanClientFactory mbeanClientFactory;
     private final List<NotificationListenerRegistration> listeners = new ArrayList<NotificationListenerRegistration>();
     private final MBeanClient serverMBean;
@@ -88,26 +88,31 @@ public abstract class WebSphereServer {
     private final Perf perf;
     private PmiModuleConfig[] pmiModuleConfigs;
     
-    public WebSphereServer(String cell, String node, String server) {
-        // TODO: we should check somewhere that we are connecting to the right server
-        this.cell = cell;
-        this.node = node;
-        this.server = server;
+    public WebSphereServer(ProcessLocator processLocator) {
+        this.processLocator = processLocator;
         mbeanClientFactory = new MBeanClientFactory(this);
-        serverMBean = getMBeanClient("WebSphere:type=Server,*");
+        serverMBean = getMBeanClient(new MBeanLocator() {
+            public Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
+                return Collections.singleton(adminClient.getServerMBean());
+            }
+        });
         perf = getMBeanClient("WebSphere:type=Perf,*").getProxy(Perf.class);
     }
     
-    public String getCell() {
-        return cell;
+    public ProcessLocator getProcessLocator() {
+        return processLocator;
     }
 
-    public String getNode() {
-        return node;
+    public String getCell() throws JMException, ConnectorException {
+        return serverMBean.getObjectName(false).getKeyProperty("cell");
     }
 
-    public String getServer() {
-        return server;
+    public String getNode() throws JMException, ConnectorException {
+        return serverMBean.getObjectName(false).getKeyProperty("node");
+    }
+
+    public String getServer() throws JMException, ConnectorException {
+        return serverMBean.getObjectName(false).getKeyProperty("process");
     }
 
     public void init() {
@@ -141,13 +146,15 @@ public abstract class WebSphereServer {
         return serverMBean;
     }
 
-    protected abstract void getAdminClientProperties(Properties properties);
-    
     public synchronized AdminClient getAdminClient() throws ConnectorException {
         if (adminClient == null) {
             Properties properties = new Properties();
             
-            getAdminClientProperties(properties);
+            try {
+                processLocator.getAdminClientProperties(properties);
+            } catch (JMException ex) {
+                throw new ConnectorException(ex);
+            }
             
             if (log.isDebugEnabled()) {
                 log.debug("Creating AdminClient with properties: " + properties);
@@ -177,6 +184,8 @@ public abstract class WebSphereServer {
                     log.error("(Deferred) listener registration failed", ex); 
                 }
             }
+            
+            // TODO: we should check here that we are connecting to the right server
         }
         return adminClient;
     }

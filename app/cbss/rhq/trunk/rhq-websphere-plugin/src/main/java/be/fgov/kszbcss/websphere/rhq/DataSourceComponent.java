@@ -44,7 +44,8 @@ public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServ
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException {
-                String providerName = mbean.getObjectName().getKeyProperty("JDBCProvider");
+                // TODO: we should first try with the cached object name
+                String providerName = mbean.getObjectName(true).getKeyProperty("JDBCProvider");
                 return new String[] { PmiConstants.CONNPOOL_MODULE, providerName, jndiName };
             }
         };

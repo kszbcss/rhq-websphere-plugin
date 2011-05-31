@@ -39,6 +39,11 @@
         <event name="RasMessage" description="RAS logging message"/>
         <event name="ThreadMonitor" description="Thread monitor event"/>
         
+        <resource-configuration>
+            <c:simple-property name="clusterName" displayName="Cluster Name" type="string" required="false" readOnly="true"
+                               description="The name of the cluster the application server is a member of."/>
+        </resource-configuration>
+        
         <server name="WebSphere JVM"
                 description="JVM of the WebSphere Application Server"
                 sourcePlugin="JMX"

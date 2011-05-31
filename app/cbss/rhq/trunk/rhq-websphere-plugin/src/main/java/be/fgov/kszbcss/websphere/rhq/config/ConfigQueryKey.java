@@ -35,4 +35,9 @@ class ConfigQueryKey implements Serializable {
             return false;
         }
     }
+
+    @Override
+    public String toString() {
+        return "cell=" + cell + ",query=" + query;
+    }
 }

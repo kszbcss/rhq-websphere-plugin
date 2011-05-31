@@ -15,11 +15,14 @@ import org.mc4j.ems.connection.EmsException;
 import org.mc4j.ems.connection.settings.ConnectionSettings;
 import org.mc4j.ems.connection.support.ConnectionProvider;
 import org.rhq.core.domain.configuration.Configuration;
+import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.event.Event;
 import org.rhq.core.domain.event.EventSeverity;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
+import org.rhq.core.pluginapi.configuration.ConfigurationFacet;
+import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
 import org.rhq.core.pluginapi.event.EventContext;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceComponent;
@@ -36,9 +39,12 @@ import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.NotificationConstants;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class WebSphereServerComponent implements WebSphereComponent<ResourceComponent<?>>, MeasurementFacet, OperationFacet {
+public class WebSphereServerComponent implements WebSphereComponent<ResourceComponent<?>>, MeasurementFacet, OperationFacet, ConfigurationFacet {
     private static final Log log = LogFactory.getLog(WebSphereServerComponent.class);
     
+    private String cell;
+    private String node;
+    private String serverName;
     private ResourceContext<ResourceComponent<?>> resourceContext;
     private ManagedServer server;
     private EmsConnection connection;
@@ -48,8 +54,11 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         this.resourceContext = context;
         
         String[] parts = context.getResourceKey().split("/");
+        cell = parts[0];
+        node = parts[1];
+        serverName = parts[2];
         
-        server = new ManagedServer(parts[0], parts[1], parts[2], context.getPluginConfiguration());
+        server = new ManagedServer(cell, node, serverName, context.getPluginConfiguration());
         server.init();
         
         measurementFacetSupport = new MeasurementFacetSupport(this);
@@ -154,6 +163,16 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
             server.restart();
         }
         return null;
+    }
+
+    public Configuration loadResourceConfiguration() throws Exception {
+        Configuration config = new Configuration();
+        config.put(new PropertySimple("clusterName", server.queryConfig(new ClusterNameQuery(cell, node, serverName))));
+        return config;
+    }
+
+    public void updateResourceConfiguration(ConfigurationUpdateReport report) {
+        throw new UnsupportedOperationException();
     }
 
     public void stop() {

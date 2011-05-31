@@ -7,6 +7,7 @@ import org.apache.commons.logging.LogFactory;
 import org.rhq.core.pluginapi.plugin.PluginContext;
 import org.rhq.core.pluginapi.plugin.PluginLifecycleListener;
 
+import be.fgov.kszbcss.websphere.rhq.config.ConfigQueryServiceFactory;
 import be.fgov.kszbcss.websphere.rhq.connector.security.CustomProvider;
 import be.fgov.kszbcss.websphere.rhq.connector.security.TrustStoreManager;
 
@@ -23,6 +24,8 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
     
     public void initialize(PluginContext context) throws Exception {
         TrustStoreManager.init(context);
+        
+        ConfigQueryServiceFactory.init(context);
         
         // This is obviously ugly, but we didn't find a way yet to set the CSI
         // properties dynamically (in contrast to the SSL properties)
@@ -52,6 +55,7 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
             log.error("Unable to remove SSL configuration", ex);
         }
         System.getProperties().remove("com.ibm.CORBA.ConfigURL");
+        ConfigQueryServiceFactory.destroy();
         TrustStoreManager.destroy();
         configManager = null;
         sslConfig = null;

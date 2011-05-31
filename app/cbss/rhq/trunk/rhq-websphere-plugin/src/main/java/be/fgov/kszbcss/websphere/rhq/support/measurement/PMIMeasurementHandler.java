@@ -44,7 +44,7 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
     public void getValues(WebSphereServer server, MeasurementReport report, Map<String,MeasurementScheduleRequest> requests) {
         ObjectName objectName;
         try {
-            objectName = mbean.getObjectName(); // TODO: we could first try with the cached name
+            objectName = mbean.getObjectName(true); // TODO: we could first try with the cached name
         } catch (Exception ex) {
             log.error("Failed to get object name", ex);
             return;

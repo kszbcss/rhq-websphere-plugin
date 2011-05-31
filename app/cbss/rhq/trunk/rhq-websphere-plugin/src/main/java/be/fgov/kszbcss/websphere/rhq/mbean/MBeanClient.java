@@ -3,6 +3,7 @@ package be.fgov.kszbcss.websphere.rhq.mbean;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.management.AttributeList;
 import javax.management.InstanceNotFoundException;
@@ -11,8 +12,6 @@ import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import be.fgov.kszbcss.websphere.rhq.WebSphereServer;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -29,13 +28,13 @@ public class MBeanClient {
         public T execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException;
     }
     
-    private final WebSphereServer server;
+    private final ProcessInfo processInfo;
     private final MBeanLocator locator;
     private final Map<Class<?>,Object> proxies = new HashMap<Class<?>,Object>();
     private ObjectName cachedObjectName;
     
-    MBeanClient(WebSphereServer server, MBeanLocator locator) {
-        this.server = server;
+    MBeanClient(ProcessInfo processInfo, MBeanLocator locator) {
+        this.processInfo = processInfo;
         this.locator = locator;
     }
     
@@ -43,9 +42,38 @@ public class MBeanClient {
         return locator;
     }
 
-    // TODO: need to decide in which case we can return the cached object name here
-    public ObjectName getObjectName() throws JMException, ConnectorException {
-        return locator.locate(server.getAdminClient());
+    public ObjectName getObjectName(boolean refresh) throws JMException, ConnectorException {
+        if (refresh) {
+            ObjectName objectName = internalGetObjectName();
+            synchronized (this) {
+                cachedObjectName = objectName;
+            }
+            return objectName;
+        } else {
+            synchronized (this) {
+                if (cachedObjectName == null) {
+                    cachedObjectName = internalGetObjectName();
+                }
+                return cachedObjectName;
+            }
+        }
+    }
+    
+    private ObjectName internalGetObjectName() throws JMException, ConnectorException {
+        if (log.isDebugEnabled()) {
+            log.debug("Attempting to resolve " + locator);
+        }
+        Set<ObjectName> objectNames = locator.queryNames(processInfo, processInfo.getAdminClient());
+        if (log.isDebugEnabled()) {
+            log.debug("Result: " + objectNames);
+        }
+        if (objectNames.size() == 0) {
+            throw new InstanceNotFoundException("No MBean found for locator " + locator);
+        } else if (objectNames.size() > 1) {
+            throw new InstanceNotFoundException("Multiple MBeans found for locator " + locator);
+        } else {
+            return objectNames.iterator().next();
+        }
     }
     
     public <T> T getProxy(Class<T> iface) {
@@ -64,7 +92,7 @@ public class MBeanClient {
     }
     
     private <T> T execute(Action<T> action) throws JMException, ConnectorException {
-        AdminClient adminClient = server.getAdminClient();
+        AdminClient adminClient = processInfo.getAdminClient();
         ObjectName cachedObjectName;
         synchronized (this) {
             cachedObjectName = this.cachedObjectName;
@@ -76,10 +104,7 @@ public class MBeanClient {
                 // Continue; we will attempt to re-resolve the object name
             }
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Attempting to resolve " + locator);
-        }
-        cachedObjectName = getObjectName();
+        cachedObjectName = internalGetObjectName();
         synchronized (this) {
             this.cachedObjectName = cachedObjectName;
         }
