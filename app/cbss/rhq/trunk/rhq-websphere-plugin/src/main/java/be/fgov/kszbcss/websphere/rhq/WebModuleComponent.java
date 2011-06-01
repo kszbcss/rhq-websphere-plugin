@@ -17,7 +17,7 @@ public class WebModuleComponent extends ModuleComponent {
     
     public Set<String> getServletNames() throws JMException, ConnectorException {
         Set<String> result = new HashSet<String>();
-        for (Element servlet : Utils.getElements(getDeploymentDescriptor().getDocumentElement(), "servlet")) {
+        for (Element servlet : Utils.getElements(getModuleInfo().getDeploymentDescriptor().getDocumentElement(), "servlet")) {
             result.add(Utils.getFirstElement(servlet, "servlet-name").getTextContent());
         }
         return result;

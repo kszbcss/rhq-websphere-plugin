@@ -12,7 +12,7 @@ import org.w3c.dom.Element;
 public class MessageDrivenBeanDiscoveryComponent implements ResourceDiscoveryComponent<EJBModuleComponent> {
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<EJBModuleComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        Element beans = Utils.getFirstElement(context.getParentResourceComponent().getDeploymentDescriptor().getDocumentElement(), "enterprise-beans");
+        Element beans = Utils.getFirstElement(context.getParentResourceComponent().getModuleInfo().getDeploymentDescriptor().getDocumentElement(), "enterprise-beans");
         if (beans != null) {
             for (Element bean : Utils.getElements(beans, "message-driven")) {
                 String name = Utils.getFirstElement(bean, "ejb-name").getTextContent();

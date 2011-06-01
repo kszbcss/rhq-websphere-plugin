@@ -38,7 +38,9 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
         Security.addProvider(new CustomProvider());
         
         sslConfig = new SSLConfig();
-        sslConfig.setProperty("com.ibm.ssl.dynamicSelectionInfo", "IIOP,*,*");
+        // TODO
+//        sslConfig.setProperty("com.ibm.ssl.dynamicSelectionInfo", "IIOP,*,*");
+        sslConfig.setProperty("com.ibm.ssl.dynamicSelectionInfo", "*,*,*");
         sslConfig.setProperty("com.ibm.ssl.trustStore", "dummy");
         sslConfig.setProperty("com.ibm.ssl.trustStorePassword", "dummy");
         // TODO: for the moment, use a dummy trust manager

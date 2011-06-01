@@ -12,7 +12,7 @@ import org.w3c.dom.Element;
 public class StatelessSessionBeanDiscoveryComponent implements ResourceDiscoveryComponent<EJBModuleComponent> {
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<EJBModuleComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        Element beans = Utils.getFirstElement(context.getParentResourceComponent().getDeploymentDescriptor().getDocumentElement(), "enterprise-beans");
+        Element beans = Utils.getFirstElement(context.getParentResourceComponent().getModuleInfo().getDeploymentDescriptor().getDocumentElement(), "enterprise-beans");
         if (beans != null) {
             for (Element bean : Utils.getElements(beans, "session")) {
                 if (Utils.getFirstElement(bean, "session-type").getTextContent().equals("Stateless")) {

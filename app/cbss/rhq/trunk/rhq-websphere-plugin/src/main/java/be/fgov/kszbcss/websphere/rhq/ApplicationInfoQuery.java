@@ -1,0 +1,73 @@
+package be.fgov.kszbcss.websphere.rhq;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.management.AttributeList;
+import javax.management.JMException;
+import javax.management.ObjectName;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import be.fgov.kszbcss.websphere.rhq.config.ConfigQuery;
+import be.fgov.kszbcss.websphere.rhq.config.ConfigServiceWrapper;
+
+import com.ibm.websphere.management.configservice.ConfigServiceHelper;
+import com.ibm.websphere.management.configservice.SystemAttributes;
+import com.ibm.websphere.management.exception.ConnectorException;
+
+public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
+    private static final long serialVersionUID = 5507520583493264072L;
+    
+    private static final Log log = LogFactory.getLog(ApplicationInfoQuery.class);
+    
+    private final String applicationName;
+
+    public ApplicationInfoQuery(String applicationName) {
+        this.applicationName = applicationName;
+    }
+
+    public ApplicationInfo execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
+        // AdminConfig.getid("/Deployment:TUMEnterprise/ApplicationDeployment:/")
+        
+        // TODO: clean this up:
+        ObjectName applicationDeployment = configService.resolve("Deployment=" + applicationName + ":ApplicationDeployment=")[0];
+        String dataId = applicationDeployment.getKeyProperty(SystemAttributes._WEBSPHERE_CONFIG_DATA_ID);
+        String baseURI = dataId.substring(0, dataId.indexOf('|'));
+        List<ModuleInfo> moduleInfos = new ArrayList<ModuleInfo>();
+        for (AttributeList module : (List<AttributeList>)configService.getAttribute(applicationDeployment, "modules")) {
+            String configDataType = (String)ConfigServiceHelper.getAttributeValue(module, SystemAttributes._WEBSPHERE_CONFIG_DATA_TYPE);
+            String uri = (String)ConfigServiceHelper.getAttributeValue(module, "uri");
+            if (log.isDebugEnabled()) {
+                log.debug("Processing module " + uri + ", type " + configDataType);
+            }
+            ModuleInfoFactory factory = ModuleInfoFactory.getInstance(configDataType);
+            if (factory == null) {
+                log.error("Unknown module type " + configDataType);
+                continue;
+            }
+            String deploymentDescriptorURI = baseURI + "/" + uri + "/" + factory.getDeploymentDescriptorPath();
+            if (log.isDebugEnabled()) {
+                log.debug("Attempting to load deployment descriptor " + deploymentDescriptorURI);
+            }
+            byte[] deploymentDescriptor;
+            InputStream in = configService.extract(deploymentDescriptorURI);
+            try {
+                try {
+                    deploymentDescriptor = IOUtils.toByteArray(in);
+                } finally {
+                    in.close();
+                }
+            } catch (IOException ex) {
+                throw new Error(ex); // TODO
+            }
+            factory.create(uri, deploymentDescriptor);
+        }
+        return new ApplicationInfo(moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
+    }
+
+}

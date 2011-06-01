@@ -1,5 +1,7 @@
 package be.fgov.kszbcss.websphere.rhq.config;
 
+import java.io.InputStream;
+
 import javax.management.JMException;
 import javax.management.ObjectName;
 
@@ -13,10 +15,12 @@ public class ConfigServiceWrapper {
     private static final Log log = LogFactory.getLog(ConfigServiceWrapper.class);
     
     private final ConfigService configService;
+    private final ConfigRepository configRepository;
     private final Session session;
     
-    ConfigServiceWrapper(ConfigService configService, Session session) {
+    ConfigServiceWrapper(ConfigService configService, ConfigRepository configRepository, Session session) {
         this.configService = configService;
+        this.configRepository = configRepository;
         this.session = session;
     }
     
@@ -26,6 +30,10 @@ public class ConfigServiceWrapper {
     
     public Object getAttribute(ObjectName parent, String attributeName) throws JMException, ConnectorException {
         return configService.getAttribute(session, parent, attributeName);
+    }
+    
+    public InputStream extract(String docURI) throws JMException, ConnectorException {
+        return configRepository.extract(docURI);
     }
     
     void destroy() {

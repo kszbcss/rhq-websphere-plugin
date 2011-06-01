@@ -22,6 +22,7 @@ public class ClusterNameQuery implements ConfigQuery<String> {
     }
 
     public String execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
+        // TODO: check number of returned results
         ObjectName configObject = configService.resolve("Cell=" + cell + ":Node=" + node + ":Server=" + server)[0];
         return (String)configService.getAttribute(configObject, "clusterName");
     }

@@ -22,6 +22,8 @@ import javax.security.auth.Subject;
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.Session;
 import com.ibm.websphere.management.exception.ConnectorException;
+import com.ibm.websphere.management.repository.DocumentContentSource;
+import com.ibm.websphere.management.repository.RemoteInputStream;
 import com.ibm.websphere.security.WSSecurityException;
 import com.ibm.websphere.security.auth.WSSubject;
 
@@ -203,15 +205,22 @@ public class SecureAdminClient extends AdminClientWrapper {
     }
     
     public Object invoke(ObjectName name, String operationName, Object[] params, String[] signature) throws InstanceNotFoundException, MBeanException, ReflectionException, ConnectorException {
+        Object result;
         try {
             WSSubject.setRunAsSubject(subject);
             try {
-                return super.invoke(name, operationName, params, signature);
+                result = super.invoke(name, operationName, params, signature);
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
         } catch (WSSecurityException ex) {
             throw new ConnectorException(ex);
+        }
+        // TODO: quick and dirty hack
+        if (result instanceof DocumentContentSource) {
+            return new SecureRemoteInputStream((RemoteInputStream)((DocumentContentSource)result).getSource(), subject);
+        } else {
+            return result;
         }
     }
     

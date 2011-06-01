@@ -31,7 +31,7 @@ class DeploymentManagerConnection implements Runnable {
     DeploymentManagerConnection(ConfigQueryServiceFactory factory, DeploymentManager dm, ScheduledExecutorService executorService) {
         this.factory = factory;
         configRepository = dm.getMBeanClient("WebSphere:type=ConfigRepository,*").getProxy(ConfigRepository.class);
-        configService = new ConfigServiceWrapper(dm.getMBeanClient("WebSphere:type=ConfigService,*").getProxy(ConfigService.class), new Session());
+        configService = new ConfigServiceWrapper(dm.getMBeanClient("WebSphere:type=ConfigService,*").getProxy(ConfigService.class), configRepository, new Session());
         future = executorService.scheduleWithFixedDelay(this, 0, 30, TimeUnit.SECONDS);
     }
     
@@ -53,6 +53,10 @@ class DeploymentManagerConnection implements Runnable {
                     log.info("Connection to deployment manager reestablished");
                 } else {
                     log.info("Connection to deployment manager established");
+                }
+            } else if (this.epoch != null && epoch != null && !this.epoch.equals(epoch)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Epoch change detected; old epoch: " + this.epoch + "; new epoch: " + epoch);
                 }
             }
             this.epoch = epoch;

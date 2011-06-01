@@ -23,6 +23,9 @@ class ConfigQueryResultFactory implements UpdatingCacheEntryFactory {
         if (epoch == null) {
             throw new RuntimeException("Deployment manager is unavailable");
         } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Executing query: " + key);
+            }
             ConfigQueryResult result = new ConfigQueryResult();
             result.epoch = epoch;
             result.object = key.getQuery().execute(dmc.getConfigService());
@@ -45,6 +48,9 @@ class ConfigQueryResultFactory implements UpdatingCacheEntryFactory {
                     log.debug("Not updating result for the following query: " + key);
                 }
             } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Reexecuting query: " + key);
+                }
                 Object resultObject = key.getQuery().execute(dmc.getConfigService());
                 // Only update fields if no exception is thrown:
                 result.epoch = epoch;
