@@ -15,7 +15,8 @@ public class StatelessSessionBeanDiscoveryComponent implements ResourceDiscovery
         Element beans = Utils.getFirstElement(context.getParentResourceComponent().getModuleInfo().getDeploymentDescriptor().getDocumentElement(), "enterprise-beans");
         if (beans != null) {
             for (Element bean : Utils.getElements(beans, "session")) {
-                if (Utils.getFirstElement(bean, "session-type").getTextContent().equals("Stateless")) {
+                Element sessionType = Utils.getFirstElement(bean, "session-type");
+                if (sessionType == null || sessionType.getTextContent().equals("Stateless")) {
                     String name = Utils.getFirstElement(bean, "ejb-name").getTextContent();
                     result.add(new DiscoveredResourceDetails(context.getResourceType(), name, name, null, "A stateless session bean.", null, null));
                 }
