@@ -50,9 +50,9 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
                 log.error("Unknown module type " + configDataType);
                 continue;
             }
-            String deploymentDescriptorURI = baseURI + "/" + uri + "/" + factory.getDeploymentDescriptorPath();
+            String deploymentDescriptorURI = factory.locateDeploymentDescriptor(configService, baseURI + "/" + uri);
             if (log.isDebugEnabled()) {
-                log.debug("Attempting to load deployment descriptor " + deploymentDescriptorURI);
+                log.debug("Loading deployment descriptor " + deploymentDescriptorURI);
             }
             byte[] deploymentDescriptor;
             InputStream in = configService.extract(deploymentDescriptorURI);
@@ -65,9 +65,28 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
             } catch (IOException ex) {
                 throw new Error(ex); // TODO
             }
-            factory.create(uri, deploymentDescriptor);
+            moduleInfos.add(factory.create(uri, deploymentDescriptor));
         }
         return new ApplicationInfo(moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
     }
 
+    @Override
+    public int hashCode() {
+        return applicationName.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof ApplicationInfoQuery) {
+            ApplicationInfoQuery other = (ApplicationInfoQuery)obj;
+            return other.applicationName.equals(applicationName);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" + applicationName + ")";
+    }
 }

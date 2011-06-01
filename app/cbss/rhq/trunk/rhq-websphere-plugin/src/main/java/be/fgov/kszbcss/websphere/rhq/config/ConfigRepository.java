@@ -12,5 +12,6 @@ import com.ibm.websphere.management.repository.ConfigEpoch;
  */
 public interface ConfigRepository {
     ConfigEpoch getRepositoryEpoch() throws JMException, ConnectorException;
+    String[] listResourceNames(String parent, int type, int depth) throws JMException, ConnectorException;
     InputStream extract(String docURI) throws JMException, ConnectorException;
 }

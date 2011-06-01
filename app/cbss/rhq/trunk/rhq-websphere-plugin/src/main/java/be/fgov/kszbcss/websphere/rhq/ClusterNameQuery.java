@@ -41,4 +41,9 @@ public class ClusterNameQuery implements ConfigQuery<String> {
             return false;
         }
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" + cell + "," + node + "," + server + ")";
+    }
 }

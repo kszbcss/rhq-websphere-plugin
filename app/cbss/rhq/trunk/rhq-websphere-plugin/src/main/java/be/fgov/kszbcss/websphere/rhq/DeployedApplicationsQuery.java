@@ -51,4 +51,9 @@ public class DeployedApplicationsQuery implements ConfigQuery<String[]> {
             return false;
         }
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" + node + "," + server + ")";
+    }
 }

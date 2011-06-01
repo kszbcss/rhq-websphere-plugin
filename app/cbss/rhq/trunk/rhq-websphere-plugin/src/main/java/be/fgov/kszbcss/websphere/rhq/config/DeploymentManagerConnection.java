@@ -31,7 +31,7 @@ class DeploymentManagerConnection implements Runnable {
     DeploymentManagerConnection(ConfigQueryServiceFactory factory, DeploymentManager dm, ScheduledExecutorService executorService) {
         this.factory = factory;
         configRepository = dm.getMBeanClient("WebSphere:type=ConfigRepository,*").getProxy(ConfigRepository.class);
-        configService = new ConfigServiceWrapper(dm.getMBeanClient("WebSphere:type=ConfigService,*").getProxy(ConfigService.class), configRepository, new Session());
+        configService = new ConfigServiceWrapper(dm.getMBeanClient("WebSphere:type=ConfigService,*"), configRepository, new Session());
         future = executorService.scheduleWithFixedDelay(this, 0, 30, TimeUnit.SECONDS);
     }
     
