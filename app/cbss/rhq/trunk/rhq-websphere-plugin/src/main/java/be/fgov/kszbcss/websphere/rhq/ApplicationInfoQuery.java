@@ -1,7 +1,5 @@
 package be.fgov.kszbcss.websphere.rhq;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,7 +7,6 @@ import javax.management.AttributeList;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -54,18 +51,7 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
             if (log.isDebugEnabled()) {
                 log.debug("Loading deployment descriptor " + deploymentDescriptorURI);
             }
-            byte[] deploymentDescriptor;
-            InputStream in = configService.extract(deploymentDescriptorURI);
-            try {
-                try {
-                    deploymentDescriptor = IOUtils.toByteArray(in);
-                } finally {
-                    in.close();
-                }
-            } catch (IOException ex) {
-                throw new Error(ex); // TODO
-            }
-            moduleInfos.add(factory.create(uri, deploymentDescriptor));
+            moduleInfos.add(factory.create(uri, configService.extract(deploymentDescriptorURI)));
         }
         return new ApplicationInfo(moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
     }

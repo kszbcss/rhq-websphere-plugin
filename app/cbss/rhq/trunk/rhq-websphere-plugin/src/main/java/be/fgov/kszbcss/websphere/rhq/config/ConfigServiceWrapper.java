@@ -1,7 +1,5 @@
 package be.fgov.kszbcss.websphere.rhq.config;
 
-import java.io.InputStream;
-
 import javax.management.JMException;
 import javax.management.ObjectName;
 
@@ -53,7 +51,7 @@ public class ConfigServiceWrapper {
         return configRepository.listResourceNames(parent, type, depth);
     }
 
-    public InputStream extract(String docURI) throws JMException, ConnectorException {
+    public byte[] extract(String docURI) throws JMException, ConnectorException {
         return configRepository.extract(docURI);
     }
     

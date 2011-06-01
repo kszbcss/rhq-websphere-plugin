@@ -30,6 +30,7 @@ public interface AdminClient {
     String CONNECTOR_SECURITY_ENABLED = "securityEnabled";
     String USERNAME = "username";
     String PASSWORD = "password";
+    String CACHE_DISABLED = "cacheDisabled";
 
     String getType();
     

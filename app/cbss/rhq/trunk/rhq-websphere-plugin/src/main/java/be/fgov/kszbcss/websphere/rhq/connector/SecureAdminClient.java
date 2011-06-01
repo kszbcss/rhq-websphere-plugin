@@ -1,5 +1,7 @@
 package be.fgov.kszbcss.websphere.rhq.connector;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
 
 import javax.management.Attribute;
@@ -19,13 +21,15 @@ import javax.management.QueryExp;
 import javax.management.ReflectionException;
 import javax.security.auth.Subject;
 
+import org.apache.commons.io.IOUtils;
+
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.Session;
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.management.repository.DocumentContentSource;
-import com.ibm.websphere.management.repository.RemoteInputStream;
 import com.ibm.websphere.security.WSSecurityException;
 import com.ibm.websphere.security.auth.WSSubject;
+import com.ibm.ws.management.AdminDataHolder;
 
 public class SecureAdminClient extends AdminClientWrapper {
     private final Subject subject;
@@ -210,17 +214,37 @@ public class SecureAdminClient extends AdminClientWrapper {
             WSSubject.setRunAsSubject(subject);
             try {
                 result = super.invoke(name, operationName, params, signature);
+                // TODO: quick and dirty hack
+                if (result instanceof DocumentContentSource) {
+                    // FileTransferClientImpl (which is used by the input stream returned by
+                    // DocumentContentSource) uses the subject stored in the global AdminDataHolder.
+                    // This breaks thread isolation. As a workaround, we synchronize access and
+                    // set the cached subject explicitly.
+                    synchronized (AdminDataHolder.class) {
+                        AdminDataHolder.setData(AdminDataHolder.WSSUBJECT, subject);
+                        try {
+                            try {
+                                InputStream in = ((DocumentContentSource)result).getSource();
+                                try {
+                                    return IOUtils.toByteArray(in);
+                                } finally {
+                                    in.close();
+                                }
+                            } catch (IOException ex) {
+                                throw new MBeanException(ex);
+                            }
+                        } finally {
+                            AdminDataHolder.removeData(AdminDataHolder.WSSUBJECT);
+                        }
+                    }
+                } else {
+                    return result;
+                }
             } finally {
                 WSSubject.setRunAsSubject(null);
             }
         } catch (WSSecurityException ex) {
             throw new ConnectorException(ex);
-        }
-        // TODO: quick and dirty hack
-        if (result instanceof DocumentContentSource) {
-            return new SecureRemoteInputStream((RemoteInputStream)((DocumentContentSource)result).getSource(), subject);
-        } else {
-            return result;
         }
     }
     

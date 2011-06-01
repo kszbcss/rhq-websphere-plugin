@@ -156,6 +156,12 @@ public abstract class WebSphereServer {
                 throw new ConnectorException(ex);
             }
             
+            // From the IBM site: "When you use the createAdminClient method within application code that
+            // runs on an application server, such as within servlets and JavaServer Pages (JSP) files,
+            // you must set the CACHE_DISABLED property to true." Since we use multiple threads and access
+            // multiple servers, we assume that this also applies to us.
+            properties.setProperty(AdminClient.CACHE_DISABLED, "true");
+            
             if (log.isDebugEnabled()) {
                 log.debug("Creating AdminClient with properties: " + properties);
             }
