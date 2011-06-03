@@ -9,7 +9,6 @@ import org.apache.commons.logging.LogFactory;
 
 import be.fgov.kszbcss.websphere.rhq.DeploymentManager;
 
-import com.ibm.websphere.management.Session;
 import com.ibm.websphere.management.repository.ConfigEpoch;
 
 /**
@@ -31,7 +30,7 @@ class DeploymentManagerConnection implements Runnable {
     DeploymentManagerConnection(ConfigQueryServiceFactory factory, DeploymentManager dm, ScheduledExecutorService executorService) {
         this.factory = factory;
         configRepository = dm.getMBeanClient("WebSphere:type=ConfigRepository,*").getProxy(ConfigRepository.class);
-        configService = new ConfigServiceWrapper(dm.getMBeanClient("WebSphere:type=ConfigService,*"), configRepository, new Session());
+        configService = new ConfigServiceWrapper(dm.getMBeanClient("WebSphere:type=ConfigService,*"), configRepository);
         future = executorService.scheduleWithFixedDelay(this, 0, 30, TimeUnit.SECONDS);
     }
     
@@ -58,6 +57,9 @@ class DeploymentManagerConnection implements Runnable {
                 if (log.isDebugEnabled()) {
                     log.debug("Epoch change detected; old epoch: " + this.epoch + "; new epoch: " + epoch);
                 }
+            }
+            if (epoch != null && !epoch.equals(this.epoch)) {
+                configService.refresh();
             }
             this.epoch = epoch;
             if (!polled) {
