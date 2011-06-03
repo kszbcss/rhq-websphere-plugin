@@ -127,6 +127,9 @@ public class ConfigServiceWrapper {
     }
     
     void refresh() {
+        // There seems to be no JMX operation that allows to refresh the workspace (I'm wondering
+        // how the admin console actually does this...), so we simply discard the session. Next time
+        // a ConfigService method is called, a new session will be created automatically.
         discardSession(false);
     }
     

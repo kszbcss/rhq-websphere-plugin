@@ -59,6 +59,9 @@ class DeploymentManagerConnection implements Runnable {
                 }
             }
             if (epoch != null && !epoch.equals(this.epoch)) {
+                // The ConfigService actually creates a workspace on the deployment manager. This workspace
+                // contains copies of the configuration documents. If they change, then we need to refresh
+                // the workspace. Otherwise we will not see the changes.
                 configService.refresh();
             }
             this.epoch = epoch;
