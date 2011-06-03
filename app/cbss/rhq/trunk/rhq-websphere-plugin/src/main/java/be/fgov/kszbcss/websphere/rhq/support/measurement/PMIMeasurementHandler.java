@@ -112,7 +112,12 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
                 WSAverageStatistic currentStatistic = (WSAverageStatistic)statistic;
                 WSAverageStatistic prevStatistic = lastStats.get(statisticName);
                 lastStats.put(statisticName, currentStatistic);
-                if (prevStatistic == null) {
+                // We need to detect a statistic reset in a reliable way. Checking delta(count) > 0 is not sufficient.
+                // In fact, delta(count) < 0 implies that the statistic has been reset, but it can happen that
+                // after a statistic reset, delta(count) > 0. In this case, delta(total) may be negative, so that
+                // we end up with a negative measurement. Therefore we also compare the startTime values to check
+                // that the two statistics have the same baseline.
+                if (prevStatistic == null || currentStatistic.getStartTime() != prevStatistic.getStartTime()) {
                     continue;
                 } else {
                     long countDelta = currentStatistic.getCount()-prevStatistic.getCount();
