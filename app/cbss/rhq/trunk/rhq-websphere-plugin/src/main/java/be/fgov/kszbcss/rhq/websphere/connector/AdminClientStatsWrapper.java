@@ -1,5 +1,7 @@
 package be.fgov.kszbcss.rhq.websphere.connector;
 
+import java.util.Arrays;
+
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
@@ -50,14 +52,24 @@ public class AdminClientStatsWrapper extends AdminClientWrapper {
         } finally {
             long time = System.nanoTime()-start;
             StringBuilder destination = formatObjectName(name);
-            destination.append("@{");
-            for (int i=0; i<attributes.length; i++) {
-                if (i > 0) {
-                    destination.append(',');
+            if (attributes.length == 1) {
+                destination.append('@');
+                destination.append(attributes[0]);
+            } else {
+                // EMS frequently requests multiple attributes from a single MBean. However, the list of attributes
+                // is not sorted and the order of attributes doesn't seem to be deterministic. To produce meaningful
+                // statistics, we sort the attributes names.
+                String[] sortedAttributes = attributes.clone();
+                Arrays.sort(sortedAttributes);
+                destination.append("@{");
+                for (int i=0; i<attributes.length; i++) {
+                    if (i > 0) {
+                        destination.append(',');
+                    }
+                    destination.append(attributes[i]);
                 }
-                destination.append(attributes[i]);
+                destination.append('}');
             }
-            destination.append('}');
             collector.addData(destination.toString(), time);
         }
     }
