@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <plugin name="WebSphere"
         displayName="WebSphere Application Server"
-        package="be.fgov.kszbcss.websphere.rhq"
+        package="be.fgov.kszbcss.rhq.websphere"
         pluginLifecycleListener="WebSpherePluginLifecycleListener"
         description="Supports management and monitoring of WebSphere Application Server"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -235,8 +235,8 @@
     </server>
     
     <service name="WebSphere Connector Subsystem"
-             discovery="be.fgov.kszbcss.websphere.rhq.connector.agent.ConnectorSubsystemDiscoveryComponent"
-             class="be.fgov.kszbcss.websphere.rhq.connector.agent.ConnectorSubsystemComponent"
+             discovery="be.fgov.kszbcss.rhq.websphere.connector.agent.ConnectorSubsystemDiscoveryComponent"
+             class="be.fgov.kszbcss.rhq.websphere.connector.agent.ConnectorSubsystemComponent"
              description="WebSphere Connector Subsystem"
              singleton="true">
         
