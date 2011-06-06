@@ -11,6 +11,7 @@ import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.config.Configuration;
+import net.sf.ehcache.config.DiskStoreConfiguration;
 import net.sf.ehcache.constructs.blocking.UpdatingSelfPopulatingCache;
 
 import org.apache.commons.logging.Log;
@@ -34,11 +35,19 @@ public class ConfigQueryServiceFactory {
     private ConfigQueryServiceFactory(PluginContext context) {
         log.debug("Initializing ConfigQueryServiceFactory");
         executorService = Executors.newScheduledThreadPool(2);
-        File dataDirectory = context.getDataDirectory();
-        dataDirectory.mkdirs();
         Configuration config = new Configuration();
         config.setUpdateCheck(false);
+        DiskStoreConfiguration diskStoreConfiguration = new DiskStoreConfiguration();
+        File cacheDirectory = new File(context.getDataDirectory(), "cache");
+        cacheDirectory.mkdirs();
+        diskStoreConfiguration.setPath(cacheDirectory.getAbsolutePath());
+        config.addDiskStore(diskStoreConfiguration);
         CacheConfiguration cacheConfig = new CacheConfiguration(CACHE_NAME, 100);
+        // Every time an entry is accessed, we check if it is up to date (by checking the repository epoch).
+        // Therefore we really need to use timeToIdleSeconds here.
+        cacheConfig.setTimeToIdleSeconds(7*24*3600);
+        // This ensures persistence between agent/plugin restarts
+        cacheConfig.setDiskPersistent(true);
         config.addCache(cacheConfig);
         cacheManager = CacheManager.create(config);
         queryCache = new UpdatingSelfPopulatingCache(cacheManager.getCache(CACHE_NAME), new ConfigQueryResultFactory(this));
