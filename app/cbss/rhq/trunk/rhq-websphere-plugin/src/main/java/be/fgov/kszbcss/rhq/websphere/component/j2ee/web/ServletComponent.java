@@ -12,9 +12,10 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.ModuleComponent;
-import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
+
+import com.ibm.websphere.pmi.PmiConstants;
 
 public class ServletComponent extends WebSphereServiceComponent<WebModuleComponent> implements MeasurementFacet {
     private MeasurementFacetSupport measurementFacetSupport;
@@ -25,8 +26,13 @@ public class ServletComponent extends WebSphereServiceComponent<WebModuleCompone
         ModuleComponent parent = context.getParentResourceComponent();
         WebSphereServer server = getServer();
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        MBeanClient mbean = server.getMBeanClient("WebSphere:type=Servlet,Application=" + parent.getApplicationName() + ",WebModule=" + parent.getModuleName() + ",name=" + context.getResourceKey() + ",*");
-        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(mbean));
+//        MBeanClient mbean = server.getMBeanClient("WebSphere:type=Servlet,Application=" + parent.getApplicationName() + ",WebModule=" + parent.getModuleName() + ",name=" + context.getResourceKey() + ",*");
+        // Applications may be installed with "Create MBeans for resources" disabled. In this case, there
+        // is no MBean representing the servlet. Therefore we always locate the PMI module starting from the
+        // server.
+        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(server.getServerMBean(),
+                PmiConstants.WEBAPP_MODULE, parent.getApplicationName() + "#" + parent.getModuleName(),
+                PmiConstants.SERVLET_SUBMODULE, context.getResourceKey()));
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
