@@ -33,7 +33,6 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.ClusterNameQuery;
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
-import be.fgov.kszbcss.rhq.websphere.RasLoggingNotificationListener;
 import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereComponent;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
