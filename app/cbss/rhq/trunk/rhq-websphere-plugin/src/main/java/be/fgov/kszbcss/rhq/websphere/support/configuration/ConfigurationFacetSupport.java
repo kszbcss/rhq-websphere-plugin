@@ -14,7 +14,7 @@ import org.rhq.core.domain.configuration.definition.PropertyDefinitionSimple;
 import org.rhq.core.pluginapi.configuration.ConfigurationFacet;
 import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereComponent;
+import be.fgov.kszbcss.rhq.websphere.component.WebSphereComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 
 public class ConfigurationFacetSupport implements ConfigurationFacet {

@@ -9,8 +9,8 @@
         xmlns:c="urn:xmlns:rhq-configuration">
     <depends plugin="JMX"/>
     <server name="WebSphere Server"
-            discovery="WebSphereServerDiscoveryComponent"
-            class="WebSphereServerComponent"
+            discovery="be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerDiscoveryComponent"
+            class="be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent"
             description="WebSphere Application Server"
             supportsManualAdd="true">
         
@@ -53,8 +53,8 @@
                 singleton="true"/>
 
         <service name="Thread Pool"
-                 discovery="ThreadPoolDiscoveryComponent"
-                 class="ThreadPoolComponent"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.server.ThreadPoolDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.server.ThreadPoolComponent"
                  description="WebSphere Thread Pool">
     
             <metric property="stats.PoolSize" displayName="Pool size"
@@ -79,8 +79,8 @@
             </resource-configuration>
         </service>
         <service name="DynaCache"
-                 discovery="DynaCacheDiscoveryComponent"
-                 class="DynaCacheComponent"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.server.DynaCacheDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.server.DynaCacheComponent"
                  description="WebSphere Dynamic Cache">
     
             <operation name="clearCache" description="Clear the cache."/>
@@ -96,8 +96,8 @@
                     description="The number of in-memory cache entries."/>
         </service>
         <service name="Datasource"
-                 discovery="DataSourceDiscoveryComponent"
-                 class="DataSourceComponent"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceComponent"
                  description="Datasource">
             <metric property="stats.PoolSize" displayName="Pool size"
                     category="utilization" displayType="summary" defaultInterval="600000"
@@ -159,20 +159,20 @@
             </resource-configuration>
         </service>
         <service name="Application"
-                 discovery="ApplicationDiscoveryComponent"
-                 class="ApplicationComponent"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ApplicationDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ApplicationComponent"
                  description="Application (EAR)">
             
             <event name="StateChange" description="State change events"/>
             
             <service name="Web module"
-                     discovery="WebModuleDiscoveryComponent"
-                     class="WebModuleComponent"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleComponent"
                      description="Web module">
     
                 <service name="Servlet"
-                         discovery="ServletDiscoveryComponent"
-                         class="ServletComponent"
+                         discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletDiscoveryComponent"
+                         class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletComponent"
                          description="Servlet">
                     <plugin-configuration>
                         <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,WebModule={moduleName},Application={applicationName},type=Servlet"/>
@@ -194,13 +194,13 @@
             </service>
             
             <service name="EJB module"
-                     discovery="EJBModuleDiscoveryComponent"
-                     class="EJBModuleComponent"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.EJBModuleDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.EJBModuleComponent"
                      description="EJB module">
     
                 <service name="Stateless Session Bean"
-                         discovery="StatelessSessionBeanDiscoveryComponent"
-                         class="StatelessSessionBeanComponent"
+                         discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanDiscoveryComponent"
+                         class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanComponent"
                          description="Stateless Session Bean">
                     <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
                             category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
@@ -210,8 +210,8 @@
                             description="The number of calls to the remote methods of the bean"/>
                 </service>
                 <service name="Message Driven Bean"
-                         discovery="MessageDrivenBeanDiscoveryComponent"
-                         class="MessageDrivenBeanComponent"
+                         discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanDiscoveryComponent"
+                         class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanComponent"
                          description="Message Driven Bean">
                     <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
                             category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
@@ -224,8 +224,8 @@
         </service>
         
         <service name="Messaging Engine"
-                 discovery="SIBMessagingEngineDiscoveryComponent"
-                 class="SIBMessagingEngineComponent"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.sib.SIBMessagingEngineDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBMessagingEngineComponent"
                  description="SIBus Messaging Engine">
             
             <metric property="health" displayName="Health" dataType="trait"

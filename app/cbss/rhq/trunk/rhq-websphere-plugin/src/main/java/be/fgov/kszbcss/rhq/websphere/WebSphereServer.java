@@ -27,6 +27,7 @@ import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientFactory;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanLocator;
 import be.fgov.kszbcss.rhq.websphere.mbean.ProcessInfo;
+import be.fgov.kszbcss.rhq.websphere.proxy.Perf;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.AdminClientFactory;
