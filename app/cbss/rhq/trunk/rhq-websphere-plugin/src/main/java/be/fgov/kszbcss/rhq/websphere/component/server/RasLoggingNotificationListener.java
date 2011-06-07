@@ -71,7 +71,8 @@ public class RasLoggingNotificationListener implements NotificationListener {
                     long time = System.currentTimeMillis();
                     if (time - lastSanitizeWarning > 300000) {
                         lastSanitizeWarning = time;
-                        log.warn("Got a RasMessage with invalid characters from " + message.getMessageOriginator() + ": " + sanitizedText);
+                        log.warn("Got a RasMessage with invalid characters from " + message.getMessageOriginator()
+                                + " (severity: " + message.getMessageSeverity() + "): " + sanitizedText);
                     }
                 }
             }
