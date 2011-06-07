@@ -62,11 +62,11 @@ public class AdminClientStatsWrapper extends AdminClientWrapper {
                 String[] sortedAttributes = attributes.clone();
                 Arrays.sort(sortedAttributes);
                 destination.append("@{");
-                for (int i=0; i<attributes.length; i++) {
+                for (int i=0; i<sortedAttributes.length; i++) {
                     if (i > 0) {
                         destination.append(',');
                     }
-                    destination.append(attributes[i]);
+                    destination.append(sortedAttributes[i]);
                 }
                 destination.append('}');
             }
