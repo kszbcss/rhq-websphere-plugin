@@ -32,7 +32,7 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
         // AdminConfig.getid("/Deployment:TUMEnterprise/ApplicationDeployment:/")
         
         // TODO: clean this up:
-        ObjectName applicationDeployment = configService.resolve("Deployment=" + applicationName + ":ApplicationDeployment=")[0];
+        ObjectName applicationDeployment = configService.path("Deployment", applicationName).path("ApplicationDeployment").resolveSingle();
         String dataId = applicationDeployment.getKeyProperty(SystemAttributes._WEBSPHERE_CONFIG_DATA_ID);
         String baseURI = dataId.substring(0, dataId.indexOf('|'));
         List<ModuleInfo> moduleInfos = new ArrayList<ModuleInfo>();

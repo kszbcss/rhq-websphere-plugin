@@ -25,8 +25,7 @@ public class DeployedApplicationsQuery implements ConfigQuery<String[]> {
         // AdminConfig.getid("/Node:twas02/ServerIndex:/ServerEntry:TENVCBSS.AppCluster.twas02.1/")
         // AdminConfig.showAttribute("TENVCBSS.AppCluster.twas02.1(cells/tcell/nodes/twas02|serverindex.xml#ServerEntry_1306410389272)", "deployedApplications")
         
-        // TODO: check number of returned results
-        ObjectName serverEntry = configService.resolve("Node=" + node + ":ServerIndex=:ServerEntry=" + server)[0];
+        ObjectName serverEntry = configService.node(node).path("ServerIndex").path("ServerEntry", server).resolveSingle();
         List<?> deployedApplications = (List<?>)configService.getAttribute(serverEntry, "deployedApplications");
         String[] applicationNames = new String[deployedApplications.size()];
         int i = 0;

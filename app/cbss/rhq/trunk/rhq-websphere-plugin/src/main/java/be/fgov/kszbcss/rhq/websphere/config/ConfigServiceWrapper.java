@@ -80,7 +80,28 @@ public class ConfigServiceWrapper {
         }
     }
     
-    public ObjectName[] resolve(final String containmentPath) throws JMException, ConnectorException {
+    public ContainmentPath path(String type, String name) {
+        return new ContainmentPath(this, type + "=" + name);
+    }
+    
+    public ContainmentPath path(String type) {
+        return path(type, "");
+    }
+    
+    public ContainmentPath cell() {
+        // TODO: we may want to insert the cell name here
+        return new ContainmentPath(this, "Cell=");
+    }
+    
+    public ContainmentPath node(String nodeName) {
+        return cell().path("Node", nodeName);
+    }
+    
+    public ContainmentPath server(String nodeName, String serverName) {
+        return node(nodeName).path("Server", serverName);
+    }
+    
+    ObjectName[] resolve(final String containmentPath) throws JMException, ConnectorException {
         return execute(new ConfigServiceAction<ObjectName[]>() {
             public ObjectName[] execute(ConfigService configService, Session session) throws JMException, ConnectorException {
                 return configService.resolve(session, containmentPath);
