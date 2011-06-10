@@ -2,12 +2,12 @@
 <!DOCTYPE Stats SYSTEM "stats.dtd">
 <Stats type="be.fgov.kszbcss.rhq.websphere.xm.OutboundConnectionCacheStats">
     <description>Outbound HTTP Connection Pool</description>
-    <CountStatistic ID="1" name="ConnectionsInUse">
+    <BoundedRangeStatistic ID="1" name="ConnectionsInUse">
         <level>high</level>
         <unit>None</unit>                
         <description>The number of connections currently in use.</description>   
         <updateOnRequest>true</updateOnRequest>        
-    </CountStatistic>
+    </BoundedRangeStatistic>
     <BoundedRangeStatistic ID="2" name="PoolSize">
         <level>high</level>
         <unit>None</unit>
