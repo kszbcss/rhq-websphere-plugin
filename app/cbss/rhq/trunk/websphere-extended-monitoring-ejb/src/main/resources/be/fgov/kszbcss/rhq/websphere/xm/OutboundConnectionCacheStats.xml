@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE Stats SYSTEM "stats.dtd">
 <Stats type="be.fgov.kszbcss.rhq.websphere.xm.OutboundConnectionCacheStats">
     <description>Outbound HTTP Connection Pool</description>
     <BoundedRangeStatistic ID="1" name="ConnectionsInUse">

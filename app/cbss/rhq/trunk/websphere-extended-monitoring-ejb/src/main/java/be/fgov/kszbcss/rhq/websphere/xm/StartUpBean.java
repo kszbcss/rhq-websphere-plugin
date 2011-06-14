@@ -59,7 +59,7 @@ public class StartUpBean implements SessionBean {
         try {
             mbs = AdminServiceFactory.getMBeanFactory().getMBeanServer();
             registeredMBeans = new ArrayList<ObjectName>();
-            group = StatsFactory.createStatsGroup("OutboundConnectionCacheGroup", "/be/fgov/kszbcss/rhq/websphere/xm/OutboundConnectionCacheStats.xml", null);
+            group = StatsFactory.createStatsGroup("OutboundConnectionCache", "/be/fgov/kszbcss/rhq/websphere/xm/OutboundConnectionCacheStats.xml", null);
             ClassLoader cl = StartUpBean.class.getClassLoader();
             // The JAX-RPC cache is part of com.ibm.ws.runtime.jar and is visible to the application class loader.
             setupOutboundConnectionCacheMonitor(cl, "com.ibm.ws.webservices.engine.transport.channel.OutboundConnectionCache", "JAX-RPC");
