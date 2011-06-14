@@ -158,6 +158,25 @@
                                    description="Interval in seconds after which an unused aged connection is discarded by the connection pool maintenance thread."/>
             </resource-configuration>
         </service>
+        <service name="Outbound Connection Cache"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.xm.OutboundConnectionCacheDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.xm.OutboundConnectionCacheComponent"
+                 description="Outbound HTTP Connection Cache">
+    
+            <metric property="stats.ConnectionsInUse" displayName="Connections In Use"
+                    category="utilization" displayType="summary" defaultInterval="60000"
+                    description="The number of connections currently in use."/>
+            <metric property="stats.PoolSize" displayName="Pool Size"
+                    category="utilization" displayType="summary" defaultInterval="120000"
+                    description="The current size of the pool."/>
+
+            <resource-configuration>
+                <c:simple-property name="maxConnection" displayName="Max Connections" type="integer" readOnly="true"
+                                   description="The maximum number of connections in the pool."/>
+                <c:simple-property name="connTimeout" displayName="Connection timeout" type="integer" readOnly="true"
+                                   description="The connection timeout."/>
+            </resource-configuration>
+        </service>
         <service name="Application"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ApplicationDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ApplicationComponent"
