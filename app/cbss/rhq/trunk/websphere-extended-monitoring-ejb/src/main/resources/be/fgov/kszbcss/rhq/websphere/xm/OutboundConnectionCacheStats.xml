@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Without the DTD, creation of the statistic group will fail in some cases with
+     "Document is invalid: no grammar found." -->
+<!DOCTYPE Stats SYSTEM "stats.dtd">
 <Stats type="be.fgov.kszbcss.rhq.websphere.xm.OutboundConnectionCacheStats">
     <description>Outbound HTTP Connection Pool</description>
     <BoundedRangeStatistic ID="1" name="ConnectionsInUse">
