@@ -10,24 +10,56 @@ import com.ibm.wsspi.pmi.factory.StatisticActions;
 import com.ibm.wsspi.pmi.stat.SPIBoundedRangeStatistic;
 import com.ibm.wsspi.pmi.stat.SPIStatistic;
 
-public class OutboundConnectionCacheModule extends StatisticActions {
-    private static final Log log = LogFactory.getLog(OutboundConnectionCacheModule.class);
+public class OutboundConnectionCacheMonitor extends StatisticActions {
+    private static final Log log = LogFactory.getLog(OutboundConnectionCacheMonitor.class);
     
     private static final int CONNECTIONS_IN_USE_ID = 1;
     private static final int POOL_SIZE_ID = 2;
     
     private final Object outboundConnectionCache;
+    private final Method maxConnectionMethod;
+    private final Method connTimeoutMethod;
     private final Method connectionsInUseMethod;
     private final Method poolSizeMethod;
     private SPIBoundedRangeStatistic connectionsInUseStatistic;
     private SPIBoundedRangeStatistic poolSizeStatistic;
     
-    public OutboundConnectionCacheModule(Class<?> outboundConnectionCacheClass) throws Exception {
+    public OutboundConnectionCacheMonitor(Class<?> outboundConnectionCacheClass) throws Exception {
         outboundConnectionCache = outboundConnectionCacheClass.getMethod("getInstance").invoke(null);
+        // maxConnection and connTimeout are public methods
+        maxConnectionMethod = outboundConnectionCacheClass.getMethod("maxConnection");
+        connTimeoutMethod = outboundConnectionCacheClass.getMethod("connTimeout");
+        // connectionsInUse and poolSize are protected methods -> need to use getDeclaredMethod
+        // instead of getMethod and override access modifier
         connectionsInUseMethod = outboundConnectionCacheClass.getDeclaredMethod("connectionsInUse");
         connectionsInUseMethod.setAccessible(true);
         poolSizeMethod = outboundConnectionCacheClass.getDeclaredMethod("poolSize");
         poolSizeMethod.setAccessible(true);
+    }
+    
+    public int maxConnection() {
+        return getIntValue(maxConnectionMethod);
+    }
+    
+    public int connTimeout() {
+        return getIntValue(connTimeoutMethod);
+    }
+    
+    private int getIntValue(Method method) {
+        try {
+            return (Integer)method.invoke(null);
+        } catch (IllegalAccessException ex) {
+            throw new Error("Unexpected exception", ex);
+        } catch (InvocationTargetException ex) {
+            Throwable cause = ex.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException)cause;
+            } else if (cause instanceof Error) {
+                throw (Error)cause;
+            } else {
+                throw new Error("Unexpected exception", cause);
+            }
+        }
     }
     
     @Override
