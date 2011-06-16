@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 import javax.management.JMException;
 
+import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
+
 import com.ibm.websphere.management.exception.ConnectorException;
 
 /**

@@ -11,6 +11,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
+import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
 
 import com.ibm.websphere.management.Session;
 import com.ibm.websphere.management.exception.ConnectorException;
