@@ -1,8 +1,9 @@
-package be.fgov.kszbcss.rhq.websphere;
+package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class ApplicationInfo implements Serializable {
     private static final long serialVersionUID = -8427058440507167720L;

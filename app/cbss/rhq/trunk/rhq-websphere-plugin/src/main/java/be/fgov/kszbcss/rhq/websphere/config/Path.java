@@ -9,30 +9,21 @@ import org.apache.commons.logging.LogFactory;
 import com.ibm.websphere.management.configservice.SystemAttributes;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class ContainmentPath {
-    private static final Log log = LogFactory.getLog(ContainmentPath.class);
+public abstract class Path {
+    private static final Log log = LogFactory.getLog(Path.class);
     
-    private final ConfigServiceWrapper configService;
-    private final String path;
+    abstract ObjectName[] resolveRelative(String relativePath) throws JMException, ConnectorException;
     
-    ContainmentPath(ConfigServiceWrapper configService, String path) {
-        this.configService = configService;
-        this.path = path;
-    }
-
-    public ContainmentPath path(String type, String name) {
-        return new ContainmentPath(configService, path + ":" + type + "=" + name);
+    public final Path path(String type, String name) {
+        return new RelativePath(this, type + "=" + name);
     }
     
-    public ContainmentPath path(String type) {
+    public final Path path(String type) {
         return path(type, "");
     }
     
     public ObjectName[] resolve() throws JMException, ConnectorException {
-        if (log.isDebugEnabled()) {
-            log.debug("Resolving " + path);
-        }
-        ObjectName[] names = configService.resolve(path);
+        ObjectName[] names = resolveRelative(null);
         if (log.isDebugEnabled()) {
             if (names.length == 0) {
                 log.debug("No configuration data found");

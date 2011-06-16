@@ -5,8 +5,6 @@ import javax.management.ObjectName;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationInfo;
-import be.fgov.kszbcss.rhq.websphere.ApplicationInfoQuery;
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;

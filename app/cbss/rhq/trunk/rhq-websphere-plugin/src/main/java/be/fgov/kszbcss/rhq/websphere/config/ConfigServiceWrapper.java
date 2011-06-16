@@ -26,6 +26,7 @@ public class ConfigServiceWrapper {
     private final MBeanClient configServiceMBeanClient;
     private final ConfigService configService;
     private final ConfigRepository configRepository;
+    private final Path root;
     private final ReadWriteLock sessionLock = new ReentrantReadWriteLock();
     private boolean destroyed;
     private Session session;
@@ -35,6 +36,7 @@ public class ConfigServiceWrapper {
         this.configServiceMBeanClient = configServiceMBeanClient;
         this.configService = configServiceMBeanClient.getProxy(ConfigService.class);
         this.configRepository = configRepository;
+        root = new RootPath(this);
     }
     
     /**
@@ -81,25 +83,35 @@ public class ConfigServiceWrapper {
         }
     }
     
-    public ContainmentPath path(String type, String name) {
-        return new ContainmentPath(this, type + "=" + name);
+    public Path path(String type, String name) {
+        return root.path(type, name);
     }
     
-    public ContainmentPath path(String type) {
-        return path(type, "");
+    public Path path(String type) {
+        return root.path(type);
     }
     
-    public ContainmentPath cell() {
+    public Path cell() {
         // TODO: we may want to insert the cell name here
-        return new ContainmentPath(this, "Cell=");
+        return path("Cell");
     }
     
-    public ContainmentPath node(String nodeName) {
+    public Path node(String nodeName) {
         return cell().path("Node", nodeName);
     }
     
-    public ContainmentPath server(String nodeName, String serverName) {
+    public Path server(String nodeName, String serverName) {
         return node(nodeName).path("Server", serverName);
+    }
+    
+    public Path allScopes(String nodeName, String serverName) throws JMException, ConnectorException {
+        Path cell = cell();
+        Path node = cell.path("Node", nodeName);
+        Path server = node.path("Server", serverName);
+        ObjectName serverObject = server.resolveSingle();
+        Path cluster = cell.path("ServerCluster", (String)getAttribute(serverObject, "clusterName"));
+        // Order is important here: we return objects with higher precedence first
+        return new PathGroup(server, cluster, node, cell);
     }
     
     ObjectName[] resolve(final String containmentPath) throws JMException, ConnectorException {

@@ -1,7 +1,7 @@
 package be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb;
 
-import be.fgov.kszbcss.rhq.websphere.ModuleType;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.ModuleDiscoveryComponent;
+import be.fgov.kszbcss.rhq.websphere.component.j2ee.ModuleType;
 
 public class EJBModuleDiscoveryComponent extends ModuleDiscoveryComponent  {
     @Override

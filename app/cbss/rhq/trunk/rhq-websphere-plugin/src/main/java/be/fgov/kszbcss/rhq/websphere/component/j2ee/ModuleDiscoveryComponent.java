@@ -11,9 +11,6 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationInfo;
-import be.fgov.kszbcss.rhq.websphere.ModuleInfo;
-import be.fgov.kszbcss.rhq.websphere.ModuleType;
 
 public abstract class ModuleDiscoveryComponent implements ResourceDiscoveryComponent<ApplicationComponent> {
     private static final Log log = LogFactory.getLog(ModuleDiscoveryComponent.class);

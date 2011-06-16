@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.rhq.websphere;
+package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
 import java.util.Arrays;
 import java.util.HashMap;

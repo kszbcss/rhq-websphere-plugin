@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.rhq.websphere;
+package be.fgov.kszbcss.rhq.websphere.component.server;
 
 import javax.management.JMException;
 import javax.management.ObjectName;
