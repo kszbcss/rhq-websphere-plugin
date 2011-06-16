@@ -43,8 +43,7 @@ public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServ
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
-        final String jndiName = getResourceContext().getResourceKey();
-        this.jndiName = jndiName;
+        jndiName = getResourceContext().getResourceKey();
         WebSphereServer server = getServer();
         final MBeanClient mbean = server.getMBeanClient(new MBeanLocator() {
             public Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
