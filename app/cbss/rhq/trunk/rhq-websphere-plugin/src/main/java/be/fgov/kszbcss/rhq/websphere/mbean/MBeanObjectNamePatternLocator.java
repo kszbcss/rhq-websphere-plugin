@@ -11,25 +11,19 @@ import org.apache.commons.logging.LogFactory;
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-/**
- * Locates an MBean based on an object name pattern.
- */
-public class MBeanObjectNamePatternLocator implements MBeanLocator {
+public abstract class MBeanObjectNamePatternLocator implements MBeanLocator {
     private static final Log log = LogFactory.getLog(MBeanObjectNamePatternLocator.class.getName());
     
-    private final ObjectName pattern;
     private final boolean recursive;
-    
-    public MBeanObjectNamePatternLocator(ObjectName pattern, boolean recursive) {
-        this.pattern = pattern;
+
+    public MBeanObjectNamePatternLocator(boolean recursive) {
         this.recursive = recursive;
     }
-
-    public MBeanObjectNamePatternLocator(ObjectName pattern) {
-        this(pattern, false);
-    }
     
-    public Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
+    protected abstract ObjectName getPattern(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException;
+    
+    public final Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
+        ObjectName pattern = getPattern(processInfo, adminClient);
         ObjectName actualPattern;
         if (recursive || processInfo.getProcessType().equals("ManagedProcess")) {
             actualPattern = pattern;
@@ -42,19 +36,5 @@ public class MBeanObjectNamePatternLocator implements MBeanLocator {
         return adminClient.queryNames(actualPattern, null);
     }
 
-    @Override
-    public String toString() {
-        return pattern.toString();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof MBeanObjectNamePatternLocator
-                && pattern.equals(((MBeanObjectNamePatternLocator)obj).pattern);
-    }
-
-    @Override
-    public int hashCode() {
-        return pattern.hashCode();
-    }
+    
 }

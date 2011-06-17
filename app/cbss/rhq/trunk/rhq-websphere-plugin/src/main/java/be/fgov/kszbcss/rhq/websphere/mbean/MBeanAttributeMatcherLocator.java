@@ -26,7 +26,7 @@ public class MBeanAttributeMatcherLocator implements MBeanLocator {
 
     public MBeanAttributeMatcherLocator(ObjectName pattern,
             String attributeName, String attributeValue) {
-        this(new MBeanObjectNamePatternLocator(pattern), attributeName, attributeValue);
+        this(new StaticMBeanObjectNamePatternLocator(pattern), attributeName, attributeValue);
     }
 
     public Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {

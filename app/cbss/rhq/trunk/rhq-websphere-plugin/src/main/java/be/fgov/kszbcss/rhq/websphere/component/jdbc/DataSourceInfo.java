@@ -6,12 +6,12 @@ public class DataSourceInfo implements Serializable {
     private static final long serialVersionUID = -5069555839262530879L;
 
     private final String providerName;
-    private final String dataSourceName;
+    private final String name;
     private final String jndiName;
     
-    public DataSourceInfo(String providerName, String dataSourceName, String jndiName) {
+    public DataSourceInfo(String providerName, String name, String jndiName) {
         this.providerName = providerName;
-        this.dataSourceName = dataSourceName;
+        this.name = name;
         this.jndiName = jndiName;
     }
 
@@ -19,8 +19,8 @@ public class DataSourceInfo implements Serializable {
         return providerName;
     }
 
-    public String getDataSourceName() {
-        return dataSourceName;
+    public String getName() {
+        return name;
     }
 
     public String getJndiName() {

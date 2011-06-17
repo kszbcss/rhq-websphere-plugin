@@ -11,8 +11,8 @@ import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class DataSourceQuery implements ConfigQuery<DataSourceInfo[]> {
-    private static final long serialVersionUID = -1116319605058770170L;
+public class DataSourceQuery implements ConfigQuery<DataSources> {
+    private static final long serialVersionUID = 6533346488075959L;
     
     private final String node;
     private final String server;
@@ -22,7 +22,7 @@ public class DataSourceQuery implements ConfigQuery<DataSourceInfo[]> {
         this.server = server;
     }
 
-    public DataSourceInfo[] execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
+    public DataSources execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
         List<DataSourceInfo> result = new ArrayList<DataSourceInfo>();
         for (ObjectName dataSource : configService.allScopes(node, server).path("JDBCProvider").path("DataSource").resolve()) {
             ObjectName provider = (ObjectName)configService.getAttribute(dataSource, "provider");
@@ -32,7 +32,7 @@ public class DataSourceQuery implements ConfigQuery<DataSourceInfo[]> {
                     (String)configService.getAttribute(dataSource, "name"),
                     (String)configService.getAttribute(dataSource, "jndiName")));
         }
-        return result.toArray(new DataSourceInfo[result.size()]);
+        return new DataSources(result.toArray(new DataSourceInfo[result.size()]));
     }
 
     @Override

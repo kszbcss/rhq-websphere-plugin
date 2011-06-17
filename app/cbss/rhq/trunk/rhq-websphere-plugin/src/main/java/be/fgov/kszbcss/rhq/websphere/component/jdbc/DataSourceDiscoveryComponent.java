@@ -15,8 +15,7 @@ public class DataSourceDiscoveryComponent implements ResourceDiscoveryComponent<
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         ManagedServer server = context.getParentResourceComponent().getServer();
-        for (DataSourceInfo dataSource : server.queryConfig(new DataSourceQuery(server.getNode(), server.getServer()))) {
-            String jndiName = dataSource.getJndiName();
+        for (String jndiName : server.queryConfig(new DataSourceQuery(server.getNode(), server.getServer())).getJndiNames()) {
             result.add(new DiscoveredResourceDetails(context.getResourceType(), jndiName, jndiName, null, "A data source", null, null));
         }
         return result;

@@ -15,8 +15,7 @@ public class ConnectionFactoryDiscoveryComponent implements ResourceDiscoveryCom
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         ManagedServer server = context.getParentResourceComponent().getServer();
-        for (ConnectionFactoryInfo cf : server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer()))) {
-            String jndiName = cf.getJndiName();
+        for (String jndiName : server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer())).getJndiNames()) {
             result.add(new DiscoveredResourceDetails(context.getResourceType(), jndiName, jndiName, null, "A J2C Connection Factory", null, null));
         }
         return result;

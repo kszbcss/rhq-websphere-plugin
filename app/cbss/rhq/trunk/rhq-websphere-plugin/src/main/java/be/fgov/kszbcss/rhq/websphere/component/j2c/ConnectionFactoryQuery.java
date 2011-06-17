@@ -11,8 +11,8 @@ import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactoryInfo[]> {
-    private static final long serialVersionUID = 4041313974737609399L;
+public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> {
+    private static final long serialVersionUID = -8161418420026623081L;
     
     private final String node;
     private final String server;
@@ -22,7 +22,7 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactoryInfo
         this.server = server;
     }
     
-    public ConnectionFactoryInfo[] execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
+    public ConnectionFactories execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
         List<ConnectionFactoryInfo> result = new ArrayList<ConnectionFactoryInfo>();
         for (ObjectName dataSource : configService.allScopes(node, server).path("J2CResourceAdapter").path("J2CConnectionFactory").resolve()) {
             String jndiName = (String)configService.getAttribute(dataSource, "jndiName");
@@ -36,7 +36,7 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactoryInfo
                         jndiName));
             }
         }
-        return result.toArray(new ConnectionFactoryInfo[result.size()]);
+        return new ConnectionFactories(result.toArray(new ConnectionFactoryInfo[result.size()]));
     }
 
     @Override

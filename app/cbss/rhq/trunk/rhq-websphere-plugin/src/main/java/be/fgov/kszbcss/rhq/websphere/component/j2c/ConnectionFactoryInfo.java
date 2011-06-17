@@ -6,12 +6,12 @@ public class ConnectionFactoryInfo implements Serializable {
     private static final long serialVersionUID = 116695055256735899L;
     
     private final String providerName;
-    private final String dataSourceName;
+    private final String name;
     private final String jndiName;
     
-    public ConnectionFactoryInfo(String providerName, String dataSourceName, String jndiName) {
+    public ConnectionFactoryInfo(String providerName, String name, String jndiName) {
         this.providerName = providerName;
-        this.dataSourceName = dataSourceName;
+        this.name = name;
         this.jndiName = jndiName;
     }
 
@@ -19,8 +19,8 @@ public class ConnectionFactoryInfo implements Serializable {
         return providerName;
     }
 
-    public String getDataSourceName() {
-        return dataSourceName;
+    public String getName() {
+        return name;
     }
 
     public String getJndiName() {

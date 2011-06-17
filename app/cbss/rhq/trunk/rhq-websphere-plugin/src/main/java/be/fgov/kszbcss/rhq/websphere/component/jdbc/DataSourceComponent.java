@@ -3,7 +3,6 @@ package be.fgov.kszbcss.rhq.websphere.component.jdbc;
 import java.util.Set;
 
 import javax.management.JMException;
-import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -17,18 +16,14 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
-import be.fgov.kszbcss.rhq.websphere.mbean.MBeanLocator;
-import be.fgov.kszbcss.rhq.websphere.mbean.ProcessInfo;
 import be.fgov.kszbcss.rhq.websphere.support.configuration.ConfigurationFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIModuleSelector;
 
-import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.PmiConstants;
 import com.ibm.websphere.pmi.stat.WSRangeStatistic;
@@ -44,20 +39,13 @@ public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServ
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         jndiName = getResourceContext().getResourceKey();
-        WebSphereServer server = getServer();
-        final MBeanClient mbean = server.getMBeanClient(new MBeanLocator() {
-            public Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
-                // TODO: we should have a specialized MBeanLocator implementation for this kind of dynamic lookup
-                DataSourceInfo dataSource = getDataSourceInfo();
-                return adminClient.queryNames(new ObjectName("WebSphere:type=DataSource,name=" + dataSource.getDataSourceName() + ",JDBCProvider=" + dataSource.getProviderName() + ",*"), null);
-            }
-        });
-        this.mbean = mbean;
+        final ManagedServer server = getServer();
+        mbean = server.getMBeanClient(new DataSourceMBeanLocator(jndiName));
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException {
-                DataSourceInfo dataSource = getDataSourceInfo();
-                return new String[] { PmiConstants.CONNPOOL_MODULE, dataSource.getProviderName(), dataSource.getJndiName() };
+                DataSourceInfo cf = server.queryConfig(new DataSourceQuery(server.getNode(), server.getServer())).getByJndiName(jndiName);
+                return new String[] { PmiConstants.CONNPOOL_MODULE, cf.getProviderName(), cf.getJndiName() };
             }
         };
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(server.getServerMBean(), moduleSelector) {
@@ -73,22 +61,16 @@ public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServ
         configurationFacetSupport = new ConfigurationFacetSupport(this, mbean);
     }
     
-    DataSourceInfo getDataSourceInfo() throws JMException, ConnectorException {
-        ManagedServer server = getServer();
-        for (DataSourceInfo dataSource : server.queryConfig(new DataSourceQuery(server.getNode(), server.getServer()))) {
-            if (dataSource.getJndiName().equals(jndiName)) {
-                return dataSource;
-            }
-        }
-        throw new RuntimeException("Configuration object for " + jndiName + " not found");
-    }
-    
     public void stop() {
     }
 
     public AvailabilityType getAvailability() {
-        // TODO
-        return AvailabilityType.UP;
+        try {
+            mbean.getObjectName(true);
+            return AvailabilityType.UP;
+        } catch (Exception ex) {
+            return AvailabilityType.DOWN;
+        }
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {

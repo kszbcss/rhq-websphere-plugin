@@ -46,7 +46,7 @@ public class MBeanClientFactory {
     }
 
     public MBeanClient getMBeanClient(ObjectName objectNamePattern) {
-        return getMBeanClient(new MBeanObjectNamePatternLocator(objectNamePattern));
+        return getMBeanClient(new StaticMBeanObjectNamePatternLocator(objectNamePattern));
     }
     
     public MBeanClient getMBeanClient(String objectNamePattern) {

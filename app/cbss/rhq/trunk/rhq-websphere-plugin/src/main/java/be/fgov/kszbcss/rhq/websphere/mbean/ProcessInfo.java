@@ -30,6 +30,11 @@ public class ProcessInfo {
         }
     }
 
+    // TODO: review this
+    public WebSphereServer getServer() {
+        return server;
+    }
+
     public String getCell() throws ConnectorException {
         init();
         return cell;
