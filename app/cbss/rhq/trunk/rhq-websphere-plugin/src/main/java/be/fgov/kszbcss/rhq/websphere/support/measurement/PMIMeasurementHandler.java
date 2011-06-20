@@ -112,6 +112,14 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
                 WSAverageStatistic currentStatistic = (WSAverageStatistic)statistic;
                 WSAverageStatistic prevStatistic = lastStats.get(statisticName);
                 lastStats.put(statisticName, currentStatistic);
+                if (log.isDebugEnabled()) {
+                    if (prevStatistic == null) {
+                        log.debug("Previous value: <not available>");
+                    } else {
+                        log.debug("Previous value: " + dumpStatistic(prevStatistic));
+                    }
+                    log.debug("Current value: " + dumpStatistic(currentStatistic));
+                }
                 // We need to detect a statistic reset in a reliable way. Checking delta(count) > 0 is not sufficient.
                 // In fact, delta(count) < 0 implies that the statistic has been reset, but it can happen that
                 // after a statistic reset, delta(count) > 0. In this case, delta(total) may be negative, so that
@@ -140,7 +148,11 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
             server.enableStatistics(descriptor, statisticsToEnable);
         }
     }
-
+    
+    private static String dumpStatistic(WSAverageStatistic statistic) {
+        return "total=" + statistic.getTotal() + ", min=" + statistic.getMin() + ", max=" + statistic.getMax() + ", startTime=" + statistic.getStartTime() + ", count=" + statistic.getCount();
+    }
+    
     protected double getValue(String name, WSRangeStatistic statistic) {
         return statistic.getCurrent();
     }

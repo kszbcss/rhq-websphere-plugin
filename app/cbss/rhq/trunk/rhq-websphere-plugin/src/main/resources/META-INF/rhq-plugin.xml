@@ -66,6 +66,26 @@
             <metric property="stats.ConcurrentHungThreadCount" displayName="Hung Thread Count"
                     category="performance" displayType="summary" defaultInterval="600000"
                     description="The number of concurrently stopped threads."/>
+            <metric property="stats.ActiveTime" displayName="Avg. Active Time"
+                    category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                    description="The average time in milliseconds that the threads are in active state."/>
+            <metric property="stats.CreateCount" displayName="Threads created"
+                    category="utilization" defaultInterval="600000" measurementType="trendsup"
+                    description="The total number of threads that are created."/>
+            <metric property="stats.DestroyCount" displayName="Threads destroyed"
+                    category="utilization" defaultInterval="600000" measurementType="trendsup"
+                    description="The total number of threads that are destroyed."/>
+            <!-- Since ActiveCount may fluctuate rapidly and only gives a snapshot value,
+                 we use a lower default interval, but don't enable the metric by default -->
+            <metric property="stats.ActiveCount" displayName="Active Threads"
+                    category="utilization" defaultInterval="60000"
+                    description="The number of concurrently active threads."/>
+            <metric property="stats.DeclaredThreadHungCount" displayName="Threads Declared Hung"
+                    category="performance" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of threads that are declared stopped."/>
+            <metric property="stats.ClearedThreadHangCount" displayName="Hung Threads Cleared"
+                    category="performance" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of thread stops that cleared."/>
 
             <resource-configuration>
                 <c:simple-property name="minimumSize" displayName="Minimum Size" type="integer"
@@ -261,6 +281,12 @@
                     <metric property="stats.MessageCount" displayName="Message Count"
                             category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                             description="The number of messages delivered to the onMessage method of the bean"/>
+                    <metric property="stats.LiveCount" displayName="Live Count"
+                            category="utilization" defaultInterval="600000"
+                            description="The average number of concurrently live beans."/>
+                    <metric property="stats.ActiveMethodCount" displayName="Active Method Count"
+                            category="utilization" defaultInterval="60000"
+                            description="The average number of concurrently active methods (that is, the num methods called at the same time)."/>
                 </service>
             </service>
         </service>
