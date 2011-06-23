@@ -1,10 +1,11 @@
-package be.fgov.kszbcss.rhq.websphere.xm;
+package be.fgov.kszbcss.rhq.websphere.xm.logging;
 
 import java.io.Serializable;
 
-public class ExtendedLogMessage implements Serializable {
+public final class ExtendedLogMessage implements Serializable {
     private static final long serialVersionUID = -5515760895763431771L;
 
+    private long sequence;
     private final String level;
     private final String loggerName;
     private final String applicationName;
@@ -21,5 +22,37 @@ public class ExtendedLogMessage implements Serializable {
         this.moduleName = moduleName;
         this.componentName = componentName;
         this.message = message;
+    }
+    
+    void setSequence(long sequence) {
+        this.sequence = sequence;
+    }
+
+    public long getSequence() {
+        return sequence;
+    }
+
+    public String getLevel() {
+        return level;
+    }
+
+    public String getLoggerName() {
+        return loggerName;
+    }
+
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    public String getModuleName() {
+        return moduleName;
+    }
+
+    public String getComponentName() {
+        return componentName;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }

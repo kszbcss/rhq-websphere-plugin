@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.rhq.websphere.xm;
+package be.fgov.kszbcss.rhq.websphere.xm.occ;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
