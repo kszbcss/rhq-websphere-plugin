@@ -29,8 +29,7 @@ public class ExtendedLoggingService extends Handler {
     @Override
     public void publish(LogRecord record) {
         Level level = record.getLevel();
-        if (level.intValue() >= WsLevel.INFO.intValue()) {
-//        if (level.intValue() >= WsLevel.AUDIT.intValue()) {
+        if (level.intValue() >= WsLevel.AUDIT.intValue()) {
             try {
                 String applicationName;
                 String moduleName;
