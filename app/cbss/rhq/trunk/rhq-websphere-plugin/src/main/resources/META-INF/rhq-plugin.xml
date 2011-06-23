@@ -252,6 +252,9 @@
                     <metric property="stats.RequestCount" displayName="Request Count"
                             category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                             description="The number of requests received by the servlet"/>
+                    <metric property="stats.ConcurrentRequests" displayName="Concurrent Requests"
+                            category="utilization" defaultInterval="60000"
+                            description="The number of requests that are concurrently processed."/>
                 </service>
             </service>
             
