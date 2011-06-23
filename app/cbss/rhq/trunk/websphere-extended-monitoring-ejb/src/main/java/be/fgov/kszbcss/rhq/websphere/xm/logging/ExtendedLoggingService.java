@@ -2,7 +2,6 @@ package be.fgov.kszbcss.rhq.websphere.xm.logging;
 
 import java.util.Locale;
 import java.util.logging.Handler;
-import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 import com.ibm.websphere.logging.WsLevel;
@@ -28,8 +27,8 @@ public class ExtendedLoggingService extends Handler {
     
     @Override
     public void publish(LogRecord record) {
-        Level level = record.getLevel();
-        if (level.intValue() >= WsLevel.AUDIT.intValue()) {
+        int level = record.getLevel().intValue();
+        if (level >= WsLevel.AUDIT.intValue()) {
             try {
                 String applicationName;
                 String moduleName;
@@ -51,7 +50,7 @@ public class ExtendedLoggingService extends Handler {
                         applicationName = amd == null ? null : amd.getName();
                     }
                 }
-                ExtendedLogMessage message = new ExtendedLogMessage(level.getName(),
+                ExtendedLogMessage message = new ExtendedLogMessage(level, record.getMillis(),
                         record.getLoggerName(), applicationName, moduleName, componentName,
                         TraceLogFormatter.formatMessage(record, Locale.ENGLISH, TraceLogFormatter.UNUSED_PARM_HANDLING_APPEND_WITH_NEWLINE));
                 synchronized (this) {

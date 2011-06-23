@@ -33,6 +33,7 @@ public class ServletComponent extends WebSphereServiceComponent<WebModuleCompone
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(server.getServerMBean(),
                 PmiConstants.WEBAPP_MODULE, parent.getApplicationName() + "#" + parent.getModuleName(),
                 PmiConstants.SERVLET_SUBMODULE, context.getResourceKey()));
+        context.getParentResourceComponent().registerLogEventContext(context.getResourceKey(), context.getEventContext());
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
@@ -45,5 +46,7 @@ public class ServletComponent extends WebSphereServiceComponent<WebModuleCompone
     }
 
     public void stop() {
+        ResourceContext<WebModuleComponent> context = getResourceContext();
+        context.getParentResourceComponent().unregisterLogEventContext(context.getResourceKey());
     }
 }

@@ -38,6 +38,7 @@
         
         <event name="RasMessage" description="RAS logging message"/>
         <event name="ThreadMonitor" description="Thread monitor event"/>
+        <event name="LogEvent" description="Logging message"/>
         
         <resource-configuration>
             <c:simple-property name="clusterName" displayName="Cluster Name" type="string" required="false" readOnly="true"
@@ -226,11 +227,14 @@
                  description="Application (EAR)">
             
             <event name="StateChange" description="State change events"/>
+            <event name="LogEvent" description="Logging message"/>
             
             <service name="Web module"
                      discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleDiscoveryComponent"
                      class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleComponent"
                      description="Web module">
+                
+                <event name="LogEvent" description="Logging message"/>
     
                 <service name="Servlet"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletDiscoveryComponent"
@@ -255,6 +259,8 @@
                     <metric property="stats.ConcurrentRequests" displayName="Concurrent Requests"
                             category="utilization" defaultInterval="60000"
                             description="The number of requests that are concurrently processed."/>
+                    
+                    <event name="LogEvent" description="Logging message"/>
                 </service>
             </service>
             
@@ -262,6 +268,8 @@
                      discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.EJBModuleDiscoveryComponent"
                      class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.EJBModuleComponent"
                      description="EJB module">
+                
+                <event name="LogEvent" description="Logging message"/>
     
                 <service name="Stateless Session Bean"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanDiscoveryComponent"
@@ -273,6 +281,8 @@
                     <metric property="stats.MethodCallCount" displayName="Method Call Count"
                             category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                             description="The number of calls to the remote methods of the bean"/>
+                    
+                    <event name="LogEvent" description="Logging message"/>
                 </service>
                 <service name="Message Driven Bean"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanDiscoveryComponent"
@@ -290,6 +300,8 @@
                     <metric property="stats.ActiveMethodCount" displayName="Active Method Count"
                             category="utilization" defaultInterval="60000"
                             description="The average number of concurrently active methods (that is, the num methods called at the same time)."/>
+                    
+                    <event name="LogEvent" description="Logging message"/>
                 </service>
             </service>
         </service>

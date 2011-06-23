@@ -27,6 +27,7 @@ public abstract class EnterpriseBeanComponent extends WebSphereServiceComponent<
         measurementFacetSupport = new MeasurementFacetSupport(this);
         MBeanClient mbean = server.getMBeanClient("WebSphere:type=" + getMBeanType() + ",Application=" + parent.getApplicationName() + ",EJBModule=" + parent.getModuleName() + ",name=" + context.getResourceKey() + ",*");
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(mbean));
+        context.getParentResourceComponent().registerLogEventContext(context.getResourceKey(), context.getEventContext());
     }
     
     protected abstract String getMBeanType();
@@ -41,5 +42,7 @@ public abstract class EnterpriseBeanComponent extends WebSphereServiceComponent<
     }
 
     public void stop() {
+        ResourceContext<EJBModuleComponent> context = getResourceContext();
+        context.getParentResourceComponent().unregisterLogEventContext(context.getResourceKey());
     }
 }

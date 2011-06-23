@@ -3,6 +3,7 @@ package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 import javax.management.ObjectName;
 
 import org.rhq.core.domain.measurement.AvailabilityType;
+import org.rhq.core.pluginapi.event.EventContext;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
@@ -30,6 +31,14 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     
     public ApplicationInfo getApplicationInfo() {
         return getServer().queryConfig(new ApplicationInfoQuery(getApplicationName()));
+    }
+    
+    public void registerLogEventContext(String moduleName, String componentName, EventContext context) {
+        getResourceContext().getParentResourceComponent().registerLogEventContext(getApplicationName(), moduleName, componentName, context);
+    }
+    
+    public void unregisterLogEventContext(String moduleName, String componentName) {
+        getResourceContext().getParentResourceComponent().unregisterLogEventContext(getApplicationName(), moduleName, componentName);
     }
     
     public AvailabilityType getAvailability() {

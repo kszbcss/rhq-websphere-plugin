@@ -1,6 +1,7 @@
 package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
 import org.rhq.core.domain.measurement.AvailabilityType;
+import org.rhq.core.pluginapi.event.EventContext;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 
@@ -26,6 +27,14 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
     
     public String getModuleName() {
         return getResourceContext().getResourceKey();
+    }
+    
+    public void registerLogEventContext(String componentName, EventContext context) {
+        getResourceContext().getParentResourceComponent().registerLogEventContext(getModuleName(), componentName, context);
+    }
+    
+    public void unregisterLogEventContext(String componentName) {
+        getResourceContext().getParentResourceComponent().unregisterLogEventContext(getModuleName(), componentName);
     }
     
     public ModuleInfo getModuleInfo() {

@@ -6,17 +6,19 @@ public final class ExtendedLogMessage implements Serializable {
     private static final long serialVersionUID = -5515760895763431771L;
 
     private long sequence;
-    private final String level;
+    private final int level;
+    private final long timestamp;
     private final String loggerName;
     private final String applicationName;
     private final String moduleName;
     private final String componentName;
     private final String message;
     
-    public ExtendedLogMessage(String level, String loggerName,
+    public ExtendedLogMessage(int level, long timestamp, String loggerName,
             String applicationName, String moduleName, String componentName,
             String message) {
         this.level = level;
+        this.timestamp = timestamp;
         this.loggerName = loggerName;
         this.applicationName = applicationName;
         this.moduleName = moduleName;
@@ -32,8 +34,12 @@ public final class ExtendedLogMessage implements Serializable {
         return sequence;
     }
 
-    public String getLevel() {
+    public int getLevel() {
         return level;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 
     public String getLoggerName() {

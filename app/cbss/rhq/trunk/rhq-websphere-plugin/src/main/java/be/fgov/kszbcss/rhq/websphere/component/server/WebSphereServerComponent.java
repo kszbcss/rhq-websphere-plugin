@@ -1,6 +1,7 @@
 package be.fgov.kszbcss.rhq.websphere.component.server;
 
 import java.util.Set;
+import java.util.Timer;
 
 import javax.management.JMException;
 import javax.management.Notification;
@@ -53,6 +54,8 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     private ManagedServer server;
     private EmsConnection connection;
     private MeasurementFacetSupport measurementFacetSupport;
+    private Timer timer;
+    private LogEventDispatcher logEventDispatcher;
     
     public void start(ResourceContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
@@ -81,13 +84,19 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         filter.enableType(NotificationConstants.TYPE_THREAD_MONITOR_THREAD_CLEAR);
         server.addNotificationListener(new ObjectName("WebSphere:*"), listener, filter, null, true);
         
-        filter = new NotificationFilterSupport();
-        // TODO: use constants from NotificationConstants here
-        filter.enableType("websphere.ras.audit");
-        filter.enableType("websphere.ras.warning");
-        filter.enableType("websphere.ras.error");
-        filter.enableType("websphere.ras.fatal");
-        server.addNotificationListener(new ObjectName("WebSphere:type=RasLoggingService,*"), new RasLoggingNotificationListener(eventContext), filter, null, true);
+//        filter = new NotificationFilterSupport();
+//        // TODO: use constants from NotificationConstants here
+//        filter.enableType("websphere.ras.audit");
+//        filter.enableType("websphere.ras.warning");
+//        filter.enableType("websphere.ras.error");
+//        filter.enableType("websphere.ras.fatal");
+//        server.addNotificationListener(new ObjectName("WebSphere:type=RasLoggingService,*"), new RasLoggingNotificationListener(eventContext), filter, null, true);
+        
+        timer = new Timer();
+        logEventDispatcher = new LogEventDispatcher(
+                server.getMBeanClient("be.fgov.kszbcss.rhq.websphere.xm:*,type=ExtendedLoggingService").getProxy(ExtendedLoggingService.class),
+                context.getEventContext());
+        timer.schedule(logEventDispatcher, 30000, 30000);
     }
 
     public ResourceContext<ResourceComponent<?>> getResourceContext() {
@@ -179,7 +188,16 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         throw new UnsupportedOperationException();
     }
 
+    public void registerLogEventContext(String applicationName, String moduleName, String componentName, EventContext context) {
+        logEventDispatcher.registerEventContext(new J2EEComponentKey(applicationName, moduleName, componentName), context);
+    }
+    
+    public void unregisterLogEventContext(String applicationName, String moduleName, String componentName) {
+        logEventDispatcher.unregisterEventContext(new J2EEComponentKey(applicationName, moduleName, componentName));
+    }
+    
     public void stop() {
+        timer.cancel();
         server.destroy();
         resourceContext.getEventContext().unregisterEventPoller(RasLoggingNotificationListener.EVENT_TYPE);
     }
