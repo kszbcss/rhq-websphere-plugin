@@ -10,7 +10,7 @@
         <developerConnection>scm:svn:http://scm.cbss.inet/cbss/app/cbss/rhq/trunk</developerConnection>
     </scm>
     <properties>
-        <!-- rhq.version>3.0.1.GA</rhq.version>
+        <!-- rhq.version>4.0.1</rhq.version>
         <ems.version>1.2.15.1</ems.version -->
         <rhq.version>3.0.0</rhq.version>
         <ems.version>1.2.11</ems.version>
