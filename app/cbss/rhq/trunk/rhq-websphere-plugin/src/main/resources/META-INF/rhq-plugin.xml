@@ -227,15 +227,12 @@
                  description="Application (EAR)">
             
             <event name="StateChange" description="State change events"/>
-            <event name="LogEvent" description="Logging message"/>
             
             <service name="Web module"
                      discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleDiscoveryComponent"
                      class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleComponent"
                      description="Web module">
                 
-                <event name="LogEvent" description="Logging message"/>
-    
                 <service name="Servlet"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletDiscoveryComponent"
                          class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletComponent"
@@ -269,8 +266,6 @@
                      class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.EJBModuleComponent"
                      description="EJB module">
                 
-                <event name="LogEvent" description="Logging message"/>
-    
                 <service name="Stateless Session Bean"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanDiscoveryComponent"
                          class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanComponent"
