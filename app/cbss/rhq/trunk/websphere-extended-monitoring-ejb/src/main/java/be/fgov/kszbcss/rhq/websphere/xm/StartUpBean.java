@@ -54,6 +54,7 @@ public class StartUpBean implements SessionBean, MBeanRegistrar {
         mbs = AdminServiceFactory.getMBeanFactory().getMBeanServer();
         registeredMBeans = new ArrayList<ObjectName>();
         for (Module module : modules) {
+            log.info("Starting " + module.getClass().getName());
             if (!module.start(this)) {
                 return false;
             }
@@ -62,18 +63,28 @@ public class StartUpBean implements SessionBean, MBeanRegistrar {
     }
     
     public ObjectName register(RequiredModelMBean mbean, Hashtable<String,String> keyProperties) throws JMException {
+        if (log.isDebugEnabled()) {
+            log.debug("Attempting to register MBean with key properties " + keyProperties);
+        }
         ObjectName objectName = mbs.registerMBean(mbean, new ObjectName(DOMAIN, keyProperties)).getObjectName();
+        if (log.isDebugEnabled()) {
+            log.debug("MBean registered with object name " + objectName);
+        }
         registeredMBeans.add(objectName);
         return objectName;
     }
 
     public void stop() {
         for (Module module : modules) {
+            log.info("Stopping " + module.getClass().getName());
             module.stop();
         }
         if (registeredMBeans != null) {
             for (ObjectName name : registeredMBeans) {
                 try {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Unregistering MBean " + name);
+                    }
                     mbs.unregisterMBean(name);
                 } catch (JMException ex) {
                     log.error("Failed to unregister MBean " + name, ex);

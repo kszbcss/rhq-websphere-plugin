@@ -26,6 +26,9 @@ public class ExtendedLoggingModule implements Module {
     
     public boolean start(MBeanRegistrar mbeanRegistrar) {
         service = new ExtendedLoggingService();
+        if (log.isDebugEnabled()) {
+            log.debug("Registering handler on root logger");
+        }
         Logger.getLogger("").addHandler(service);
         
         try {
@@ -67,6 +70,9 @@ public class ExtendedLoggingModule implements Module {
 
     public void stop() {
         if (service != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Removing handler from root logger");
+            }
             Logger.getLogger("").removeHandler(service);
             service = null;
         }

@@ -4,6 +4,9 @@ import java.util.Locale;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.ibm.websphere.logging.WsLevel;
 import com.ibm.ws.logging.TraceLogFormatter;
 import com.ibm.ws.runtime.metadata.ApplicationMetaData;
@@ -12,6 +15,8 @@ import com.ibm.ws.runtime.metadata.ModuleMetaData;
 import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
 
 public class ExtendedLoggingService extends Handler {
+    private static final Log log = LogFactory.getLog(ExtendedLoggingService.class);
+    
     private final ComponentMetaDataAccessorImpl cmdAccessor = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor();
     private final ExtendedLogMessage[] buffer = new ExtendedLogMessage[1024];
     private int head;
@@ -67,26 +72,39 @@ public class ExtendedLoggingService extends Handler {
         }
     }
 
-    public synchronized ExtendedLogMessage[] getMessages(long startSequence) {
-        if (startSequence < initialSequence) {
-            startSequence = initialSequence;
+    public ExtendedLogMessage[] getMessages(long startSequence) {
+        if (log.isDebugEnabled()) {
+            log.debug("Entering getMessages with startSequence = " + startSequence);
         }
-        int bufferSize = buffer.length;
-        int position;
-        long longCount = nextSequence-startSequence;
-        int count;
-        if (longCount > bufferSize) {
-            position = head;
-            count = bufferSize;
-        } else {
-            count = (int)longCount;
-            position = (head+bufferSize-count) % bufferSize;
+        ExtendedLogMessage[] messages;
+        synchronized (this) {
+            if (startSequence < initialSequence) {
+                startSequence = initialSequence;
+            }
+            int bufferSize = buffer.length;
+            int position;
+            long longCount = nextSequence-startSequence;
+            int count;
+            if (longCount > bufferSize) {
+                position = head;
+                count = bufferSize;
+            } else {
+                count = (int)longCount;
+                position = (head+bufferSize-count) % bufferSize;
+            }
+            messages = new ExtendedLogMessage[count];
+            for (int i=0; i<count; i++) {
+                messages[i] = buffer[position++];
+                if (position == bufferSize) {
+                    position = 0;
+                }
+            }
         }
-        ExtendedLogMessage[] messages = new ExtendedLogMessage[count];
-        for (int i=0; i<count; i++) {
-            messages[i] = buffer[position++];
-            if (position == bufferSize) {
-                position = 0;
+        if (log.isDebugEnabled()) {
+            if (messages.length == 0) {
+                log.debug("No messages returned");
+            } else {
+                log.debug("Returning " + messages.length + " messages (" + messages[0].getSequence() + "..." + messages[messages.length-1].getSequence() + ")");
             }
         }
         return messages;
