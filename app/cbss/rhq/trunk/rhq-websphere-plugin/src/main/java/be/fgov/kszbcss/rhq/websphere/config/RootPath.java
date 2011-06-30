@@ -1,7 +1,6 @@
 package be.fgov.kszbcss.rhq.websphere.config;
 
 import javax.management.JMException;
-import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -18,7 +17,7 @@ class RootPath extends Path {
     }
 
     @Override
-    ObjectName[] resolveRelative(String relativePath) throws JMException, ConnectorException {
+    ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException {
         if (relativePath == null) {
             throw new IllegalArgumentException("relativePath can't be null");
         }

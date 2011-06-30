@@ -2,15 +2,12 @@ package be.fgov.kszbcss.rhq.websphere.component.server;
 
 import java.util.List;
 
-import javax.management.AttributeList;
 import javax.management.JMException;
-import javax.management.ObjectName;
 
+import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
 
-import com.ibm.websphere.management.configservice.ConfigServiceHelper;
-import com.ibm.websphere.management.configservice.SystemAttributes;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 /**
@@ -29,12 +26,12 @@ public class ThreadPoolQuery implements ConfigQuery<ThreadPoolConfiguration[]> {
     }
 
     public ThreadPoolConfiguration[] execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
-        ObjectName threadPoolManager = configService.server(node, server).path("ThreadPoolManager").resolveSingle();
-        List<AttributeList> threadPools = (List<AttributeList>)configService.getAttribute(threadPoolManager, "threadPools");
+        ConfigObject threadPoolManager = configService.server(node, server).path("ThreadPoolManager").resolveSingle();
+        List<ConfigObject> threadPools = threadPoolManager.getChildren("threadPools");
         ThreadPoolConfiguration[] configs = new ThreadPoolConfiguration[threadPools.size()];
         int i = 0;
-        for (AttributeList threadPool : threadPools) {
-            configs[i++] = new ThreadPoolConfiguration((String)ConfigServiceHelper.getAttributeValue(threadPool, "name") /*,
+        for (ConfigObject threadPool : threadPools) {
+            configs[i++] = new ThreadPoolConfiguration((String)threadPool.getAttribute("name") /*,
                     (String)ConfigServiceHelper.getAttributeValue(threadPool, SystemAttributes._WEBSPHERE_CONFIG_DATA_ID) */);
         }
         return configs;

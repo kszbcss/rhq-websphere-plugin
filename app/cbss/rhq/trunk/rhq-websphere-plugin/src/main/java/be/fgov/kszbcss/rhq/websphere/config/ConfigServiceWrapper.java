@@ -17,10 +17,6 @@ import com.ibm.websphere.management.Session;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class ConfigServiceWrapper {
-    private interface ConfigServiceAction<T> {
-        T execute(ConfigService configService, Session session) throws JMException, ConnectorException;
-    };
-    
     private static final Log log = LogFactory.getLog(ConfigServiceWrapper.class);
     
     private final MBeanClient configServiceMBeanClient;
@@ -51,7 +47,7 @@ public class ConfigServiceWrapper {
         return configServiceMBeanClient.getObjectName(false).getKeyProperty("version");
     }
     
-    private <T> T execute(ConfigServiceAction<T> action) throws JMException, ConnectorException {
+    <T> T execute(ConfigServiceAction<T> action) throws JMException, ConnectorException {
         // Note: a read lock can't be upgraded to a write lock, so we need to acquire a write
         // lock first.
         Lock readLock = sessionLock.readLock();
@@ -108,26 +104,23 @@ public class ConfigServiceWrapper {
         Path cell = cell();
         Path node = cell.path("Node", nodeName);
         Path server = node.path("Server", serverName);
-        ObjectName serverObject = server.resolveSingle();
-        Path cluster = cell.path("ServerCluster", (String)getAttribute(serverObject, "clusterName"));
+        ConfigObject serverObject = server.resolveSingle();
+        Path cluster = cell.path("ServerCluster", (String)serverObject.getAttribute("clusterName"));
         // Order is important here: we return objects with higher precedence first
         return new PathGroup(server, cluster, node, cell);
     }
     
-    ObjectName[] resolve(final String containmentPath) throws JMException, ConnectorException {
-        return execute(new ConfigServiceAction<ObjectName[]>() {
+    ConfigObject[] resolve(final String containmentPath) throws JMException, ConnectorException {
+        ObjectName[] objectNames = execute(new ConfigServiceAction<ObjectName[]>() {
             public ObjectName[] execute(ConfigService configService, Session session) throws JMException, ConnectorException {
                 return configService.resolve(session, containmentPath);
             }
         });
-    }
-    
-    public Object getAttribute(final ObjectName parent, final String attributeName) throws JMException, ConnectorException {
-        return execute(new ConfigServiceAction<Object>() {
-            public Object execute(ConfigService configService, Session session) throws JMException, ConnectorException {
-                return configService.getAttribute(session, parent, attributeName);
-            }
-        });
+        ConfigObject[] result = new ConfigObject[objectNames.length];
+        for (int i=0; i<objectNames.length; i++) {
+            result[i] = new ConfigObject(this, objectNames[i]);
+        }
+        return result;
     }
     
     public String[] listResourceNames(String parent, int type, int depth) throws JMException, ConnectorException {

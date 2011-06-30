@@ -1,7 +1,6 @@
 package be.fgov.kszbcss.rhq.websphere.component.server;
 
 import javax.management.JMException;
-import javax.management.ObjectName;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
@@ -20,9 +19,7 @@ public class ClusterNameQuery implements ConfigQuery<String> {
     }
 
     public String execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
-        // TODO: check number of returned results
-        ObjectName configObject = configService.server(node, server).resolveSingle();
-        return (String)configService.getAttribute(configObject, "clusterName");
+        return (String)configService.server(node, server).resolveSingle().getAttribute("clusterName");
     }
     
     @Override

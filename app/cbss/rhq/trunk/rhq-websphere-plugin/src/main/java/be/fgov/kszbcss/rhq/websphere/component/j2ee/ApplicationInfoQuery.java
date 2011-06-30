@@ -3,18 +3,15 @@ package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.management.AttributeList;
 import javax.management.JMException;
-import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
 
-import com.ibm.websphere.management.configservice.ConfigServiceHelper;
-import com.ibm.websphere.management.configservice.SystemAttributes;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
@@ -29,16 +26,13 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
     }
 
     public ApplicationInfo execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
-        // AdminConfig.getid("/Deployment:TUMEnterprise/ApplicationDeployment:/")
-        
-        // TODO: clean this up:
-        ObjectName applicationDeployment = configService.path("Deployment", applicationName).path("ApplicationDeployment").resolveSingle();
-        String dataId = applicationDeployment.getKeyProperty(SystemAttributes._WEBSPHERE_CONFIG_DATA_ID);
+        ConfigObject applicationDeployment = configService.path("Deployment", applicationName).path("ApplicationDeployment").resolveSingle();
+        String dataId = applicationDeployment.getId();
         String baseURI = dataId.substring(0, dataId.indexOf('|'));
         List<ModuleInfo> moduleInfos = new ArrayList<ModuleInfo>();
-        for (AttributeList module : (List<AttributeList>)configService.getAttribute(applicationDeployment, "modules")) {
-            String configDataType = (String)ConfigServiceHelper.getAttributeValue(module, SystemAttributes._WEBSPHERE_CONFIG_DATA_TYPE);
-            String uri = (String)ConfigServiceHelper.getAttributeValue(module, "uri");
+        for (ConfigObject module : applicationDeployment.getChildren("modules")) {
+            String configDataType = module.getType();
+            String uri = (String)module.getAttribute("uri");
             if (log.isDebugEnabled()) {
                 log.debug("Processing module " + uri + ", type " + configDataType);
             }

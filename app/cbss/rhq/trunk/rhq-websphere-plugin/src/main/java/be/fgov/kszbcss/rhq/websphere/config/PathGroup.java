@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.management.JMException;
-import javax.management.ObjectName;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -17,11 +16,11 @@ class PathGroup extends Path {
     }
 
     @Override
-    ObjectName[] resolveRelative(String relativePath) throws JMException, ConnectorException {
-        List<ObjectName> result = new ArrayList<ObjectName>();
+    ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException {
+        List<ConfigObject> result = new ArrayList<ConfigObject>();
         for (Path path : paths) {
             result.addAll(Arrays.asList(path.resolveRelative(relativePath)));
         }
-        return result.toArray(new ObjectName[result.size()]);
+        return result.toArray(new ConfigObject[result.size()]);
     }
 }

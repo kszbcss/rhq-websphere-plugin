@@ -1,7 +1,6 @@
 package be.fgov.kszbcss.rhq.websphere.config;
 
 import javax.management.JMException;
-import javax.management.ObjectName;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -15,7 +14,7 @@ class RelativePath extends Path {
     }
 
     @Override
-    ObjectName[] resolveRelative(String relativePath) throws JMException, ConnectorException {
+    ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException {
         if (relativePath == null) {
             return parent.resolveRelative(path);
         } else {

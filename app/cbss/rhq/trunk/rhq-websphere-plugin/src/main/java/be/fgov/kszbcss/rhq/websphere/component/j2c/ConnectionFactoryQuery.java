@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.management.JMException;
-import javax.management.ObjectName;
 
+import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
 
@@ -24,15 +24,15 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
     
     public ConnectionFactories execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
         List<ConnectionFactoryInfo> result = new ArrayList<ConnectionFactoryInfo>();
-        for (ObjectName dataSource : configService.allScopes(node, server).path("J2CResourceAdapter").path("J2CConnectionFactory").resolve()) {
-            String jndiName = (String)configService.getAttribute(dataSource, "jndiName");
+        for (ConfigObject dataSource : configService.allScopes(node, server).path("J2CResourceAdapter").path("J2CConnectionFactory").resolve()) {
+            String jndiName = (String)dataSource.getAttribute("jndiName");
             // If no JNDI name is defined, then it's probably a J2CConnectionFactory corresponding to a JDBC data source
             if (jndiName != null) {
-                ObjectName provider = (ObjectName)configService.getAttribute(dataSource, "provider");
+                ConfigObject provider = (ConfigObject)dataSource.getAttribute("provider");
                 // TODO: remove duplicate jndi names!
                 result.add(new ConnectionFactoryInfo(
-                        (String)configService.getAttribute(provider, "name"),
-                        (String)configService.getAttribute(dataSource, "name"),
+                        (String)provider.getAttribute("name"),
+                        (String)dataSource.getAttribute("name"),
                         jndiName));
             }
         }

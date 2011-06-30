@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.management.JMException;
-import javax.management.ObjectName;
 
+import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
 
@@ -24,13 +24,13 @@ public class DataSourceQuery implements ConfigQuery<DataSources> {
 
     public DataSources execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
         List<DataSourceInfo> result = new ArrayList<DataSourceInfo>();
-        for (ObjectName dataSource : configService.allScopes(node, server).path("JDBCProvider").path("DataSource").resolve()) {
-            ObjectName provider = (ObjectName)configService.getAttribute(dataSource, "provider");
+        for (ConfigObject dataSource : configService.allScopes(node, server).path("JDBCProvider").path("DataSource").resolve()) {
+            ConfigObject provider = (ConfigObject)dataSource.getAttribute("provider");
             // TODO: remove duplicate jndi names!
             result.add(new DataSourceInfo(
-                    (String)configService.getAttribute(provider, "name"),
-                    (String)configService.getAttribute(dataSource, "name"),
-                    (String)configService.getAttribute(dataSource, "jndiName")));
+                    (String)provider.getAttribute("name"),
+                    (String)dataSource.getAttribute("name"),
+                    (String)dataSource.getAttribute("jndiName")));
         }
         return new DataSources(result.toArray(new DataSourceInfo[result.size()]));
     }

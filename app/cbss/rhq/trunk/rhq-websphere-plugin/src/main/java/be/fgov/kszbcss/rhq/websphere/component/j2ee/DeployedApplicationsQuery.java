@@ -3,8 +3,8 @@ package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 import java.util.List;
 
 import javax.management.JMException;
-import javax.management.ObjectName;
 
+import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
 
@@ -25,8 +25,8 @@ public class DeployedApplicationsQuery implements ConfigQuery<String[]> {
         // AdminConfig.getid("/Node:twas02/ServerIndex:/ServerEntry:TENVCBSS.AppCluster.twas02.1/")
         // AdminConfig.showAttribute("TENVCBSS.AppCluster.twas02.1(cells/tcell/nodes/twas02|serverindex.xml#ServerEntry_1306410389272)", "deployedApplications")
         
-        ObjectName serverEntry = configService.node(node).path("ServerIndex").path("ServerEntry", server).resolveSingle();
-        List<?> deployedApplications = (List<?>)configService.getAttribute(serverEntry, "deployedApplications");
+        ConfigObject serverEntry = configService.node(node).path("ServerIndex").path("ServerEntry", server).resolveSingle();
+        List<?> deployedApplications = (List<?>)serverEntry.getAttribute("deployedApplications");
         String[] applicationNames = new String[deployedApplications.size()];
         int i = 0;
         for (Object deployedApplication : deployedApplications) {
