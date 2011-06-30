@@ -25,7 +25,15 @@ public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineIn
     public SIBMessagingEngineInfo[] execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
         List<SIBMessagingEngineInfo> result = new ArrayList<SIBMessagingEngineInfo>();
         for (ConfigObject me : configService.allScopes(node, server).path("SIBMessagingEngine").resolve()) {
-            result.add(new SIBMessagingEngineInfo((String)me.getAttribute("name"), (String)me.getAttribute("busName")));
+            List<SIBLocalizationPointInfo> localizationPoints = new ArrayList<SIBLocalizationPointInfo>();
+            for (ConfigObject localizationPoint : me.getChildren("localizationPoints")) {
+                String identifier = (String)localizationPoint.getAttribute("identifier");
+                localizationPoints.add(new SIBLocalizationPointInfo(
+                        localizationPoint.getType().equals("SIBQueueLocalizationPoint") ? SIBLocalizationPointType.QUEUE : SIBLocalizationPointType.TOPIC,
+                        identifier.substring(0, identifier.indexOf('@'))));
+            }
+            result.add(new SIBMessagingEngineInfo((String)me.getAttribute("name"), (String)me.getAttribute("busName"),
+                    localizationPoints.toArray(new SIBLocalizationPointInfo[localizationPoints.size()])));
         }
         return result.toArray(new SIBMessagingEngineInfo[result.size()]);
     }

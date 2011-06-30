@@ -42,6 +42,10 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         measurementFacetSupport.addHandler("health", new JMXOperationMeasurementHandler(sibMessagingEngineMBeanClient, "getHealth", true));
     }
 
+    public String getName() {
+        return name;
+    }
+
     public AvailabilityType getAvailability() {
         if (log.isDebugEnabled()) {
             log.debug("Starting to determine availability of messaging engine " + name);

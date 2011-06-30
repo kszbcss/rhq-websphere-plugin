@@ -309,6 +309,13 @@
             <metric property="health" displayName="Health" dataType="trait"
                     displayType="summary" defaultOn="true"
                     description="The current Health of the Messaging Engine."/>
+            
+            <service name="Queue"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.sib.SIBQueuePointDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBQueuePointComponent"
+                     description="SIBus Queue">
+                
+            </service>
         </service>
     </server>
     
