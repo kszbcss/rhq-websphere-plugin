@@ -10,25 +10,21 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+import be.fgov.kszbcss.rhq.websphere.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
-import be.fgov.kszbcss.rhq.websphere.proxy.SIBMain;
 
 public class SIBMessagingEngineDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
     private static final Log log = LogFactory.getLog(SIBMessagingEngineDiscoveryComponent.class);
     
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        WebSphereServer server = context.getParentResourceComponent().getServer();
+        ManagedServer server = context.getParentResourceComponent().getServer();
         log.debug("Retrieving list of messaging engines");
-        for (String line : server.getMBeanClient("WebSphere:type=SIBMain,*").getProxy(SIBMain.class).showMessagingEngines()) {
-            String[] parts = line.split(":");
-            String busName = parts[0];
-            String meName = parts[1];
+        for (SIBMessagingEngineInfo me : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()))) {
             if (log.isDebugEnabled()) {
-                log.debug("Found messaging engine " + meName + " (bus " + busName + ")");
+                log.debug("Found messaging engine " + me.getName() + " (bus " + me.getBusName() + ")");
             }
-            result.add(new DiscoveredResourceDetails(context.getResourceType(), meName, meName, null, "Messaging engine for bus " + busName, null, null));
+            result.add(new DiscoveredResourceDetails(context.getResourceType(), me.getName(), me.getName(), null, "Messaging engine for bus " + me.getBusName(), null, null));
         }
         return result;
     }
