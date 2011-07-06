@@ -223,26 +223,34 @@ public abstract class WebSphereServer {
         return stats;
     }
     
-    private synchronized PmiModuleConfig[] getPmiModuleConfigs() throws JMException, ConnectorException {
-        if (pmiModuleConfigs == null) {
-            pmiModuleConfigs = perf.getConfigs();
-        }
-        return pmiModuleConfigs;
-    }
-    
-    public PmiModuleConfig getPmiModuleConfig(WSStats stats) throws JMException, ConnectorException {
+    public synchronized PmiModuleConfig getPmiModuleConfig(WSStats stats) throws JMException, ConnectorException {
         String statsType = stats.getStatsType();
         int dashIndex = statsType.indexOf('#');
         if (dashIndex != -1) {
             statsType = statsType.substring(0, dashIndex);
         }
-        for (PmiModuleConfig config : getPmiModuleConfigs()) {
-            if (config.getUID().equals(statsType)) {
-                return config;
+        // Implementation note: PMI module configurations are not necessarily registered
+        // immediately at server startup. Therefore, if we don't find the module configuration
+        // in the cached data, we need to reload the data and try again. This problem has been
+        // observed with the SIBus PMI modules.
+        boolean pmiModuleConfigsReloaded = false;
+        while (true) {
+            if (pmiModuleConfigs == null) {
+                pmiModuleConfigs = perf.getConfigs();
+                pmiModuleConfigsReloaded = true;
+            }
+            for (PmiModuleConfig config : pmiModuleConfigs) {
+                if (config.getUID().equals(statsType)) {
+                    return config;
+                }
+            }
+            if (pmiModuleConfigsReloaded) {
+                log.error("Unable to locate PMI module config for " + statsType);
+                return null;
+            } else {
+                pmiModuleConfigs = null;
             }
         }
-        log.error("Unable to locate PMI module config for " + statsType);
-        return null;
     }
     
     public void enableStatistics(MBeanStatDescriptor descriptor, Set<Integer> statisticsToEnable) {
