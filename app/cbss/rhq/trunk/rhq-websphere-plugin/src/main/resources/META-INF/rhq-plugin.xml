@@ -178,6 +178,32 @@
                 <c:simple-property name="agedTimeout" displayName="Aged Timeout" type="integer"
                                    description="Interval in seconds after which an unused aged connection is discarded by the connection pool maintenance thread."/>
             </resource-configuration>
+            
+            <service name="DB2 Monitor"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.jdbc.db2.DB2MonitorDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.jdbc.db2.DB2MonitorComponent"
+                     description="DB2 Monitor"
+                     singleton="true">
+                <plugin-configuration>
+                    <c:simple-property name="principal" required="false"
+                                       description="The name of the monitoring user."/>
+                    <c:simple-property name="credentials" type="password" required="false"
+                                       description="The credentials (i.e. password) for the monitoring user."/>
+                </plugin-configuration>
+                
+                <metric property="rows_deleted" displayName="Rows Deleted"
+                        category="utilization" defaultInterval="600000" measurementType="trendsup"
+                        description="The number of row deletions attempted."/>
+                <metric property="rows_inserted" displayName="Rows Inserted"
+                        category="utilization" defaultInterval="600000" measurementType="trendsup"
+                        description="The number of row insertions attempted."/>
+                <metric property="rows_updated" displayName="Rows Updated"
+                        category="utilization" defaultInterval="600000" measurementType="trendsup"
+                        description="The number of row updates attempted."/>
+                <metric property="rows_selected" displayName="Rows Selected"
+                        category="utilization" defaultInterval="600000" measurementType="trendsup"
+                        description="The number of rows that have been selected and returned to the application."/>
+            </service>
         </service>
         <service name="Connection Factory"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.j2c.ConnectionFactoryDiscoveryComponent"

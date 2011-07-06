@@ -64,6 +64,11 @@ public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServ
     public void stop() {
     }
 
+    public DataSourceInfo getDataSourceInfo() throws JMException, ConnectorException {
+        ManagedServer server = getServer();
+        return server.queryConfig(new DataSourceQuery(server.getNode(), server.getServer())).getByJndiName(jndiName);
+    }
+    
     public AvailabilityType getAvailability() {
         try {
             mbean.getObjectName(true);
