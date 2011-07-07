@@ -67,12 +67,12 @@ public class MBeanClient {
         if (log.isDebugEnabled()) {
             log.debug("Result: " + objectNames);
         }
-        if (objectNames.size() == 0) {
-            throw new InstanceNotFoundException("No MBean found for locator " + locator);
-        } else if (objectNames.size() > 1) {
-            throw new InstanceNotFoundException("Multiple MBeans found for locator " + locator);
-        } else {
+        int size = objectNames.size();
+        if (size == 1) {
             return objectNames.iterator().next();
+        } else {
+            throw new InstanceNotFoundException((size == 0 ? "No MBean" : "Mutiple MBeans") + " found for locator " + locator
+                    + " (process=" + processInfo.getProcess() + ", node=" + processInfo.getNode() + ", cell=" + processInfo.getCell() + ")");
         }
     }
     
