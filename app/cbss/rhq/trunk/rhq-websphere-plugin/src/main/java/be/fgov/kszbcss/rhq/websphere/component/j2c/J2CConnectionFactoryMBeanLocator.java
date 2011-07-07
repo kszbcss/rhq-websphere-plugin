@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.rhq.websphere.component.jdbc;
+package be.fgov.kszbcss.rhq.websphere.component.j2c;
 
 import javax.management.JMException;
 
@@ -8,23 +8,24 @@ import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryMBeanLocator;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class DataSourceMBeanLocator extends ConnectionFactoryMBeanLocator {
-    public DataSourceMBeanLocator(String jndiName) {
+public class J2CConnectionFactoryMBeanLocator extends ConnectionFactoryMBeanLocator {
+    public J2CConnectionFactoryMBeanLocator(String jndiName) {
         super(jndiName);
     }
 
     @Override
     protected ConnectionFactoryInfo getConnectionFactoryInfo(ManagedServer server, String jndiName) throws JMException, ConnectorException {
-        return server.queryConfig(new DataSourceQuery(server.getNode(), server.getServer())).getByJndiName(jndiName);
+        return server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer())).getByJndiName(jndiName);
     }
 
     @Override
     protected String getType() {
-        return "DataSource";
+        // TODO Auto-generated method stub
+        return "J2CConnectionFactory";
     }
 
     @Override
     protected String getProviderKeyProperty() {
-        return "JDBCProvider";
+        return "J2CResourceAdapter";
     }
 }

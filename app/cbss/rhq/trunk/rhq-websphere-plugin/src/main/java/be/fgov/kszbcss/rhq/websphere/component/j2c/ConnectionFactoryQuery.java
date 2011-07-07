@@ -23,20 +23,20 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
     }
     
     public ConnectionFactories execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
-        List<ConnectionFactoryInfo> result = new ArrayList<ConnectionFactoryInfo>();
+        List<J2CConnectionFactoryInfo> result = new ArrayList<J2CConnectionFactoryInfo>();
         for (ConfigObject dataSource : configService.allScopes(node, server).path("J2CResourceAdapter").path("J2CConnectionFactory").resolve()) {
             String jndiName = (String)dataSource.getAttribute("jndiName");
             // If no JNDI name is defined, then it's probably a J2CConnectionFactory corresponding to a JDBC data source
             if (jndiName != null) {
                 ConfigObject provider = (ConfigObject)dataSource.getAttribute("provider");
                 // TODO: remove duplicate jndi names!
-                result.add(new ConnectionFactoryInfo(
+                result.add(new J2CConnectionFactoryInfo(
                         (String)provider.getAttribute("name"),
                         (String)dataSource.getAttribute("name"),
                         jndiName));
             }
         }
-        return new ConnectionFactories(result.toArray(new ConnectionFactoryInfo[result.size()]));
+        return new ConnectionFactories(result.toArray(new J2CConnectionFactoryInfo[result.size()]));
     }
 
     @Override

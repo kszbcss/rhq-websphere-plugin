@@ -31,11 +31,11 @@ public class ConnectionFactoryComponent extends WebSphereServiceComponent<WebSph
     protected void start() throws InvalidPluginConfigurationException, Exception {
         jndiName = getResourceContext().getResourceKey();
         final ManagedServer server = getServer();
-        mbean = server.getMBeanClient(new ConnectionFactoryMBeanLocator(jndiName));
+        mbean = server.getMBeanClient(new J2CConnectionFactoryMBeanLocator(jndiName));
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException {
-                ConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer())).getByJndiName(jndiName);
+                J2CConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer())).getByJndiName(jndiName);
                 return new String[] { PmiConstants.J2C_MODULE, cf.getProviderName(), cf.getJndiName() };
             }
         };

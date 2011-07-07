@@ -5,9 +5,9 @@ import java.io.Serializable;
 public class ConnectionFactories implements Serializable {
     private static final long serialVersionUID = 5114839953640295086L;
     
-    private final ConnectionFactoryInfo[] connectionFactories;
+    private final J2CConnectionFactoryInfo[] connectionFactories;
 
-    public ConnectionFactories(ConnectionFactoryInfo[] connectionFactories) {
+    public ConnectionFactories(J2CConnectionFactoryInfo[] connectionFactories) {
         this.connectionFactories = connectionFactories;
     }
     
@@ -19,8 +19,8 @@ public class ConnectionFactories implements Serializable {
         return result;
     }
     
-    public ConnectionFactoryInfo getByJndiName(String jndiName) {
-        for (ConnectionFactoryInfo cf : connectionFactories) {
+    public J2CConnectionFactoryInfo getByJndiName(String jndiName) {
+        for (J2CConnectionFactoryInfo cf : connectionFactories) {
             if (cf.getJndiName().equals(jndiName)) {
                 return cf;
             }
