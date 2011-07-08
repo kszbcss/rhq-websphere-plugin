@@ -11,6 +11,10 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryInfo;
+import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryMBeanLocator;
+import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryQuery;
+import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryType;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
@@ -31,11 +35,11 @@ public class ConnectionFactoryComponent extends WebSphereServiceComponent<WebSph
     protected void start() throws InvalidPluginConfigurationException, Exception {
         jndiName = getResourceContext().getResourceKey();
         final ManagedServer server = getServer();
-        mbean = server.getMBeanClient(new J2CConnectionFactoryMBeanLocator(jndiName));
+        mbean = server.getMBeanClient(new ConnectionFactoryMBeanLocator(ConnectionFactoryType.J2C, jndiName));
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException {
-                J2CConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer())).getByJndiName(jndiName);
+                ConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), ConnectionFactoryType.J2C)).getByJndiName(jndiName);
                 return new String[] { PmiConstants.J2C_MODULE, cf.getProviderName(), cf.getJndiName() };
             }
         };

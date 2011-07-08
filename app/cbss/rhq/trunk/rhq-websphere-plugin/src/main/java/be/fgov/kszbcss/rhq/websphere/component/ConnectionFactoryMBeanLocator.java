@@ -5,37 +5,33 @@ import java.util.Map;
 import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
-import be.fgov.kszbcss.rhq.websphere.component.j2c.ConnectionFactoryQuery;
-import be.fgov.kszbcss.rhq.websphere.component.j2c.J2CConnectionFactoryInfo;
 import be.fgov.kszbcss.rhq.websphere.mbean.DynamicMBeanObjectNamePatternLocator;
 import be.fgov.kszbcss.rhq.websphere.mbean.ProcessInfo;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public abstract class ConnectionFactoryMBeanLocator extends DynamicMBeanObjectNamePatternLocator {
+public final class ConnectionFactoryMBeanLocator extends DynamicMBeanObjectNamePatternLocator {
+    private final ConnectionFactoryType type;
     private final String jndiName;
 
-    public ConnectionFactoryMBeanLocator(String jndiName) {
+    public ConnectionFactoryMBeanLocator(ConnectionFactoryType type, String jndiName) {
         super("WebSphere", false);
+        this.type = type;
         this.jndiName = jndiName;
     }
 
     @Override
     protected void applyKeyProperties(ProcessInfo processInfo, AdminClient adminClient, Map<String,String> props) throws JMException, ConnectorException {
         ManagedServer server = (ManagedServer)processInfo.getServer();
-        ConnectionFactoryInfo cf = getConnectionFactoryInfo(server, jndiName);
+        ConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), type)).getByJndiName(jndiName);
         if (cf == null) {
-            throw new JMException("A " + getType() + " with JNDI name " + jndiName + " doesn't exist in the configuration");
+            throw new JMException("A " + type.getConfigurationObjectType() + " with JNDI name " + jndiName + " doesn't exist in the configuration");
         }
-        props.put("type", getType());
+        props.put("type", type.getConfigurationObjectType());
         props.put("name", cf.getName());
-        props.put(getProviderKeyProperty(), cf.getProviderName());
+        props.put(type.getProviderKeyProperty(), cf.getProviderName());
     }
-    
-    protected abstract ConnectionFactoryInfo getConnectionFactoryInfo(ManagedServer server, String jndiName) throws JMException, ConnectorException;
-    protected abstract String getType();
-    protected abstract String getProviderKeyProperty();
     
     // TODO: implement toString, equals and hashCode
 

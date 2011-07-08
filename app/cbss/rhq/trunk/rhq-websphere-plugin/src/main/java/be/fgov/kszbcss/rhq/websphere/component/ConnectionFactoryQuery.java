@@ -1,7 +1,9 @@
-package be.fgov.kszbcss.rhq.websphere.component.j2c;
+package be.fgov.kszbcss.rhq.websphere.component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.management.JMException;
 
@@ -12,43 +14,50 @@ import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> {
-    private static final long serialVersionUID = -8161418420026623081L;
+    private static final long serialVersionUID = 6533346488075959L;
     
     private final String node;
     private final String server;
+    private final ConnectionFactoryType type;
     
-    public ConnectionFactoryQuery(String node, String server) {
+    public ConnectionFactoryQuery(String node, String server, ConnectionFactoryType type) {
         this.node = node;
         this.server = server;
+        this.type = type;
     }
-    
+
     public ConnectionFactories execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
-        List<J2CConnectionFactoryInfo> result = new ArrayList<J2CConnectionFactoryInfo>();
-        for (ConfigObject dataSource : configService.allScopes(node, server).path("J2CResourceAdapter").path("J2CConnectionFactory").resolve()) {
+        List<ConnectionFactoryInfo> result = new ArrayList<ConnectionFactoryInfo>();
+        for (ConfigObject dataSource : configService.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve()) {
             String jndiName = (String)dataSource.getAttribute("jndiName");
             // If no JNDI name is defined, then it's probably a J2CConnectionFactory corresponding to a JDBC data source
             if (jndiName != null) {
+                Map<String,Object> properties = new HashMap<String,Object>();
+                for (ConfigObject resourceProperty : ((ConfigObject)dataSource.getAttribute("propertySet")).getChildren("resourceProperties")) {
+                    properties.put((String)resourceProperty.getAttribute("name"), resourceProperty.getAttribute("value"));
+                }
                 ConfigObject provider = (ConfigObject)dataSource.getAttribute("provider");
                 // TODO: remove duplicate jndi names!
-                result.add(new J2CConnectionFactoryInfo(
+                result.add(new ConnectionFactoryInfo(
                         (String)provider.getAttribute("name"),
                         (String)dataSource.getAttribute("name"),
-                        jndiName));
+                        jndiName,
+                        properties));
             }
         }
-        return new ConnectionFactories(result.toArray(new J2CConnectionFactoryInfo[result.size()]));
+        return new ConnectionFactories(result.toArray(new ConnectionFactoryInfo[result.size()]));
     }
 
     @Override
     public int hashCode() {
-        return 31*node.hashCode() + server.hashCode();
+        return 31*31*node.hashCode() + 31*server.hashCode() + type.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof ConnectionFactoryQuery) {
             ConnectionFactoryQuery other = (ConnectionFactoryQuery)obj;
-            return other.node.equals(node) && other.server.equals(server);
+            return other.node.equals(node) && other.server.equals(server) && other.type.equals(type);
         } else {
             return false;
         }

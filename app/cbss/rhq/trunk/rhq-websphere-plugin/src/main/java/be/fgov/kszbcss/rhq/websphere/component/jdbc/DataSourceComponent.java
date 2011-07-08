@@ -16,6 +16,10 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryInfo;
+import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryMBeanLocator;
+import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryQuery;
+import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryType;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
@@ -40,11 +44,11 @@ public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServ
     protected void start() throws InvalidPluginConfigurationException, Exception {
         jndiName = getResourceContext().getResourceKey();
         final ManagedServer server = getServer();
-        mbean = server.getMBeanClient(new DataSourceMBeanLocator(jndiName));
+        mbean = server.getMBeanClient(new ConnectionFactoryMBeanLocator(ConnectionFactoryType.JDBC, jndiName));
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException {
-                DataSourceInfo cf = server.queryConfig(new DataSourceQuery(server.getNode(), server.getServer())).getByJndiName(jndiName);
+                ConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), ConnectionFactoryType.JDBC)).getByJndiName(jndiName);
                 return new String[] { PmiConstants.CONNPOOL_MODULE, cf.getProviderName(), cf.getJndiName() };
             }
         };
@@ -64,9 +68,9 @@ public class DataSourceComponent extends WebSphereServiceComponent<WebSphereServ
     public void stop() {
     }
 
-    public DataSourceInfo getDataSourceInfo() throws JMException, ConnectorException {
+    public ConnectionFactoryInfo getDataSourceInfo() throws JMException, ConnectorException {
         ManagedServer server = getServer();
-        return server.queryConfig(new DataSourceQuery(server.getNode(), server.getServer())).getByJndiName(jndiName);
+        return server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), ConnectionFactoryType.JDBC)).getByJndiName(jndiName);
     }
     
     public AvailabilityType getAvailability() {
