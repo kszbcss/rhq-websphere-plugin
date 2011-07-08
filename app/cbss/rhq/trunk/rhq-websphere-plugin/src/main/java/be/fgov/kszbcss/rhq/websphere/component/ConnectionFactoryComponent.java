@@ -4,6 +4,8 @@ import java.util.Set;
 
 import javax.management.JMException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
@@ -21,6 +23,8 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIModuleSelector;
 
 public abstract class ConnectionFactoryComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet {
+    private static final Log log = LogFactory.getLog(ConnectionFactoryComponent.class);
+    
     protected String jndiName;
     protected MBeanClient mbean;
     private MeasurementFacetSupport measurementFacetSupport;
@@ -60,10 +64,19 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
     }
     
     public AvailabilityType getAvailability() {
+        if (log.isDebugEnabled()) {
+            log.debug("Starting to determine availability of " + jndiName);
+        }
         try {
             mbean.getObjectName(true);
+            if (log.isDebugEnabled()) {
+                log.debug("MBean found => availability == UP");
+            }
             return AvailabilityType.UP;
         } catch (Exception ex) {
+            if (log.isDebugEnabled()) {
+                log.debug("MBean not found => availability == DOWN", ex);
+            }
             return AvailabilityType.DOWN;
         }
     }

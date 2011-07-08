@@ -11,6 +11,11 @@ import be.fgov.kszbcss.rhq.websphere.mbean.ProcessInfo;
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 
+/**
+ * MBean locator implementation for connection factories. This locator uses the MBean identifier
+ * derived from the configuration data to locate the corresponding MBean. The reason is that
+ * WebSphere doesn't enforce the uniqueness of the (scope, provider name, data source name) triplet
+ */
 public final class ConnectionFactoryMBeanLocator extends DynamicMBeanObjectNamePatternLocator {
     private final ConnectionFactoryType type;
     private final String jndiName;
@@ -29,10 +34,13 @@ public final class ConnectionFactoryMBeanLocator extends DynamicMBeanObjectNameP
             throw new JMException("A " + type.getConfigurationObjectType() + " with JNDI name " + jndiName + " doesn't exist in the configuration");
         }
         props.put("type", type.getConfigurationObjectType());
-        props.put("name", cf.getName());
-        props.put(type.getProviderKeyProperty(), cf.getProviderName());
+        props.put("mbeanIdentifier", cf.getId().replace('|', '/'));
     }
     
-    // TODO: implement toString, equals and hashCode
+    // TODO: implement equals and hashCode
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" + type + "," + jndiName + ")";
+    }
 }

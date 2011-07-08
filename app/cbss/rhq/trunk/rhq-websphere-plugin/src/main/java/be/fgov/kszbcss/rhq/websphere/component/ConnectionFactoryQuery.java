@@ -28,19 +28,20 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
 
     public ConnectionFactories execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
         List<ConnectionFactoryInfo> result = new ArrayList<ConnectionFactoryInfo>();
-        for (ConfigObject dataSource : configService.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve()) {
-            String jndiName = (String)dataSource.getAttribute("jndiName");
+        for (ConfigObject cf : configService.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve()) {
+            String jndiName = (String)cf.getAttribute("jndiName");
             // If no JNDI name is defined, then it's probably a J2CConnectionFactory corresponding to a JDBC data source
             if (jndiName != null) {
                 Map<String,Object> properties = new HashMap<String,Object>();
-                for (ConfigObject resourceProperty : ((ConfigObject)dataSource.getAttribute("propertySet")).getChildren("resourceProperties")) {
+                for (ConfigObject resourceProperty : ((ConfigObject)cf.getAttribute("propertySet")).getChildren("resourceProperties")) {
                     properties.put((String)resourceProperty.getAttribute("name"), resourceProperty.getAttribute("value"));
                 }
-                ConfigObject provider = (ConfigObject)dataSource.getAttribute("provider");
+                ConfigObject provider = (ConfigObject)cf.getAttribute("provider");
                 // TODO: remove duplicate jndi names!
                 result.add(new ConnectionFactoryInfo(
+                        cf.getId(),
                         (String)provider.getAttribute("name"),
-                        (String)dataSource.getAttribute("name"),
+                        (String)cf.getAttribute("name"),
                         jndiName,
                         properties));
             }
@@ -65,6 +66,6 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + node + "," + server + ")";
+        return getClass().getSimpleName() + "(" + node + "," + server + "," + type + ")";
     }
 }
