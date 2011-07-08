@@ -206,8 +206,8 @@
             </service>
         </service>
         <service name="Connection Factory"
-                 discovery="be.fgov.kszbcss.rhq.websphere.component.j2c.ConnectionFactoryDiscoveryComponent"
-                 class="be.fgov.kszbcss.rhq.websphere.component.j2c.ConnectionFactoryComponent"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.j2c.J2CConnectionFactoryDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.j2c.J2CConnectionFactoryComponent"
                  description="Datasource">
             <metric property="stats.PoolSize" displayName="Pool size"
                     category="utilization" displayType="summary" defaultInterval="600000"

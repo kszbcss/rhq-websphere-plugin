@@ -1,16 +1,16 @@
-package be.fgov.kszbcss.rhq.websphere.component.jdbc;
+package be.fgov.kszbcss.rhq.websphere.component.j2c;
 
 import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryDiscoveryComponent;
 import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryType;
 
-public class DataSourceDiscoveryComponent extends ConnectionFactoryDiscoveryComponent {
+public class J2CConnectionFactoryDiscoveryComponent extends ConnectionFactoryDiscoveryComponent {
     @Override
     protected ConnectionFactoryType getType() {
-        return ConnectionFactoryType.JDBC;
+        return ConnectionFactoryType.J2C;
     }
 
     @Override
     protected String getDescription() {
-        return "A data source";
+        return "A J2C Connection Factory";
     }
 }

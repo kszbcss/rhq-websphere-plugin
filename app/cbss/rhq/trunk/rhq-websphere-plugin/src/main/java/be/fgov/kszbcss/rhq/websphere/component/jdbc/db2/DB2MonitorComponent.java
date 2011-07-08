@@ -47,7 +47,7 @@ public class DB2MonitorComponent implements ResourceComponent<DataSourceComponen
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
-        Map<String,Object> dataSourceProps = dataSourceComponent.getDataSourceInfo().getProperties();
+        Map<String,Object> dataSourceProps = dataSourceComponent.getConnectionFactoryInfo().getProperties();
         
         String applName = adminOperations.expandVariable((String)dataSourceProps.get("clientProgramName"));
         if (log.isDebugEnabled()) {

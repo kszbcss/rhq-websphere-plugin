@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.rhq.websphere.component.j2c;
+package be.fgov.kszbcss.rhq.websphere.component;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -13,13 +13,16 @@ import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryQuery;
 import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryType;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 
-public class ConnectionFactoryDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
-    public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
+public abstract class ConnectionFactoryDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
+    public final Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         ManagedServer server = context.getParentResourceComponent().getServer();
-        for (String jndiName : server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), ConnectionFactoryType.J2C)).getJndiNames()) {
-            result.add(new DiscoveredResourceDetails(context.getResourceType(), jndiName, jndiName, null, "A J2C Connection Factory", null, null));
+        for (String jndiName : server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getJndiNames()) {
+            result.add(new DiscoveredResourceDetails(context.getResourceType(), jndiName, jndiName, null, getDescription(), null, null));
         }
         return result;
     }
+    
+    protected abstract ConnectionFactoryType getType();
+    protected abstract String getDescription();
 }

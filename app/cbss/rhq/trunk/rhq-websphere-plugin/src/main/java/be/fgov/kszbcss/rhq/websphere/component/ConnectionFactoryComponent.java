@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.rhq.websphere.component.j2c;
+package be.fgov.kszbcss.rhq.websphere.component;
 
 import java.util.Set;
 
@@ -10,37 +10,33 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
+import com.ibm.websphere.management.exception.ConnectorException;
+import com.ibm.websphere.pmi.stat.WSRangeStatistic;
+
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
-import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryInfo;
-import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryMBeanLocator;
-import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryQuery;
-import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryType;
-import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIModuleSelector;
 
-import com.ibm.websphere.management.exception.ConnectorException;
-import com.ibm.websphere.pmi.PmiConstants;
-import com.ibm.websphere.pmi.stat.WSRangeStatistic;
-
-public class ConnectionFactoryComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet {
-    private String jndiName;
-    private MBeanClient mbean;
+public abstract class ConnectionFactoryComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet {
+    protected String jndiName;
+    protected MBeanClient mbean;
     private MeasurementFacetSupport measurementFacetSupport;
+
+    protected abstract ConnectionFactoryType getType();
 
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         jndiName = getResourceContext().getResourceKey();
         final ManagedServer server = getServer();
-        mbean = server.getMBeanClient(new ConnectionFactoryMBeanLocator(ConnectionFactoryType.J2C, jndiName));
+        mbean = server.getMBeanClient(new ConnectionFactoryMBeanLocator(getType(), jndiName));
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException {
-                ConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), ConnectionFactoryType.J2C)).getByJndiName(jndiName);
-                return new String[] { PmiConstants.J2C_MODULE, cf.getProviderName(), cf.getJndiName() };
+                ConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getByJndiName(jndiName);
+                return new String[] { getType().getPmiModule(), cf.getProviderName(), cf.getJndiName() };
             }
         };
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(server.getServerMBean(), moduleSelector) {
@@ -58,6 +54,11 @@ public class ConnectionFactoryComponent extends WebSphereServiceComponent<WebSph
     public void stop() {
     }
 
+    public ConnectionFactoryInfo getConnectionFactoryInfo() throws JMException, ConnectorException {
+        ManagedServer server = getServer();
+        return server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getByJndiName(jndiName);
+    }
+    
     public AvailabilityType getAvailability() {
         try {
             mbean.getObjectName(true);
