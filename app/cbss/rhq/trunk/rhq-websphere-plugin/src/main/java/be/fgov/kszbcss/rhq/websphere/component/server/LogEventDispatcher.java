@@ -48,7 +48,13 @@ class LogEventDispatcher extends TimerTask {
         try {
             // TODO: detect sequence gaps and generate an event so that the user knows that events have been dropped
             ExtendedLogMessage[] messages = service.getMessages(sequence);
+            long firstSequence = -1;
+            long lastSequence = -1;
             for (ExtendedLogMessage message : messages) {
+                lastSequence = message.getSequence();
+                if (firstSequence == -1) {
+                    firstSequence = lastSequence;
+                }
                 String applicationName = message.getApplicationName();
                 String moduleName = message.getModuleName();
                 String componentName = message.getComponentName();
@@ -63,7 +69,12 @@ class LogEventDispatcher extends TimerTask {
                 }
                 Utils.publishEvent(eventContext, new Event(EVENT_TYPE, message.getLoggerName(), message.getTimestamp(),
                         convertLevel(message.getLevel()), sanitizeMessage(message, message.getMessage())));
-                sequence = message.getSequence();
+            }
+            if (firstSequence != -1) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Fetched log events with sequences " + firstSequence + "..." + lastSequence);
+                }
+                sequence = lastSequence+1;
             }
         } catch (Throwable ex) {
             log.error("Failed to poll server for log events", ex);
