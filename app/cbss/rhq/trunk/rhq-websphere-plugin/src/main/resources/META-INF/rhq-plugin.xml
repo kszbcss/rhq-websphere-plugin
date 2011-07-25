@@ -192,17 +192,20 @@
                 </plugin-configuration>
                 
                 <metric property="rows_deleted" displayName="Rows Deleted"
-                        category="utilization" defaultInterval="600000" measurementType="trendsup"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
                         description="The number of row deletions attempted."/>
                 <metric property="rows_inserted" displayName="Rows Inserted"
-                        category="utilization" defaultInterval="600000" measurementType="trendsup"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
                         description="The number of row insertions attempted."/>
                 <metric property="rows_updated" displayName="Rows Updated"
-                        category="utilization" defaultInterval="600000" measurementType="trendsup"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
                         description="The number of row updates attempted."/>
                 <metric property="rows_selected" displayName="Rows Selected"
-                        category="utilization" defaultInterval="600000" measurementType="trendsup"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
                         description="The number of rows that have been selected and returned to the application."/>
+                <metric property="agent_usr_cpu_time" displayName="CPU Time"
+                        category="utilization" units="milliseconds" defaultInterval="120000" measurementType="trendsup"
+                        description="The CPU time consumed by the DB2 agents linked to this data source."/>
             </service>
         </service>
         <service name="Connection Factory"
