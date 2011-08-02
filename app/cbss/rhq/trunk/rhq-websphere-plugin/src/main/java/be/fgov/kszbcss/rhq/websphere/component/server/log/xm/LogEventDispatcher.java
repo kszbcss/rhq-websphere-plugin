@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.rhq.websphere.component.server;
+package be.fgov.kszbcss.rhq.websphere.component.server.log.xm;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,11 +8,11 @@ import java.util.logging.Level;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.rhq.core.domain.event.Event;
 import org.rhq.core.domain.event.EventSeverity;
 import org.rhq.core.pluginapi.event.EventContext;
 
-import be.fgov.kszbcss.rhq.websphere.Utils;
+import be.fgov.kszbcss.rhq.websphere.component.server.log.EventPublisher;
+import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
 import be.fgov.kszbcss.rhq.websphere.xm.logging.ExtendedLogMessage;
 
 import com.ibm.websphere.logging.WsLevel;
@@ -22,17 +22,16 @@ class LogEventDispatcher extends TimerTask {
     
     private static final Log log = LogFactory.getLog(LogEventDispatcher.class);
     
-    private static final Object lastSanitizeWarningLock = new Object();
-    private static long lastSanitizeWarning;
-    
     private final ExtendedLoggingService service;
     private final EventContext defaultEventContext;
+    private final EventPublisher eventPublisher;
     private final Map<J2EEComponentKey,EventContext> eventContexts = Collections.synchronizedMap(new HashMap<J2EEComponentKey,EventContext>());
     private long sequence;
     
-    LogEventDispatcher(ExtendedLoggingService service, EventContext defaultEventContext) {
+    LogEventDispatcher(ExtendedLoggingService service, EventContext defaultEventContext, EventPublisher eventPublisher) {
         this.service = service;
         this.defaultEventContext = defaultEventContext;
+        this.eventPublisher = eventPublisher;
     }
     
     void registerEventContext(J2EEComponentKey key, EventContext context) {
@@ -67,8 +66,8 @@ class LogEventDispatcher extends TimerTask {
                         eventContext = defaultEventContext;
                     }
                 }
-                Utils.publishEvent(eventContext, new Event(EVENT_TYPE, message.getLoggerName(), message.getTimestamp(),
-                        convertLevel(message.getLevel()), sanitizeMessage(message, message.getMessage())));
+                eventPublisher.publishEvent(eventContext, message.getLoggerName(), message.getTimestamp(),
+                        convertLevel(message.getLevel()), message.getMessage());
             }
             if (firstSequence != -1) {
                 if (log.isDebugEnabled()) {
@@ -78,40 +77,6 @@ class LogEventDispatcher extends TimerTask {
             }
         } catch (Throwable ex) {
             log.error("Failed to poll server for log events", ex);
-        }
-    }
-    
-    // TODO: copy & paste from RasLoggingNotificationListener
-    private static String sanitizeMessage(ExtendedLogMessage message, String text) {
-        StringBuilder buffer = null;
-        for (int i=0; i<text.length(); i++) {
-            char c = text.charAt(i);
-            if (c < 32 && c != '\r' && c != '\n' && c != '\t') {
-                if (buffer == null) {
-                    buffer = new StringBuilder(text.length());
-                    buffer.append(text, 0, i);
-                }
-                buffer.append(" ");
-            } else if (buffer != null) {
-                buffer.append(c);
-            }
-        }
-        if (buffer == null) {
-            return text;
-        } else {
-            String sanitizedText = buffer.toString();
-            if (log.isWarnEnabled()) {
-                // We only log a warning every 5 minutes
-                synchronized (lastSanitizeWarningLock) {
-                    long time = System.currentTimeMillis();
-                    if (time - lastSanitizeWarning > 300000) {
-                        lastSanitizeWarning = time;
-                        log.warn("Got a log message with invalid characters from " + message.getLoggerName()
-                                + " (severity: " + message.getLevel() + "): " + sanitizedText);
-                    }
-                }
-            }
-            return sanitizedText;
         }
     }
     

@@ -1,7 +1,8 @@
 package be.fgov.kszbcss.rhq.websphere.component.server;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
 
 import javax.management.JMException;
 import javax.management.Notification;
@@ -35,6 +36,11 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereComponent;
+import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
+import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
+import be.fgov.kszbcss.rhq.websphere.component.server.log.none.NoneLoggingProvider;
+import be.fgov.kszbcss.rhq.websphere.component.server.log.ras.RasLoggingProvider;
+import be.fgov.kszbcss.rhq.websphere.component.server.log.xm.ExtendedLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
 import be.fgov.kszbcss.rhq.websphere.proxy.Server;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandler;
@@ -47,6 +53,15 @@ import com.ibm.websphere.management.exception.ConnectorException;
 public class WebSphereServerComponent implements WebSphereComponent<ResourceComponent<?>>, MeasurementFacet, OperationFacet, ConfigurationFacet {
     private static final Log log = LogFactory.getLog(WebSphereServerComponent.class);
     
+    private static final Map<String,Class<? extends LoggingProvider>> loggingProviderClasses;
+    
+    static {
+        loggingProviderClasses = new HashMap<String,Class<? extends LoggingProvider>>();
+        loggingProviderClasses.put("none", NoneLoggingProvider.class);
+        loggingProviderClasses.put("ras", RasLoggingProvider.class);
+        loggingProviderClasses.put("xm", ExtendedLoggingProvider.class);
+    }
+    
     private String cell;
     private String node;
     private String serverName;
@@ -54,8 +69,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     private ManagedServer server;
     private EmsConnection connection;
     private MeasurementFacetSupport measurementFacetSupport;
-    private Timer timer;
-    private LogEventDispatcher logEventDispatcher;
+    private LoggingProvider loggingProvider;
     
     public void start(ResourceContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
@@ -64,6 +78,16 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         cell = parts[0];
         node = parts[1];
         serverName = parts[2];
+        
+        String loggingProviderName = context.getPluginConfiguration().getSimpleValue("loggingProvider", "none");
+        Class<? extends LoggingProvider> loggingProviderClass = loggingProviderClasses.get(loggingProviderName);
+        if (loggingProviderClass == null) {
+            throw new InvalidPluginConfigurationException("Unknown logging provider '" + loggingProviderName + "'");
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Creating logging provider: name=" + loggingProviderName + ", class=" + loggingProviderClass.getName());
+        }
+        loggingProvider = loggingProviderClass.newInstance();
         
         server = new ManagedServer(cell, node, serverName, context.getPluginConfiguration());
         server.init();
@@ -83,20 +107,9 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         filter.enableType(NotificationConstants.TYPE_THREAD_MONITOR_THREAD_HUNG);
         filter.enableType(NotificationConstants.TYPE_THREAD_MONITOR_THREAD_CLEAR);
         server.addNotificationListener(new ObjectName("WebSphere:*"), listener, filter, null, true);
-        
-//        filter = new NotificationFilterSupport();
-//        // TODO: use constants from NotificationConstants here
-//        filter.enableType("websphere.ras.audit");
-//        filter.enableType("websphere.ras.warning");
-//        filter.enableType("websphere.ras.error");
-//        filter.enableType("websphere.ras.fatal");
-//        server.addNotificationListener(new ObjectName("WebSphere:type=RasLoggingService,*"), new RasLoggingNotificationListener(eventContext), filter, null, true);
-        
-        timer = new Timer();
-        logEventDispatcher = new LogEventDispatcher(
-                server.getMBeanClient("be.fgov.kszbcss.rhq.websphere.xm:*,type=ExtendedLoggingService").getProxy(ExtendedLoggingService.class),
-                context.getEventContext());
-        timer.schedule(logEventDispatcher, 30000, 30000);
+
+        log.debug("Starting logging provider");
+        loggingProvider.start(server, context.getEventContext(), EventPublisherImpl.INSTANCE);
     }
 
     public ResourceContext<ResourceComponent<?>> getResourceContext() {
@@ -189,16 +202,15 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     }
 
     public void registerLogEventContext(String applicationName, String moduleName, String componentName, EventContext context) {
-        logEventDispatcher.registerEventContext(new J2EEComponentKey(applicationName, moduleName, componentName), context);
+        loggingProvider.registerEventContext(new J2EEComponentKey(applicationName, moduleName, componentName), context);
     }
     
     public void unregisterLogEventContext(String applicationName, String moduleName, String componentName) {
-        logEventDispatcher.unregisterEventContext(new J2EEComponentKey(applicationName, moduleName, componentName));
+        loggingProvider.unregisterEventContext(new J2EEComponentKey(applicationName, moduleName, componentName));
     }
     
     public void stop() {
-        timer.cancel();
+        loggingProvider.stop();
         server.destroy();
-        resourceContext.getEventContext().unregisterEventPoller(RasLoggingNotificationListener.EVENT_TYPE);
     }
 }

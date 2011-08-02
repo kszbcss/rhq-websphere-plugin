@@ -1,5 +1,9 @@
-package be.fgov.kszbcss.rhq.websphere.component.server;
+package be.fgov.kszbcss.rhq.websphere.component.server.log;
 
+/**
+ * Identifies a J2EE application component (servlet or enterprise bean). This class is used when
+ * dispatching log events to individual components.
+ */
 public class J2EEComponentKey {
     private final String applicationName;
     private final String moduleName;
