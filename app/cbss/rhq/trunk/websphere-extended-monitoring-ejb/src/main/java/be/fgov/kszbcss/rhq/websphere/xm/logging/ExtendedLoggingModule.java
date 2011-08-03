@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import javax.management.JMException;
 import javax.management.MBeanParameterInfo;
+import javax.management.modelmbean.DescriptorSupport;
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
 import javax.management.modelmbean.ModelMBeanAttributeInfo;
 import javax.management.modelmbean.ModelMBeanConstructorInfo;
@@ -36,9 +37,27 @@ public class ExtendedLoggingModule implements Module {
             mbean.setModelMBeanInfo(new ModelMBeanInfoSupport(
                     ExtendedLoggingService.class.getName(),
                     "Provides advanced logging services; alternative to RasLoggingService.",
-                    new ModelMBeanAttributeInfo[0],
+                    new ModelMBeanAttributeInfo[] {
+                            new ModelMBeanAttributeInfo(
+                                    "nextSequence",
+                                    "long",
+                                    "The sequence number of the next expected log message",
+                                    true,
+                                    false,
+                                    false,
+                                    new DescriptorSupport(new String[] {
+                                            "name=nextSequence",
+                                            "descriptorType=attribute",
+                                            "getMethod=getNextSequence"}))
+                    },
                     new ModelMBeanConstructorInfo[0],
                     new ModelMBeanOperationInfo[] {
+                            new ModelMBeanOperationInfo(
+                                    "getNextSequence",
+                                    "Get the sequence number of the next expected log message",
+                                    new MBeanParameterInfo[0],
+                                    "long",
+                                    ModelMBeanOperationInfo.INFO),
                             new ModelMBeanOperationInfo(
                                     "getMessages",
                                     "Get the buffered messages starting with a given sequence",

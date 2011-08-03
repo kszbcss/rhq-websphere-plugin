@@ -72,6 +72,17 @@ public class ExtendedLoggingService extends Handler {
         }
     }
 
+    public long getNextSequence() {
+        long result;
+        synchronized (this) {
+            result = nextSequence;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("getNextSequence returning " + result);
+        }
+        return result;
+    }
+    
     public ExtendedLogMessage[] getMessages(long startSequence) {
         if (log.isDebugEnabled()) {
             log.debug("Entering getMessages with startSequence = " + startSequence);
