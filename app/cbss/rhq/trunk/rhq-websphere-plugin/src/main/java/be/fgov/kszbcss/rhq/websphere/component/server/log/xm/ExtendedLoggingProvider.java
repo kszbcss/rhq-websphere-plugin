@@ -26,11 +26,11 @@ public class ExtendedLoggingProvider implements LoggingProvider {
             try {
                 long sequence = Long.parseLong(state);
                 if (log.isDebugEnabled()) {
-                    log.debug("Setting initial log sequence: " + sequence);
+                    log.debug("Setting initial log sequence from persistent state: " + sequence);
                 }
                 dispatcher.setSequence(sequence);
             } catch (NumberFormatException ex) {
-                log.error("Unable to extract log sequence from state: " + state);
+                log.error("Unable to extract log sequence from persistent state: " + state);
             }
         }
         timer.schedule(dispatcher, 30000, 30000);

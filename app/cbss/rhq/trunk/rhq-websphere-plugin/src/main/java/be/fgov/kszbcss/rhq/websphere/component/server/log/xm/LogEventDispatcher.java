@@ -26,7 +26,7 @@ class LogEventDispatcher extends TimerTask {
     private final EventContext defaultEventContext;
     private final EventPublisher eventPublisher;
     private final Map<J2EEComponentKey,EventContext> eventContexts = Collections.synchronizedMap(new HashMap<J2EEComponentKey,EventContext>());
-    private volatile long sequence;
+    private volatile long sequence = -1;
     
     LogEventDispatcher(ExtendedLoggingService service, EventContext defaultEventContext, EventPublisher eventPublisher) {
         this.service = service;
@@ -53,35 +53,42 @@ class LogEventDispatcher extends TimerTask {
     @Override
     public void run() {
         try {
-            // TODO: detect sequence gaps and generate an event so that the user knows that events have been dropped
-            ExtendedLogMessage[] messages = service.getMessages(sequence);
-            long firstSequence = -1;
-            long lastSequence = -1;
-            for (ExtendedLogMessage message : messages) {
-                lastSequence = message.getSequence();
-                if (firstSequence == -1) {
-                    firstSequence = lastSequence;
-                }
-                String applicationName = message.getApplicationName();
-                String moduleName = message.getModuleName();
-                String componentName = message.getComponentName();
-                EventContext eventContext;
-                if (applicationName == null || moduleName == null || componentName == null) {
-                    eventContext = defaultEventContext;
-                } else {
-                    eventContext = eventContexts.get(new J2EEComponentKey(applicationName, moduleName, componentName));
-                    if (eventContext == null) {
-                        eventContext = defaultEventContext;
-                    }
-                }
-                eventPublisher.publishEvent(eventContext, message.getLoggerName(), message.getTimestamp(),
-                        convertLevel(message.getLevel()), message.getMessage());
-            }
-            if (firstSequence != -1) {
+            if (sequence == -1) {
+                sequence = service.getNextSequence();
                 if (log.isDebugEnabled()) {
-                    log.debug("Fetched log events with sequences " + firstSequence + "..." + lastSequence);
+                    log.debug("Got initial log sequence from server: " + sequence);
                 }
-                sequence = lastSequence+1;
+            } else {
+                // TODO: detect sequence gaps and generate an event so that the user knows that events have been dropped
+                ExtendedLogMessage[] messages = service.getMessages(sequence);
+                long firstSequence = -1;
+                long lastSequence = -1;
+                for (ExtendedLogMessage message : messages) {
+                    lastSequence = message.getSequence();
+                    if (firstSequence == -1) {
+                        firstSequence = lastSequence;
+                    }
+                    String applicationName = message.getApplicationName();
+                    String moduleName = message.getModuleName();
+                    String componentName = message.getComponentName();
+                    EventContext eventContext;
+                    if (applicationName == null || moduleName == null || componentName == null) {
+                        eventContext = defaultEventContext;
+                    } else {
+                        eventContext = eventContexts.get(new J2EEComponentKey(applicationName, moduleName, componentName));
+                        if (eventContext == null) {
+                            eventContext = defaultEventContext;
+                        }
+                    }
+                    eventPublisher.publishEvent(eventContext, message.getLoggerName(), message.getTimestamp(),
+                            convertLevel(message.getLevel()), message.getMessage());
+                }
+                if (firstSequence != -1) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Fetched log events with sequences " + firstSequence + "..." + lastSequence);
+                    }
+                    sequence = lastSequence+1;
+                }
             }
         } catch (Throwable ex) {
             log.error("Failed to poll server for log events", ex);

@@ -11,5 +11,6 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * Monitoring application.
  */
 public interface ExtendedLoggingService {
+    long getNextSequence();
     ExtendedLogMessage[] getMessages(long startSequence) throws JMException, ConnectorException;
 }
