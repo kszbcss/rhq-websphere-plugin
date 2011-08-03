@@ -26,7 +26,7 @@ class LogEventDispatcher extends TimerTask {
     private final EventContext defaultEventContext;
     private final EventPublisher eventPublisher;
     private final Map<J2EEComponentKey,EventContext> eventContexts = Collections.synchronizedMap(new HashMap<J2EEComponentKey,EventContext>());
-    private long sequence;
+    private volatile long sequence;
     
     LogEventDispatcher(ExtendedLoggingService service, EventContext defaultEventContext, EventPublisher eventPublisher) {
         this.service = service;
@@ -40,6 +40,14 @@ class LogEventDispatcher extends TimerTask {
     
     void unregisterEventContext(J2EEComponentKey key) {
         eventContexts.remove(key);
+    }
+
+    long getSequence() {
+        return sequence;
+    }
+
+    void setSequence(long sequence) {
+        this.sequence = sequence;
     }
 
     @Override

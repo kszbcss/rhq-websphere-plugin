@@ -22,8 +22,10 @@ public interface LoggingProvider {
      *            registered with {@link #registerEventContext(J2EEComponentKey, EventContext)}
      * @param eventPublisher
      *            the event publisher to use
+     * @param state
+     *            the persisted state of the logging provider as returned by {@link #stop()}
      */
-    void start(ManagedServer server, EventContext defaultEventContext, EventPublisher eventPublisher);
+    void start(ManagedServer server, EventContext defaultEventContext, EventPublisher eventPublisher, String state);
     
     /**
      * Register an {@link EventContext} for a given J2EE application component. Implementations that
@@ -49,6 +51,11 @@ public interface LoggingProvider {
     
     /**
      * Stop the logging provider.
+     * 
+     * @return A string value that will be passed to
+     *         {@link #start(ManagedServer, EventContext, EventPublisher, String)} the next time the
+     *         logging provider is started. This may be used to persist the sequence number of the
+     *         last log event. The implementation may return <code>null</code>.
      */
-    void stop();
+    String stop();
 }

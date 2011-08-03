@@ -11,7 +11,7 @@ import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
 
 public class RasLoggingProvider implements LoggingProvider {
-    public void start(ManagedServer server, EventContext defaultEventContext, EventPublisher eventPublisher) {
+    public void start(ManagedServer server, EventContext defaultEventContext, EventPublisher eventPublisher, String state) {
         NotificationFilterSupport filter = new NotificationFilterSupport();
         // TODO: use constants from NotificationConstants here
         filter.enableType("websphere.ras.audit");
@@ -28,7 +28,8 @@ public class RasLoggingProvider implements LoggingProvider {
     public void unregisterEventContext(J2EEComponentKey key) {
     }
 
-    public void stop() {
+    public String stop() {
         // Nothing to do here: the notification listener is automatically removed
+        return null;
     }
 }

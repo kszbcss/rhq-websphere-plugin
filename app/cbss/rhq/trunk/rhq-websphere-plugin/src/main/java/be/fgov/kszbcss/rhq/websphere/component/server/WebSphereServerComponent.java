@@ -1,5 +1,12 @@
 package be.fgov.kszbcss.rhq.websphere.component.server;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +17,7 @@ import javax.management.NotificationFilterSupport;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mc4j.ems.connection.EmsConnection;
@@ -66,9 +74,11 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     private String node;
     private String serverName;
     private ResourceContext<ResourceComponent<?>> resourceContext;
+    private File stateDir;
     private ManagedServer server;
     private EmsConnection connection;
     private MeasurementFacetSupport measurementFacetSupport;
+    private String loggingProviderName;
     private LoggingProvider loggingProvider;
     
     public void start(ResourceContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
@@ -78,8 +88,9 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         cell = parts[0];
         node = parts[1];
         serverName = parts[2];
+        stateDir = new File(new File(new File(new File(getResourceContext().getDataDirectory(), "state"), cell), node), serverName);
         
-        String loggingProviderName = context.getPluginConfiguration().getSimpleValue("loggingProvider", "none");
+        loggingProviderName = context.getPluginConfiguration().getSimpleValue("loggingProvider", "none");
         Class<? extends LoggingProvider> loggingProviderClass = loggingProviderClasses.get(loggingProviderName);
         if (loggingProviderClass == null) {
             throw new InvalidPluginConfigurationException("Unknown logging provider '" + loggingProviderName + "'");
@@ -109,7 +120,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         server.addNotificationListener(new ObjectName("WebSphere:*"), listener, filter, null, true);
 
         log.debug("Starting logging provider");
-        loggingProvider.start(server, context.getEventContext(), EventPublisherImpl.INSTANCE);
+        loggingProvider.start(server, context.getEventContext(), EventPublisherImpl.INSTANCE, loadLoggingState());
     }
 
     public ResourceContext<ResourceComponent<?>> getResourceContext() {
@@ -210,7 +221,97 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     }
     
     public void stop() {
-        loggingProvider.stop();
+        persistLoggingState(loggingProvider.stop());
         server.destroy();
+    }
+    
+    private void persistLoggingState(String state) {
+        if (log.isDebugEnabled()) {
+            log.debug("Persisting the state of the logging provider: " + state);
+        }
+        if (stateDir.exists() || stateDir.mkdirs()) {
+            File stateFile = new File(stateDir, "logstate");
+            if (state == null) {
+                if (stateFile.exists()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Deleting " + stateFile.getAbsolutePath());
+                    }
+                    if (!stateFile.delete()) {
+                        log.error("Failed to delete " + stateFile.getAbsolutePath());
+                    }
+                } else {
+                    log.debug(stateFile.getAbsolutePath() + " doesn't exist; not taking any action");
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Writing " + stateFile.getAbsolutePath());
+                }
+                try {
+                    OutputStream out = new FileOutputStream(stateFile);
+                    try {
+                        OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
+                        writer.write(loggingProviderName);
+                        writer.write(':');
+                        writer.write(state);
+                        writer.flush();
+                    } finally {
+                        out.close();
+                    }
+                } catch (IOException ex) {
+                    log.error("Failed to write " + stateFile, ex);
+                }
+            }
+        } else {
+            log.error("Failed to create directory " + stateDir.getAbsolutePath());
+        }
+    }
+    
+    private String loadLoggingState() {
+        log.debug("Loading persistent state of the logging provider");
+        File stateFile = new File(stateDir, "logstate");
+        if (stateFile.exists()) {
+            try {
+                if (log.isDebugEnabled()) {
+                    log.debug("Reading " + stateDir.getAbsolutePath());
+                }
+                String content;
+                try {
+                    InputStream in = new FileInputStream(stateFile);
+                    try {
+                        content = IOUtils.toString(in, "UTF-8");
+                    } finally {
+                        in.close();
+                    }
+                } catch (IOException ex) {
+                    log.error("Failed to read " + stateDir.getAbsolutePath(), ex);
+                    return null;
+                }
+                int idx = content.indexOf(':');
+                if (idx == -1) {
+                    log.error("Unexpected content in file " + stateFile.getAbsolutePath());
+                    return null;
+                } else {
+                    String previousProvider = content.substring(0, idx);
+                    if (previousProvider.equals(loggingProviderName)) {
+                        return content.substring(idx+1);
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Previous logging provider (" + previousProvider + ") not the same as current provider (" + loggingProviderName + ")");
+                        }
+                        return null;
+                    }
+                }
+            } finally {
+                // We always delete the state file
+                if (!stateFile.delete()) {
+                    log.error("Unable to delete " + stateFile.getAbsolutePath());
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(stateDir.getAbsolutePath() + " doesn't exist; no persistent state available");
+            }
+            return null;
+        }
     }
 }

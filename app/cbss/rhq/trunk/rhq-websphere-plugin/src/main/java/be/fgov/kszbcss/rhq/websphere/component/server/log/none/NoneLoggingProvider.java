@@ -11,7 +11,7 @@ import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
  * Dummy {@link LoggingProvider} implementation that does nothing.
  */
 public class NoneLoggingProvider implements LoggingProvider {
-    public void start(ManagedServer server, EventContext defaultEventContext, EventPublisher eventPublisher) {
+    public void start(ManagedServer server, EventContext defaultEventContext, EventPublisher eventPublisher, String state) {
     }
 
     public void registerEventContext(J2EEComponentKey key, EventContext context) {
@@ -20,6 +20,7 @@ public class NoneLoggingProvider implements LoggingProvider {
     public void unregisterEventContext(J2EEComponentKey key) {
     }
 
-    public void stop() {
+    public String stop() {
+        return null;
     }
 }
