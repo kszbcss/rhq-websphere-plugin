@@ -262,6 +262,10 @@
                  class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ApplicationComponent"
                  description="Application (EAR)">
             
+            <metric property="implementationVersion" displayName="Version" dataType="trait"
+                    displayType="summary" defaultOn="true"
+                    description="The version of the application instance currently running."/>
+            
             <event name="StateChange" description="State change events"/>
             
             <service name="Web module"
