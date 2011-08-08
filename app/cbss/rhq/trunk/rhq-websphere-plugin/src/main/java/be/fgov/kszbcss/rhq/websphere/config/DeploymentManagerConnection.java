@@ -26,6 +26,7 @@ class DeploymentManagerConnection implements Runnable {
     private ConfigEpoch epoch;
     private int refCount;
     private boolean polled;
+    private boolean waitForConnection = true;
     
     DeploymentManagerConnection(ConfigQueryServiceFactory factory, DeploymentManager dm, ScheduledExecutorService executorService) {
         this.factory = factory;
@@ -73,13 +74,17 @@ class DeploymentManagerConnection implements Runnable {
     }
     
     synchronized ConfigEpoch getEpoch() {
-        if (!polled) {
+        if (!polled && waitForConnection) {
             log.debug("Waiting for connection to deployment manager");
             do {
                 try {
                     wait();
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
+                    // We only wait once. If we got interrupted, then this means that there is an issue
+                    // with the deployment manager and we should not wait the next time getEpoch is called.
+                    waitForConnection = false;
+                    break;
                 }
             } while (!polled);
         }
