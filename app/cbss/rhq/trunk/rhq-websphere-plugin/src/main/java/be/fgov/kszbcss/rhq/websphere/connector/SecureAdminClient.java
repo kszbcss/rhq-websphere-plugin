@@ -214,7 +214,6 @@ public class SecureAdminClient extends AdminClientWrapper {
             WSSubject.setRunAsSubject(subject);
             try {
                 result = super.invoke(name, operationName, params, signature);
-                // TODO: quick and dirty hack
                 if (result instanceof DocumentContentSource) {
                     // FileTransferClientImpl (which is used by the input stream returned by
                     // DocumentContentSource) uses the subject stored in the global AdminDataHolder.
@@ -222,11 +221,12 @@ public class SecureAdminClient extends AdminClientWrapper {
                     // set the cached subject explicitly.
                     synchronized (AdminDataHolder.class) {
                         AdminDataHolder.setData(AdminDataHolder.WSSUBJECT, subject);
+                        DocumentContentSource dcs = (DocumentContentSource)result;
                         try {
                             try {
-                                InputStream in = ((DocumentContentSource)result).getSource();
+                                InputStream in = dcs.getSource();
                                 try {
-                                    return IOUtils.toByteArray(in);
+                                    return new DocumentContentSource(dcs.getDocument(), IOUtils.toByteArray(in));
                                 } finally {
                                     in.close();
                                 }

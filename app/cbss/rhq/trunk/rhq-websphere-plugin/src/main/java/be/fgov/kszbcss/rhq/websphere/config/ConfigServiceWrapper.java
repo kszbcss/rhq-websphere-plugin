@@ -1,5 +1,7 @@
 package be.fgov.kszbcss.rhq.websphere.config;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -7,6 +9,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -128,7 +131,16 @@ public class ConfigServiceWrapper {
     }
 
     public byte[] extract(String docURI) throws JMException, ConnectorException {
-        return configRepository.extract(docURI);
+        try {
+            InputStream in = configRepository.extract(docURI).getSource();
+            try {
+                return IOUtils.toByteArray(in);
+            } finally {
+                in.close();
+            }
+        } catch (IOException ex) {
+            throw new ConnectorException(ex);
+        }
     }
     
     private void discardSession(boolean destroy) {
