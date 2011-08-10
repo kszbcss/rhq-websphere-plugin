@@ -16,7 +16,10 @@ public class ThreadPoolDiscoveryComponent implements ResourceDiscoveryComponent<
         ManagedServer server = context.getParentResourceComponent().getServer();
         for (ThreadPoolConfiguration threadPool : server.queryConfig(new ThreadPoolQuery(server.getNode(), server.getServer()))) {
             String name = threadPool.getName();
-            result.add(new DiscoveredResourceDetails(context.getResourceType(), name, name, null, "A thread pool.", null, null));
+            // The "server.startup" thread pool is not interesting, and there is also no MBean available
+            if (!name.equals("server.startup")) {
+                result.add(new DiscoveredResourceDetails(context.getResourceType(), name, name, null, "A thread pool.", null, null));
+            }
         }
         return result;
     }
