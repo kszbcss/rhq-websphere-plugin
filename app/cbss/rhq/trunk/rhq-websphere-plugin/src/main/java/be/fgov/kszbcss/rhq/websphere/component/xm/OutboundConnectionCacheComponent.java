@@ -21,6 +21,7 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 
 public class OutboundConnectionCacheComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, ConfigurationFacet {
+    private MBeanClient mbean;
     private MeasurementFacetSupport measurementFacetSupport;
     private ConfigurationFacetSupport configurationFacetSupport;
     
@@ -29,7 +30,7 @@ public class OutboundConnectionCacheComponent extends WebSphereServiceComponent<
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
         WebSphereServer server = getServer();
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        MBeanClient mbean = server.getMBeanClient("be.fgov.kszbcss.rhq.websphere.xm:type=OutboundConnectionCache,name=" + context.getResourceKey() + ",*");
+        mbean = server.getMBeanClient("be.fgov.kszbcss.rhq.websphere.xm:type=OutboundConnectionCache,name=" + context.getResourceKey() + ",*");
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(mbean));
         configurationFacetSupport = new ConfigurationFacetSupport(this, mbean);
     }
@@ -47,8 +48,11 @@ public class OutboundConnectionCacheComponent extends WebSphereServiceComponent<
     }
 
     public AvailabilityType getAvailability() {
-        // TODO
-        return AvailabilityType.UP;
+        try {
+            return mbean.isRegistered() ? AvailabilityType.UP : AvailabilityType.DOWN;
+        } catch (Exception ex) {
+            return AvailabilityType.DOWN;
+        }
     }
 
     public void stop() {

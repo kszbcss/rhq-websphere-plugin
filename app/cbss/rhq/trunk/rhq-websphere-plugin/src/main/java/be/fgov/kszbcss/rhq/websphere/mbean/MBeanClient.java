@@ -137,4 +137,20 @@ public class MBeanClient {
             }
         });
     }
+    
+    /**
+     * Check whether an MBean matching this client's {@link MBeanLocator} is registered in the MBean
+     * server.
+     * 
+     * @return <code>true</code> if the MBean is registered, <code>false</code> otherwise
+     * @throws JMException
+     * @throws ConnectorException
+     */
+    public boolean isRegistered() throws JMException, ConnectorException {
+        return execute(new Action<Boolean>() {
+            public Boolean execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException {
+                return adminClient.isRegistered(objectName);
+            }
+        });
+    }
 }
