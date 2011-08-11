@@ -4,6 +4,11 @@ import com.ibm.websphere.pmi.PmiConstants;
 
 public class StatelessSessionBeanComponent extends EnterpriseBeanComponent {
     @Override
+    protected EnterpriseBeanType getType() {
+        return EnterpriseBeanType.STATELESS_SESSION;
+    }
+
+    @Override
     protected String getMBeanType() {
         return "StatelessSessionBean";
     }

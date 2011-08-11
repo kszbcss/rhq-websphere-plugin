@@ -1,26 +1,13 @@
 package be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb;
 
-import java.util.HashSet;
-import java.util.Set;
+public class MessageDrivenBeanDiscoveryComponent extends EnterpriseBeanDiscoveryComponent {
+    @Override
+    protected EnterpriseBeanType getType() {
+        return EnterpriseBeanType.MESSAGE_DRIVEN;
+    }
 
-import org.rhq.core.pluginapi.inventory.DiscoveredResourceDetails;
-import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
-import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
-import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
-import org.w3c.dom.Element;
-
-import be.fgov.kszbcss.rhq.websphere.Utils;
-
-public class MessageDrivenBeanDiscoveryComponent implements ResourceDiscoveryComponent<EJBModuleComponent> {
-    public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<EJBModuleComponent> context) throws InvalidPluginConfigurationException, Exception {
-        Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        Element beans = Utils.getFirstElement(context.getParentResourceComponent().getModuleInfo().getDeploymentDescriptor().getDocumentElement(), "enterprise-beans");
-        if (beans != null) {
-            for (Element bean : Utils.getElements(beans, "message-driven")) {
-                String name = Utils.getFirstElement(bean, "ejb-name").getTextContent();
-                result.add(new DiscoveredResourceDetails(context.getResourceType(), name, name, null, "A message driven bean.", null, null));
-            }
-        }
-        return result;
+    @Override
+    protected String getDescription() {
+        return "A message driven bean.";
     }
 }

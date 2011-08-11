@@ -36,6 +36,8 @@ public abstract class EnterpriseBeanComponent extends WebSphereServiceComponent<
         context.getParentResourceComponent().registerLogEventContext(context.getResourceKey(), context.getEventContext());
     }
     
+    protected abstract EnterpriseBeanType getType();
+    
     // TODO: check if this is still needed
     protected abstract String getMBeanType();
     
@@ -46,8 +48,14 @@ public abstract class EnterpriseBeanComponent extends WebSphereServiceComponent<
     }
 
     public AvailabilityType getAvailability() {
-        // TODO Auto-generated method stub
-        return AvailabilityType.UP;
+        // Same as for servlets: we check that the bean is still present in the deployment
+        // descriptor.
+        try {
+            ResourceContext<EJBModuleComponent> context = getResourceContext();
+            return context.getParentResourceComponent().getBeanNames(getType()).contains(context.getResourceKey()) ? AvailabilityType.UP : AvailabilityType.DOWN;
+        } catch (Exception ex) {
+            return AvailabilityType.DOWN;
+        }
     }
 
     public void stop() {

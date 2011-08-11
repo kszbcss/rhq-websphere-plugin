@@ -41,8 +41,16 @@ public class ServletComponent extends WebSphereServiceComponent<WebModuleCompone
     }
 
     public AvailabilityType getAvailability() {
-        // TODO Auto-generated method stub
-        return AvailabilityType.UP;
+        // The MBean representing the servlet is registered lazily (or not at all if the application is
+        // configured with "Create MBeans for resources" disabled). Therefore the only check we can do is
+        // to see if the servlet is declared in the deployment descriptor. This is important so that we
+        // can identify servlets that no longer exist.
+        try {
+            ResourceContext<WebModuleComponent> context = getResourceContext();
+            return context.getParentResourceComponent().getServletNames().contains(context.getResourceKey()) ? AvailabilityType.UP : AvailabilityType.DOWN;
+        } catch (Exception ex) {
+            return AvailabilityType.DOWN;
+        }
     }
 
     public void stop() {
