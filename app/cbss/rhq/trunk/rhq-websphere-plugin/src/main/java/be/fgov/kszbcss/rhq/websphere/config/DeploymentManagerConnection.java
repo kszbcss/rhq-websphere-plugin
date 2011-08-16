@@ -76,17 +76,16 @@ class DeploymentManagerConnection implements Runnable {
     synchronized ConfigEpoch getEpoch() {
         if (!polled && waitForConnection) {
             log.debug("Waiting for connection to deployment manager");
-            do {
-                try {
+            try {
+                do {
                     wait();
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                    // We only wait once. If we got interrupted, then this means that there is an issue
-                    // with the deployment manager and we should not wait the next time getEpoch is called.
-                    waitForConnection = false;
-                    break;
-                }
-            } while (!polled);
+                } while (!polled);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                // We only wait once. If we got interrupted, then this means that there is an issue
+                // with the deployment manager and we should not wait the next time getEpoch is called.
+                waitForConnection = false;
+            }
         }
         return epoch;
     }
