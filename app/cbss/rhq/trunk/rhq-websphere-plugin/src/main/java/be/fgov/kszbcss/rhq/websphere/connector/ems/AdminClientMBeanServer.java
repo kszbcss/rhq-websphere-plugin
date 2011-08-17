@@ -219,8 +219,11 @@ public class AdminClientMBeanServer implements MBeanServer {
             Object[] params, String[] signature)
             throws InstanceNotFoundException, MBeanException,
             ReflectionException {
-        // TODO
-        throw new UnsupportedOperationException();
+        try {
+            return adminClient.invoke(mapper.toServerObjectName(name), operationName, params, signature);
+        } catch (ConnectorException ex) {
+            throw new EmsException(ex);
+        }
     }
 
     public boolean isInstanceOf(ObjectName name, String className)
