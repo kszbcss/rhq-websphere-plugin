@@ -19,6 +19,7 @@ import org.apache.commons.logging.LogFactory;
 
 import be.fgov.kszbcss.rhq.websphere.xm.logging.ExtendedLoggingModule;
 import be.fgov.kszbcss.rhq.websphere.xm.occ.OutboundConnectionCacheModule;
+import be.fgov.kszbcss.rhq.websphere.xm.proc.ProcStatsModule;
 
 import com.ibm.websphere.management.AdminServiceFactory;
 
@@ -51,6 +52,7 @@ public class StartUpBean implements SessionBean, MBeanRegistrar {
         modules = new ArrayList<Module>();
         modules.add(new OutboundConnectionCacheModule());
         modules.add(new ExtendedLoggingModule());
+        modules.add(new ProcStatsModule());
         mbs = AdminServiceFactory.getMBeanFactory().getMBeanServer();
         registeredMBeans = new ArrayList<ObjectName>();
         for (Module module : modules) {

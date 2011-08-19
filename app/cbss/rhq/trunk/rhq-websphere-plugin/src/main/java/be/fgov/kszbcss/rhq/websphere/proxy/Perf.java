@@ -10,4 +10,5 @@ public interface Perf {
     void setInstrumentationLevel(MBeanLevelSpec mbeanLevelSpec, Boolean recursive);
     WSStats getStatsObject(MBeanStatDescriptor msd, Boolean recursive);
     PmiModuleConfig[] getConfigs();
+    PmiModuleConfig getConfig(String objectName);
 }

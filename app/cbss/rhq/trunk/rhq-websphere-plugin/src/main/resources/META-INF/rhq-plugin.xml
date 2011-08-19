@@ -60,6 +60,16 @@
                 class="org.rhq.plugins.jmx.JMXServerComponent"
                 singleton="true"/>
 
+        <service name="UNIX Process"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.xm.UnixProcessDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.xm.UnixProcessComponent"
+                 description="UNIX Process Statistics"
+                 singleton="true">
+            <metric property="stats.FileDescriptors" displayName="File Descriptors"
+                    category="utilization" displayType="summary" defaultInterval="120000"
+                    description="The number of file descriptors used by the process."/>
+        </service>
+        
         <service name="Thread Pool"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.server.ThreadPoolDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.server.ThreadPoolComponent"

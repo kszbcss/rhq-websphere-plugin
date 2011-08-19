@@ -223,6 +223,10 @@ public abstract class WebSphereServer {
         return stats;
     }
     
+    public Perf getPerf() {
+        return perf;
+    }
+
     public synchronized PmiModuleConfig getPmiModuleConfig(WSStats stats) throws JMException, ConnectorException {
         String statsType = stats.getStatsType();
         int dashIndex = statsType.indexOf('#');

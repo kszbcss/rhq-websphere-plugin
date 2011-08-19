@@ -8,4 +8,8 @@ public class PmiModuleConfig {
     public String getUID() {
         return null;
     }
+    
+    public int getNumData() {
+        return 0;
+    }
 }

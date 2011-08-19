@@ -11,7 +11,15 @@ public class StatsFactory {
         return null;
     }
     
+    public static StatsInstance createStatsInstance(String instanceName, String statsTemplate, ObjectName mBean, StatisticActions listener) throws StatsFactoryException {
+        return null;
+    }
+    
     public static void removeStatsGroup(StatsGroup group) throws StatsFactoryException {
+        
+    }
+    
+    public static void removeStatsInstance(StatsInstance instance) throws StatsFactoryException {
         
     }
 }
