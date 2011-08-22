@@ -84,7 +84,7 @@ public class ConfigQueryServiceFactory {
     public synchronized ConfigQueryService getConfigQueryService(String cell, DeploymentManager deploymentManager) {
         DeploymentManagerConnection dmc = dmcMap.get(cell);
         if (dmc == null) {
-            dmc = new DeploymentManagerConnection(this, deploymentManager, executorService);
+            dmc = new DeploymentManagerConnection(this, deploymentManager, executorService, cell);
             dmcMap.put(cell, dmc);
         }
         dmc.incrementRefCount();

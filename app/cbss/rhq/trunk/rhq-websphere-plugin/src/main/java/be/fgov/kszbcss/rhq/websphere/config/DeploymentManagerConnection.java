@@ -23,13 +23,15 @@ class DeploymentManagerConnection implements Runnable {
     private final ConfigRepository configRepository;
     private final ConfigServiceWrapper configService;
     private final ScheduledFuture<?> future;
+    private final String cell;
     private ConfigEpoch epoch;
     private int refCount;
     private boolean polled;
     private boolean waitForConnection = true;
     
-    DeploymentManagerConnection(ConfigQueryServiceFactory factory, DeploymentManager dm, ScheduledExecutorService executorService) {
+    DeploymentManagerConnection(ConfigQueryServiceFactory factory, DeploymentManager dm, ScheduledExecutorService executorService, String cell) {
         this.factory = factory;
+        this.cell = cell;
         configRepository = dm.getMBeanClient("WebSphere:type=ConfigRepository,*").getProxy(ConfigRepository.class);
         configService = new ConfigServiceWrapper(dm.getMBeanClient("WebSphere:type=ConfigService,*"), configRepository);
         future = executorService.scheduleWithFixedDelay(this, 0, 30, TimeUnit.SECONDS);
@@ -45,18 +47,18 @@ class DeploymentManagerConnection implements Runnable {
         }
         synchronized (this) {
             if (this.epoch != null && exception != null) {
-                log.error("Lost connection to the deployment manager", exception);
+                log.error("Lost connection to the deployment manager for cell " + cell, exception);
             } else if (!polled && exception != null) {
-                log.error("Connection to deployment manager unavailable", exception);
+                log.error("Connection to deployment manager unavailable for cell " + cell, exception);
             } else if (this.epoch == null && exception == null) {
                 if (polled) {
-                    log.info("Connection to deployment manager reestablished");
+                    log.info("Connection to deployment manager reestablished for cell " + cell);
                 } else {
-                    log.info("Connection to deployment manager established");
+                    log.info("Connection to deployment manager established for cell " + cell);
                 }
             } else if (this.epoch != null && epoch != null && !this.epoch.equals(epoch)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Epoch change detected; old epoch: " + this.epoch + "; new epoch: " + epoch);
+                    log.debug("Epoch change detected for cell " + cell + "; old epoch: " + this.epoch + "; new epoch: " + epoch);
                 }
             }
             if (epoch != null && !epoch.equals(this.epoch)) {
@@ -75,7 +77,7 @@ class DeploymentManagerConnection implements Runnable {
     
     synchronized ConfigEpoch getEpoch() {
         if (!polled && waitForConnection) {
-            log.debug("Waiting for connection to deployment manager");
+            log.debug("Waiting for connection to deployment manager for cell " + cell);
             try {
                 do {
                     wait();
