@@ -23,18 +23,7 @@ public class ConnectionHelper {
     public static AdminClient createAdminClient(Configuration config) throws ConnectorException {
         Properties properties = new Properties();
         
-        properties.put(AdminClient.CONNECTOR_TYPE, AdminClient.CONNECTOR_TYPE_RMI);
-        properties.setProperty(AdminClient.CONNECTOR_HOST, config.getSimpleValue("host", null));
-        properties.setProperty(AdminClient.CONNECTOR_PORT, config.getSimpleValue("port", null));
-
-        String principal = config.getSimpleValue("principal", null); 
-        if (principal != null && principal.length() > 0) { 
-            properties.setProperty(AdminClient.CONNECTOR_SECURITY_ENABLED, "true"); 
-            properties.setProperty(AdminClient.USERNAME, principal); 
-            properties.setProperty(AdminClient.PASSWORD, config.getSimpleValue("credentials", null)); 
-        } else { 
-            properties.setProperty(AdminClient.CONNECTOR_SECURITY_ENABLED, "false");
-        }
+        new ConfigurationBasedProcessLocator(config).getAdminClientProperties(properties);
         
         if (log.isDebugEnabled()) {
             log.debug("Creating AdminClient with properties: " + properties);

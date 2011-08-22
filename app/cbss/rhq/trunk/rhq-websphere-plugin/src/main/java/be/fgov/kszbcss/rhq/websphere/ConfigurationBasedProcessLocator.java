@@ -18,7 +18,7 @@ public class ConfigurationBasedProcessLocator implements ProcessLocator {
     }
 
     public void getAdminClientProperties(Properties properties) {
-        properties.put(AdminClient.CONNECTOR_TYPE, AdminClient.CONNECTOR_TYPE_RMI);
+        properties.put(AdminClient.CONNECTOR_TYPE, config.getSimpleValue("protocol", "RMI"));
         properties.setProperty(AdminClient.CONNECTOR_HOST, config.getSimpleValue("host", null));
         properties.setProperty(AdminClient.CONNECTOR_PORT, config.getSimpleValue("port", null));
         

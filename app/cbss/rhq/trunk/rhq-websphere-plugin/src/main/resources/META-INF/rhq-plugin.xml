@@ -18,6 +18,12 @@
             <c:group name="connection" displayName="Connection Info">
                 <c:simple-property name="host" default="localhost"/>
                 <c:simple-property name="port" default="9100" type="integer"/>
+                <c:simple-property name="protocol" default="RMI">
+                    <c:property-options>
+                        <c:option value="RMI" name="RMI"/>
+                        <c:option value="SOAP" name="SOAP"/>
+                    </c:property-options>
+                </c:simple-property>
                 <c:simple-property name="principal" required="false"
                                    description="The name of the principal (i.e. user) to authenticate."/>
                 <c:simple-property name="credentials" type="password" required="false"
