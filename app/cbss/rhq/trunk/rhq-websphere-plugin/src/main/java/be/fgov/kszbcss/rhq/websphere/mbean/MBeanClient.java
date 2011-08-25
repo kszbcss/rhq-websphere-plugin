@@ -138,6 +138,14 @@ public class MBeanClient {
         });
     }
     
+    public AttributeList setAttributes(final AttributeList attributes) throws JMException, ConnectorException {
+        return execute(new Action<AttributeList>() {
+            public AttributeList execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException {
+                return adminClient.setAttributes(objectName, attributes);
+            }
+        });
+    }
+    
     /**
      * Check whether an MBean matching this client's {@link MBeanLocator} is registered in the MBean
      * server.
