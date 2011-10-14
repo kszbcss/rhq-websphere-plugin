@@ -30,6 +30,8 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     private SIBMain sibMain;
     private SIBMessagingEngine sibMessagingEngine;
     private String name;
+    private String cachedState;
+    private long cachedStateTimestamp;
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
@@ -97,14 +99,24 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         measurementFacetSupport.getValues(report, requests);
     }
 
-    private String getState() throws JMException, ConnectorException {
-        for (String line: sibMain.showMessagingEngines()) {
-            String[] parts = line.split(":");
-            if (parts[1].equals(name)) {
-                return parts[2];
+    private synchronized String getState() throws JMException, ConnectorException {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - cachedStateTimestamp > 60000) {
+            cachedState = null;
+            for (String line: sibMain.showMessagingEngines()) {
+                String[] parts = line.split(":");
+                if (parts[1].equals(name)) {
+                    cachedState = parts[2];
+                    break;
+                }
             }
+            cachedStateTimestamp = currentTime;
         }
-        return null;
+        return cachedState;
+    }
+    
+    public boolean isActive() throws JMException, ConnectorException {
+        return "Started".equals(getState());
     }
     
     public void stop() {

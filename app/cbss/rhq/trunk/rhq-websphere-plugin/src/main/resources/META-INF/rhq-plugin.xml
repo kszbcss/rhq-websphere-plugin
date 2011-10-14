@@ -369,6 +369,26 @@
                     displayType="summary" defaultOn="true"
                     description="The current Health of the Messaging Engine."/>
             
+            <service name="Cache"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.sib.CacheDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.sib.CacheComponent"
+                     description="SIBus Messaging Engine Cache"
+                     singleton="true">
+                
+                <metric property="stats.CacheCurrentNotStoredByteCount" displayName="Not Stored Byte Count"
+                        category="utilization" units="bytes" displayType="summary" defaultInterval="600000"
+                        description="The current total of the declared sizes of all items in the dynamic memory cache which are never persisted."/>
+                <metric property="stats.CacheCurrentNotStoredCount" displayName="Not Stored Count"
+                        category="utilization" displayType="summary" defaultInterval="600000"
+                        description="The number of items currently in the dynamic memory cache which are never persisted."/>
+                <metric property="stats.CacheCurrentStoredByteCount" displayName="Stored Byte Count"
+                        category="utilization" units="bytes" displayType="summary" defaultInterval="600000"
+                        description="The total of the declared sizes of all items currently in the dynamic memory cache which are either persistent or potentially persistent."/>
+                <metric property="stats.CacheCurrentStoredCount" displayName="Stored Count"
+                        category="utilization" displayType="summary" defaultInterval="600000"
+                        description="The number of items currently in the dynamic memory cache which are either persistent or potentially persistent."/>
+            </service>
+            
             <service name="Queue"
                      discovery="be.fgov.kszbcss.rhq.websphere.component.sib.SIBQueuePointDiscoveryComponent"
                      class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBQueuePointComponent"

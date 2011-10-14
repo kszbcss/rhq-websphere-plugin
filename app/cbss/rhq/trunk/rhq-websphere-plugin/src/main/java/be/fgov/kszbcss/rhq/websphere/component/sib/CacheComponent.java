@@ -13,7 +13,7 @@ import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 
-public abstract class SIBLocalizationPointComponent extends WebSphereServiceComponent<SIBMessagingEngineComponent> implements MeasurementFacet {
+public class CacheComponent extends WebSphereServiceComponent<SIBMessagingEngineComponent> implements MeasurementFacet {
     private MeasurementFacetSupport measurementFacetSupport;
     
     @Override
@@ -22,13 +22,10 @@ public abstract class SIBLocalizationPointComponent extends WebSphereServiceComp
         measurementFacetSupport = new MeasurementFacetSupport(this);
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(server.getServerMBean(),
                 "SIB Service", "SIB Messaging Engines", getResourceContext().getParentResourceComponent().getName(),
-                "Destinations", getPMIModuleName(), getResourceContext().getResourceKey()));
+                "Storage Management", "Cache"));
     }
-    
-    protected abstract String getPMIModuleName();
-    
+
     public AvailabilityType getAvailability() {
-        // TODO
         return AvailabilityType.UP;
     }
 
