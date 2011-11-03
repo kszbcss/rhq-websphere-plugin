@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -40,7 +41,8 @@ public class DB2MonitorComponent implements ResourceComponent<DataSourceComponen
     private String principal;
     private String credentials;
     private Connection connection;
-    private final Map<String,DB2MetricData> lastValues = new HashMap<String,DB2MetricData>();
+    private final Map<String,DB2BaseMetricData> baseMetricData = new HashMap<String,DB2BaseMetricData>();
+    private final Map<String,DB2AverageMetricData> averageMetricData = new HashMap<String,DB2AverageMetricData>();
     
     public void start(ResourceContext<DataSourceComponent> context) throws InvalidPluginConfigurationException, Exception {
         dataSourceComponent = context.getParentResourceComponent();
@@ -82,9 +84,24 @@ public class DB2MonitorComponent implements ResourceComponent<DataSourceComponen
             connection = DriverManager.getConnection(url, info);
         }
         
-        StringBuilder buffer = new StringBuilder("SELECT A.AGENT_ID");
+        Set<String> baseMetrics = new LinkedHashSet<String>();
         for (MeasurementScheduleRequest request : requests) {
             String name = request.getName();
+            int idx = name.indexOf(':');
+            if (idx == -1) {
+                baseMetrics.add(name);
+            } else {
+                baseMetrics.add(name.substring(0, idx));
+                baseMetrics.add(name.substring(idx+1));
+            }
+        }
+        
+        if (log.isDebugEnabled()) {
+            log.debug("The following base metrics will be requested from DB2: " + baseMetrics);
+        }
+        
+        StringBuilder buffer = new StringBuilder("SELECT A.AGENT_ID");
+        for (String name : baseMetrics) {
             buffer.append(", ");
             String expression = expressions.get(name);
             buffer.append(expression == null ? name : expression);
@@ -96,9 +113,9 @@ public class DB2MonitorComponent implements ResourceComponent<DataSourceComponen
             log.debug("Preparing to execute statement: " + sql);
         }
         
-        DB2MetricData[] newData = new DB2MetricData[requests.size()];
+        DB2BaseMetricData[] newData = new DB2BaseMetricData[baseMetrics.size()];
         for (int i=0; i<newData.length; i++) {
-            newData[i] = new DB2MetricData();
+            newData[i] = new DB2BaseMetricData();
         }
         PreparedStatement stmt = connection.prepareStatement(sql);
         try {
@@ -107,7 +124,7 @@ public class DB2MonitorComponent implements ResourceComponent<DataSourceComponen
             try {
                 while (rs.next()) {
                     long agentId = rs.getLong(1);
-                    for (int i=0; i<requests.size(); i++) {
+                    for (int i=0; i<baseMetrics.size(); i++) {
                         newData[i].addValue(agentId, rs.getLong(i+2));
                     }
                 }
@@ -119,20 +136,37 @@ public class DB2MonitorComponent implements ResourceComponent<DataSourceComponen
         }
 
         int i = 0;
+        for (String name : baseMetrics) {
+            DB2BaseMetricData raw = newData[i++];
+            DB2BaseMetricData adjusted = baseMetricData.get(name);
+            if (adjusted == null) {
+                baseMetricData.put(name, raw);
+                adjusted = raw;
+            } else {
+                adjusted.update(raw);
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Processing data for " + name + "; raw value: " + raw.getSum() + "; adjusted value: " + adjusted.getSum());
+            }
+        }
+
         for (MeasurementScheduleRequest request : requests) {
             String name = request.getName();
-            if (log.isDebugEnabled()) {
-                log.debug("Adding measurement for " + name);
-            }
-            DB2MetricData current = newData[i++];
-            DB2MetricData last = lastValues.get(name);
-            if (last == null) {
-                lastValues.put(name, current);
+            int idx = name.indexOf(':');
+            if (idx == -1) {
+                report.addData(new MeasurementDataNumeric(request, (double)baseMetricData.get(name).getSum()));
             } else {
-                last.update(current);
-                current = last;
+                DB2AverageMetricData current = new DB2AverageMetricData(
+                        baseMetricData.get(name.substring(0, idx)).getSum(),
+                        baseMetricData.get(name.substring(idx+1)).getSum());
+                DB2AverageMetricData previous = averageMetricData.put(name, current);
+                if (previous != null) {
+                    long countDelta = current.getCount()-previous.getCount();
+                    if (countDelta > 0) {
+                        report.addData(new MeasurementDataNumeric(request, ((double)(current.getTotal()-previous.getTotal())) / ((double)countDelta)));
+                    }
+                }
             }
-            report.addData(new MeasurementDataNumeric(request, (double)current.getSum()));
         }
     }
 

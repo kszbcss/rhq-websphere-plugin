@@ -9,8 +9,8 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class DB2MetricData {
-    private static final Log log = LogFactory.getLog(DB2MetricData.class);
+public class DB2BaseMetricData {
+    private static final Log log = LogFactory.getLog(DB2BaseMetricData.class);
     
     /**
      * Contains the individual metric values for each DB2 agent.
@@ -34,7 +34,7 @@ public class DB2MetricData {
      * @param newData
      *            the new data for this metric
      */
-    public void update(DB2MetricData newData) {
+    public void update(DB2BaseMetricData newData) {
         Set<Long> newAgents = new HashSet<Long>(newData.values.keySet());
         for (Iterator<Map.Entry<Long,Long>> it = values.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<Long,Long> entry = it.next();
