@@ -8,6 +8,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import be.fgov.kszbcss.rhq.websphere.DeploymentManager;
+import be.fgov.kszbcss.rhq.websphere.proxy.AppManagement;
+import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
 
 import com.ibm.websphere.management.repository.ConfigEpoch;
 
@@ -21,7 +23,7 @@ class DeploymentManagerConnection implements Runnable {
 
     private final ConfigQueryServiceFactory factory;
     private final ConfigRepository configRepository;
-    private final ConfigServiceWrapper configService;
+    private final CellConfiguration config;
     private final ScheduledFuture<?> future;
     private final String cell;
     private ConfigEpoch epoch;
@@ -33,7 +35,10 @@ class DeploymentManagerConnection implements Runnable {
         this.factory = factory;
         this.cell = cell;
         configRepository = dm.getMBeanClient("WebSphere:type=ConfigRepository,*").getProxy(ConfigRepository.class);
-        configService = new ConfigServiceWrapper(dm.getMBeanClient("WebSphere:type=ConfigService,*"), configRepository);
+        config = new CellConfiguration(
+                dm.getMBeanClient("WebSphere:type=ConfigService,*").getProxy(ConfigService.class),
+                configRepository,
+                dm.getMBeanClient("WebSphere:type=AppManagement,*").getProxy(AppManagement.class));
         future = executorService.scheduleWithFixedDelay(this, 0, 30, TimeUnit.SECONDS);
     }
     
@@ -65,7 +70,7 @@ class DeploymentManagerConnection implements Runnable {
                 // The ConfigService actually creates a workspace on the deployment manager. This workspace
                 // contains copies of the configuration documents. If they change, then we need to refresh
                 // the workspace. Otherwise we will not see the changes.
-                configService.refresh();
+                config.refresh();
             }
             this.epoch = epoch;
             if (!polled) {
@@ -92,8 +97,8 @@ class DeploymentManagerConnection implements Runnable {
         return epoch;
     }
     
-    synchronized ConfigServiceWrapper getConfigService() {
-        return configService;
+    synchronized CellConfiguration getCellConfiguration() {
+        return config;
     }
 
     synchronized void incrementRefCount() {
@@ -110,7 +115,7 @@ class DeploymentManagerConnection implements Runnable {
         }
         if (refCount == 0) {
             log.debug("Destroying DeploymentManagerConnection");
-            configService.destroy();
+            config.destroy();
             future.cancel(false);
             factory.removeDeploymentManagerConnection(this);
         }

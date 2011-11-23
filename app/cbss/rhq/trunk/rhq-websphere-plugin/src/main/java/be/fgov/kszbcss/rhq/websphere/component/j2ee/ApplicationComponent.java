@@ -49,6 +49,10 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
         return getServer().queryConfig(new ApplicationInfoQuery(getApplicationName()));
     }
     
+    public ApplicationConfiguration getConfiguration() {
+        return getServer().queryConfig(new ApplicationConfigurationQuery(getApplicationName()));
+    }
+    
     public void registerLogEventContext(String moduleName, String componentName, EventContext context) {
         getResourceContext().getParentResourceComponent().registerLogEventContext(getApplicationName(), moduleName, componentName, context);
     }

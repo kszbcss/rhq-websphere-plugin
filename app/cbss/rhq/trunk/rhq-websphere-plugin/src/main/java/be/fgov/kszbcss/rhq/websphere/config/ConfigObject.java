@@ -7,6 +7,7 @@ import javax.management.AttributeList;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
+import be.fgov.kszbcss.rhq.websphere.proxy.AppManagement;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
 
 import com.ibm.websphere.management.Session;
@@ -19,12 +20,12 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * than {@link ConfigService}.
  */
 public class ConfigObject {
-    private final ConfigServiceWrapper configService;
+    private final CellConfiguration config;
     private final ObjectName objectName;
     private AttributeList attributes;
     
-    ConfigObject(ConfigServiceWrapper configService, ObjectName objectName) {
-        this.configService = configService;
+    ConfigObject(CellConfiguration config, ObjectName objectName) {
+        this.config = config;
         this.objectName = objectName;
     }
     
@@ -38,8 +39,8 @@ public class ConfigObject {
     
     private AttributeList getAttributes() throws JMException, ConnectorException {
         if (attributes == null) {
-            attributes = configService.execute(new ConfigServiceAction<AttributeList>() {
-                public AttributeList execute(ConfigService configService, Session session) throws JMException, ConnectorException {
+            attributes = config.execute(new SessionAction<AttributeList>() {
+                public AttributeList execute(ConfigService configService, AppManagement appManagement, Session session) throws JMException, ConnectorException {
                     return configService.getAttributes(session, objectName, null, false);
                 }
             });
@@ -50,7 +51,7 @@ public class ConfigObject {
     public Object getAttribute(String name) throws JMException, ConnectorException {
         Object value = ConfigServiceHelper.getAttributeValue(getAttributes(), name);
         if (value instanceof ObjectName) {
-            return new ConfigObject(configService, (ObjectName)value);
+            return new ConfigObject(config, (ObjectName)value);
         } else {
             return value;
         }
@@ -59,7 +60,7 @@ public class ConfigObject {
     public List<ConfigObject> getChildren(String attributeName) throws JMException, ConnectorException {
         List<ConfigObject> children = new ArrayList<ConfigObject>();
         for (ObjectName objectName : (List<ObjectName>)getAttribute(attributeName)) {
-            children.add(new ConfigObject(configService, objectName));
+            children.add(new ConfigObject(config, objectName));
         }
         return children;
     }

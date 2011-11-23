@@ -10,7 +10,7 @@ import org.apache.commons.logging.LogFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
+import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -25,8 +25,8 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
         this.applicationName = applicationName;
     }
 
-    public ApplicationInfo execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
-        ConfigObject applicationDeployment = configService.path("Deployment", applicationName).path("ApplicationDeployment").resolveSingle();
+    public ApplicationInfo execute(CellConfiguration config) throws JMException, ConnectorException {
+        ConfigObject applicationDeployment = config.path("Deployment", applicationName).path("ApplicationDeployment").resolveSingle();
         String dataId = applicationDeployment.getId();
         String baseURI = dataId.substring(0, dataId.indexOf('|'));
         List<ModuleInfo> moduleInfos = new ArrayList<ModuleInfo>();
@@ -41,11 +41,11 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
                 log.error("Unknown module type " + configDataType);
                 continue;
             }
-            String deploymentDescriptorURI = factory.locateDeploymentDescriptor(configService, baseURI + "/" + uri);
+            String deploymentDescriptorURI = factory.locateDeploymentDescriptor(config, baseURI + "/" + uri);
             if (log.isDebugEnabled()) {
                 log.debug("Loading deployment descriptor " + deploymentDescriptorURI);
             }
-            moduleInfos.add(factory.create(uri, configService.extract(deploymentDescriptorURI)));
+            moduleInfos.add(factory.create(uri, config.extract(deploymentDescriptorURI)));
         }
         return new ApplicationInfo(moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
     }

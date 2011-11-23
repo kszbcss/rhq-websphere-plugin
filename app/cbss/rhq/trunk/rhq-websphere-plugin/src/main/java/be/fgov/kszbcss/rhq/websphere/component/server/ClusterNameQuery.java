@@ -3,7 +3,7 @@ package be.fgov.kszbcss.rhq.websphere.component.server;
 import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
+import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -18,8 +18,8 @@ public class ClusterNameQuery implements ConfigQuery<String> {
         this.server = server;
     }
 
-    public String execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
-        return (String)configService.server(node, server).resolveSingle().getAttribute("clusterName");
+    public String execute(CellConfiguration config) throws JMException, ConnectorException {
+        return (String)config.server(node, server).resolveSingle().getAttribute("clusterName");
     }
     
     @Override

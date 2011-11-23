@@ -7,7 +7,7 @@ import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
+import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -22,9 +22,9 @@ public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineIn
         this.server = server;
     }
 
-    public SIBMessagingEngineInfo[] execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
+    public SIBMessagingEngineInfo[] execute(CellConfiguration config) throws JMException, ConnectorException {
         List<SIBMessagingEngineInfo> result = new ArrayList<SIBMessagingEngineInfo>();
-        for (ConfigObject me : configService.allScopes(node, server).path("SIBMessagingEngine").resolve()) {
+        for (ConfigObject me : config.allScopes(node, server).path("SIBMessagingEngine").resolve()) {
             List<SIBLocalizationPointInfo> localizationPoints = new ArrayList<SIBLocalizationPointInfo>();
             for (ConfigObject localizationPoint : me.getChildren("localizationPoints")) {
                 String identifier = (String)localizationPoint.getAttribute("identifier");

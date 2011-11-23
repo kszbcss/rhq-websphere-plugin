@@ -2,6 +2,12 @@ package be.fgov.kszbcss.rhq.websphere.config;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -13,28 +19,38 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
+import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientProxy;
+import be.fgov.kszbcss.rhq.websphere.proxy.AppManagement;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
 
 import com.ibm.websphere.management.Session;
+import com.ibm.websphere.management.application.client.AppDeploymentTask;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class ConfigServiceWrapper {
-    private static final Log log = LogFactory.getLog(ConfigServiceWrapper.class);
+/**
+ * Facade that gives access to various parts of the cell configuration. This includes:
+ * <ul>
+ * <li>Access to the configuration service to query configuration objects.
+ * <li>Access to the configuration repository to query configuration documents.
+ * <li>Access to the <tt>AppManagement</tt> MBean to retrieve information about a deployed
+ * application.
+ * </ul>
+ */
+public class CellConfiguration {
+    private static final Log log = LogFactory.getLog(CellConfiguration.class);
     
-    private final MBeanClient configServiceMBeanClient;
     private final ConfigService configService;
     private final ConfigRepository configRepository;
+    private final AppManagement appManagement;
     private final Path root;
     private final ReadWriteLock sessionLock = new ReentrantReadWriteLock();
     private boolean destroyed;
     private Session session;
     
-    ConfigServiceWrapper(MBeanClient configServiceMBeanClient, ConfigRepository configRepository) {
-        // TODO: do this in a smarter way; we should be able to get back from the proxy to the MBeanClient
-        this.configServiceMBeanClient = configServiceMBeanClient;
-        this.configService = configServiceMBeanClient.getProxy(ConfigService.class);
+    CellConfiguration(ConfigService configService, ConfigRepository configRepository, AppManagement appManagement) {
+        this.configService = configService;
         this.configRepository = configRepository;
+        this.appManagement = appManagement;
         root = new RootPath(this);
     }
     
@@ -47,10 +63,10 @@ public class ConfigServiceWrapper {
      * @throws ConnectorException
      */
     public String getWebSphereVersion() throws JMException, ConnectorException {
-        return configServiceMBeanClient.getObjectName(false).getKeyProperty("version");
+        return ((MBeanClientProxy)configService).getMBeanClient().getObjectName(false).getKeyProperty("version");
     }
     
-    <T> T execute(ConfigServiceAction<T> action) throws JMException, ConnectorException {
+    <T> T execute(SessionAction<T> action) throws JMException, ConnectorException {
         // Note: a read lock can't be upgraded to a write lock, so we need to acquire a write
         // lock first.
         Lock readLock = sessionLock.readLock();
@@ -72,7 +88,7 @@ public class ConfigServiceWrapper {
                 writeLock.unlock();
             }
             try {
-                return action.execute(configService, session);
+                return action.execute(configService, appManagement, session);
             } finally {
                 readLock.unlock();
             }
@@ -114,8 +130,8 @@ public class ConfigServiceWrapper {
     }
     
     ConfigObject[] resolve(final String containmentPath) throws JMException, ConnectorException {
-        ObjectName[] objectNames = execute(new ConfigServiceAction<ObjectName[]>() {
-            public ObjectName[] execute(ConfigService configService, Session session) throws JMException, ConnectorException {
+        ObjectName[] objectNames = execute(new SessionAction<ObjectName[]>() {
+            public ObjectName[] execute(ConfigService configService, AppManagement appManagement, Session session) throws JMException, ConnectorException {
                 return configService.resolve(session, containmentPath);
             }
         });
@@ -141,6 +157,31 @@ public class ConfigServiceWrapper {
         } catch (IOException ex) {
             throw new ConnectorException(ex);
         }
+    }
+    
+    public Map<String,List<Map<String,String>>> getApplicationInfo(final String appName) throws JMException, ConnectorException {
+        return execute(new SessionAction<Map<String,List<Map<String,String>>>>() {
+            public Map<String,List<Map<String,String>>> execute(ConfigService configService, AppManagement appManagement, Session session) throws JMException, ConnectorException {
+                Vector<AppDeploymentTask> tasks = appManagement.getApplicationInfo(appName, new Hashtable(), session.getSessionId());
+                Map<String,List<Map<String,String>>> result = new HashMap<String,List<Map<String,String>>>();
+                for (AppDeploymentTask task : tasks) {
+                    // The task data is organized as a table where the first row is a header
+                    String[][] data = task.getTaskData();
+                    if (data != null) {
+                        List<Map<String,String>> rows = new ArrayList<Map<String,String>>();
+                        for (int rowIndex=1; rowIndex<data.length; rowIndex++) {
+                            Map<String,String> row = new HashMap<String,String>();
+                            for (int colIndex=0; colIndex<data[0].length; colIndex++) {
+                                row.put(data[0][colIndex], data[rowIndex][colIndex]);
+                            }
+                            rows.add(row);
+                        }
+                        result.put(task.getName(), rows);
+                    }
+                }
+                return result;
+            }
+        });
     }
     
     private void discardSession(boolean destroy) {

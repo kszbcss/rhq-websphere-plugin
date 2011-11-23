@@ -6,7 +6,7 @@ import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
+import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -25,8 +25,8 @@ public class ThreadPoolQuery implements ConfigQuery<ThreadPoolConfiguration[]> {
         this.server = server;
     }
 
-    public ThreadPoolConfiguration[] execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
-        ConfigObject threadPoolManager = configService.server(node, server).path("ThreadPoolManager").resolveSingle();
+    public ThreadPoolConfiguration[] execute(CellConfiguration config) throws JMException, ConnectorException {
+        ConfigObject threadPoolManager = config.server(node, server).path("ThreadPoolManager").resolveSingle();
         List<ConfigObject> threadPools = threadPoolManager.getChildren("threadPools");
         ThreadPoolConfiguration[] configs = new ThreadPoolConfiguration[threadPools.size()];
         int i = 0;

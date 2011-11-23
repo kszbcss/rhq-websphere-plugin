@@ -9,7 +9,7 @@ import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
+import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -26,9 +26,9 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
         this.type = type;
     }
 
-    public ConnectionFactories execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
+    public ConnectionFactories execute(CellConfiguration config) throws JMException, ConnectorException {
         List<ConnectionFactoryInfo> result = new ArrayList<ConnectionFactoryInfo>();
-        for (ConfigObject cf : configService.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve()) {
+        for (ConfigObject cf : config.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve()) {
             String jndiName = (String)cf.getAttribute("jndiName");
             // If no JNDI name is defined, then it's probably a J2CConnectionFactory corresponding to a JDBC data source
             if (jndiName != null) {

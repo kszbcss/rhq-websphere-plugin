@@ -6,7 +6,7 @@ import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
+import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -21,11 +21,11 @@ public class DeployedApplicationsQuery implements ConfigQuery<String[]> {
         this.server = server;
     }
 
-    public String[] execute(ConfigServiceWrapper configService) throws JMException, ConnectorException {
+    public String[] execute(CellConfiguration config) throws JMException, ConnectorException {
         // AdminConfig.getid("/Node:twas02/ServerIndex:/ServerEntry:TENVCBSS.AppCluster.twas02.1/")
         // AdminConfig.showAttribute("TENVCBSS.AppCluster.twas02.1(cells/tcell/nodes/twas02|serverindex.xml#ServerEntry_1306410389272)", "deployedApplications")
         
-        ConfigObject serverEntry = configService.node(node).path("ServerIndex").path("ServerEntry", server).resolveSingle();
+        ConfigObject serverEntry = config.node(node).path("ServerIndex").path("ServerEntry", server).resolveSingle();
         List<?> deployedApplications = (List<?>)serverEntry.getAttribute("deployedApplications");
         String[] applicationNames = new String[deployedApplications.size()];
         int i = 0;

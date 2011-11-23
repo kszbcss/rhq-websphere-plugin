@@ -28,7 +28,7 @@ class ConfigQueryResultFactory implements UpdatingCacheEntryFactory {
             }
             ConfigQueryResult result = new ConfigQueryResult();
             result.epoch = epoch;
-            result.object = key.getQuery().execute(dmc.getConfigService());
+            result.object = key.getQuery().execute(dmc.getCellConfiguration());
             return result;
         }
     }
@@ -51,7 +51,7 @@ class ConfigQueryResultFactory implements UpdatingCacheEntryFactory {
                 if (log.isDebugEnabled()) {
                     log.debug("Reexecuting query: " + key);
                 }
-                Object resultObject = key.getQuery().execute(dmc.getConfigService());
+                Object resultObject = key.getQuery().execute(dmc.getCellConfiguration());
                 // Only update fields if no exception is thrown:
                 result.epoch = epoch;
                 result.object = resultObject;

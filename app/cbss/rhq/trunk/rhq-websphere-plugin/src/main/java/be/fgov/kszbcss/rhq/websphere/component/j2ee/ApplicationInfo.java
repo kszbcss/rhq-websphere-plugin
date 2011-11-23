@@ -4,7 +4,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * Contains the static information about an application, in particular the module structure and the
+ * deployment descriptors.
+ */
 public class ApplicationInfo implements Serializable {
     private static final long serialVersionUID = -8427058440507167720L;
     

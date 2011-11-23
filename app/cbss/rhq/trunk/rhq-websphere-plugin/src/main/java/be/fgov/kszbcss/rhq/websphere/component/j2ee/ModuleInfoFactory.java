@@ -11,7 +11,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.config.ConfigServiceWrapper;
+import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 
 public class ModuleInfoFactory {
     private static final Log log = LogFactory.getLog(ModuleInfoFactory.class);
@@ -38,11 +38,11 @@ public class ModuleInfoFactory {
         return factories.get(configDataType);
     }
     
-    public String locateDeploymentDescriptor(ConfigServiceWrapper configService, String moduleURI) throws JMException, ConnectorException {
-        if (configService.getWebSphereVersion().startsWith("6.")) {
+    public String locateDeploymentDescriptor(CellConfiguration config, String moduleURI) throws JMException, ConnectorException {
+        if (config.getWebSphereVersion().startsWith("6.")) {
             log.debug("Server implements J2EE 1.4; returning URI of static deployment descriptor");
         } else {
-            String[] resources = configService.listResourceNames(moduleURI + "/" + infPath, 1, 1);
+            String[] resources = config.listResourceNames(moduleURI + "/" + infPath, 1, 1);
             if (log.isDebugEnabled()) {
                 log.debug("Deployment descriptor list: " + Arrays.asList(resources));
             }

@@ -83,7 +83,7 @@ public class MBeanClient {
                 if (log.isDebugEnabled()) {
                     log.debug("Creating dynamic proxy for MBean " + locator);
                 }
-                proxy = Proxy.newProxyInstance(MBeanClient.class.getClassLoader(), new Class<?>[] { iface },
+                proxy = Proxy.newProxyInstance(MBeanClient.class.getClassLoader(), new Class<?>[] { iface, MBeanClientProxy.class },
                         new MBeanClientInvocationHandler(this));
                 proxies.put(iface, proxy);
             }

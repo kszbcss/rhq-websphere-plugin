@@ -10,10 +10,10 @@ import com.ibm.websphere.management.exception.ConnectorException;
 class RootPath extends Path {
     private static final Log log = LogFactory.getLog(RootPath.class);
     
-    private final ConfigServiceWrapper configService;
+    private final CellConfiguration config;
 
-    public RootPath(ConfigServiceWrapper configService) {
-        this.configService = configService;
+    public RootPath(CellConfiguration config) {
+        this.config = config;
     }
 
     @Override
@@ -24,7 +24,7 @@ class RootPath extends Path {
         if (log.isDebugEnabled()) {
             log.debug("Resolving " + relativePath);
         }
-        return configService.resolve(relativePath);
+        return config.resolve(relativePath);
     }
     
 }
