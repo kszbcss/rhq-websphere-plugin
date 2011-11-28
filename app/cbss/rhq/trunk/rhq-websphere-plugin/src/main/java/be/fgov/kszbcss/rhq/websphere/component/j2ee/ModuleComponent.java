@@ -3,7 +3,6 @@ package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.event.EventContext;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
-import org.rhq.core.pluginapi.inventory.ResourceContext;
 
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
@@ -15,14 +14,15 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
-        ResourceContext<ApplicationComponent> context = getResourceContext();
-        String applicationName = context.getParentResourceComponent().getApplicationName();
-        String moduleName = context.getResourceKey();
-        mbean = getServer().getMBeanClient("WebSphere:type=" + getMBeanType() + ",Application=" + applicationName + ",name=" + moduleName + ",*");
+        mbean = getServer().getMBeanClient("WebSphere:type=" + getMBeanType() + ",Application=" + getApplicationName() + ",name=" + getModuleName() + ",*");
     }
 
+    public ApplicationComponent getApplication() {
+        return getResourceContext().getParentResourceComponent();
+    }
+    
     public String getApplicationName() {
-        return getResourceContext().getParentResourceComponent().getApplicationName();
+        return getApplication().getApplicationName();
     }
     
     public String getModuleName() {
@@ -30,15 +30,15 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
     }
     
     public void registerLogEventContext(String componentName, EventContext context) {
-        getResourceContext().getParentResourceComponent().registerLogEventContext(getModuleName(), componentName, context);
+        getApplication().registerLogEventContext(getModuleName(), componentName, context);
     }
     
     public void unregisterLogEventContext(String componentName) {
-        getResourceContext().getParentResourceComponent().unregisterLogEventContext(getModuleName(), componentName);
+        getApplication().unregisterLogEventContext(getModuleName(), componentName);
     }
     
     public ModuleInfo getModuleInfo() {
-        return getResourceContext().getParentResourceComponent().getApplicationInfo().getModule(getModuleName());
+        return getApplication().getApplicationInfo().getModule(getModuleName());
     }
     
     public AvailabilityType getAvailability() {

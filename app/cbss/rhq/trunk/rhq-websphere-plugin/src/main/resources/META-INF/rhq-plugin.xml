@@ -343,6 +343,32 @@
                             description="The number of calls to the remote methods of the bean"/>
                     
                     <event name="LogEvent" description="Logging message"/>
+                    
+                    <resource-configuration>
+                        <c:list-property name="messagingDestinationRefs"
+                                         displayName="Messaging Destinations"
+                                         description="Messaging Destination References"
+                                         required="false" readOnly="true">
+                            <c:map-property name="messagingDestinationRef">
+                                <c:simple-property name="name"
+                                                   displayName="Name"
+                                                   description="Name of the entry in the java:comp/env namespace"
+                                                   required="true"/>
+                                <c:simple-property name="bindingName"
+                                                   displayName="Binding Name"
+                                                   description="The JNDI name of the resource the entry is bound to"
+                                                   required="true"/>
+                                <c:simple-property name="busName"
+                                                   displayName="Bus Name"
+                                                   description="The name of the SIBus where the destination is located"
+                                                   required="true"/>
+                                <c:simple-property name="destinationName"
+                                                   displayName="Destination Name"
+                                                   description="The name of the SIBus destination"
+                                                   required="true"/>
+                            </c:map-property>
+                        </c:list-property>
+                    </resource-configuration>
                 </service>
                 <service name="Message Driven Bean"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanDiscoveryComponent"
