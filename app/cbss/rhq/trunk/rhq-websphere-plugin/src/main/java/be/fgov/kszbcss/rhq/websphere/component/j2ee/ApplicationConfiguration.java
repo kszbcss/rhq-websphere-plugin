@@ -28,7 +28,12 @@ public class ApplicationConfiguration implements Serializable {
         } else {
             List<Map<String,String>> filteredList = null;
             for (Map<String,String> entry : orgList) {
-                if (module.equals(entry.get("module")) && (bean == null || bean.equals(entry.get("EJB")))) {
+                // The data also has a column called "module", but it contains the display name of the
+                // module, which is not what we use to identify a module. We extract the module name from
+                // the uri, which is "<name>.war,WEB-INF/web.xml" or "<name>.jar,META-INF/ejb-jar.xml".
+                String uri = entry.get("uri");
+                int idx = uri.indexOf(',');
+                if (module.equals(uri.substring(0, idx)) && (bean == null || bean.equals(entry.get("EJB")))) {
                     if (filteredList == null) {
                         filteredList = new ArrayList<Map<String,String>>();
                     }
