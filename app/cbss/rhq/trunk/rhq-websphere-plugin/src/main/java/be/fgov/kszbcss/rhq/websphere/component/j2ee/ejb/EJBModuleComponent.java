@@ -27,14 +27,6 @@ public class EJBModuleComponent extends ModuleComponent {
                 for (Element bean : Utils.getElements(beans, "session")) {
                     Element sessionType = Utils.getFirstElement(bean, "session-type");
                     if (sessionType == null || sessionType.getTextContent().equals(typeString)) {
-                        // Filter out startup beans. There is not much useful monitoring that can be done
-                        // on these particular beans.
-                        if (type == EnterpriseBeanType.STATELESS_SESSION) {
-                            Element remote = Utils.getFirstElement(bean, "remote");
-                            if (remote != null && remote.getTextContent().equals("com.ibm.websphere.startupservice.AppStartUp")) {
-                                continue;
-                            }
-                        }
                         names.add(Utils.getFirstElement(bean, "ejb-name").getTextContent());
                     }
                 }
