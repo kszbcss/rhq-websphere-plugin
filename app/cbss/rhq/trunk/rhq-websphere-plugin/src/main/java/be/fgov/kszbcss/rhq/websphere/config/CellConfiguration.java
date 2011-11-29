@@ -160,7 +160,7 @@ public class CellConfiguration {
     }
     
     public Map<String,List<Map<String,String>>> getApplicationInfo(final String appName) throws JMException, ConnectorException {
-        return execute(new SessionAction<Map<String,List<Map<String,String>>>>() {
+        Map<String,List<Map<String,String>>> result = execute(new SessionAction<Map<String,List<Map<String,String>>>>() {
             public Map<String,List<Map<String,String>>> execute(ConfigService configService, AppManagement appManagement, Session session) throws JMException, ConnectorException {
                 Vector<AppDeploymentTask> tasks = appManagement.getApplicationInfo(appName, new Hashtable(), session.getSessionId());
                 Map<String,List<Map<String,String>>> result = new HashMap<String,List<Map<String,String>>>();
@@ -182,6 +182,10 @@ public class CellConfiguration {
                 return result;
             }
         });
+        if (log.isDebugEnabled()) {
+            log.debug("Loaded application info for " + appName + ": " + result);
+        }
+        return result;
     }
     
     private void discardSession(boolean destroy) {

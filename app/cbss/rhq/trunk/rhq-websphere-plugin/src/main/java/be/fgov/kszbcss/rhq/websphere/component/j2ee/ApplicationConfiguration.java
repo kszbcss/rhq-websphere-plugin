@@ -28,7 +28,7 @@ public class ApplicationConfiguration implements Serializable {
         } else {
             List<Map<String,String>> filteredList = null;
             for (Map<String,String> entry : orgList) {
-                if (module.equals(entry.get("module")) && bean.equals(entry.get("EJB"))) {
+                if (module.equals(entry.get("module")) && (bean == null || bean.equals(entry.get("EJB")))) {
                     if (filteredList == null) {
                         filteredList = new ArrayList<Map<String,String>>();
                     }
