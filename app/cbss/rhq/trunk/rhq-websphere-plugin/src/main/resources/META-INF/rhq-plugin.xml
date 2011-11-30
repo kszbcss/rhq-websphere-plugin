@@ -2,7 +2,7 @@
 <!DOCTYPE plugin [
 <!-- Resource configuration shared by session beans, MDBs and WAR modules -->
 <!ENTITY deployment-configuration '
-    <resource-configuration>
+    <c:group name="bindings" displayName="Bindings">
         <c:list-property name="messagingDestinationRefs"
                          displayName="Messaging Destinations"
                          description="Messaging Destination References"
@@ -26,7 +26,7 @@
                                    required="false"/>
             </c:map-property>
         </c:list-property>
-    </resource-configuration>
+    </c:group>
 '>
 ]>
 <plugin name="WebSphere"
@@ -328,7 +328,9 @@
                      class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleComponent"
                      description="Web module">
                 
+                <resource-configuration>
                 &deployment-configuration;
+                </resource-configuration>
                 
                 <service name="Servlet"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletDiscoveryComponent"
@@ -376,7 +378,9 @@
                     
                     <event name="LogEvent" description="Logging message"/>
                     
+                    <resource-configuration>
                     &deployment-configuration;
+                    </resource-configuration>
                 </service>
                 <service name="Message Driven Bean"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanDiscoveryComponent"
@@ -400,7 +404,27 @@
                     
                     <event name="LogEvent" description="Logging message"/>
                     
-                    &deployment-configuration;
+                    <resource-configuration>
+                        <c:group name="listener" displayName="Listener Configuration">
+                            <c:simple-property name="activationSpecJndiName"
+                                               displayName="Activation Spec JNDI Name"
+                                               description="The JNDI name of the activation spec"
+                                               required="true"/>
+                            <c:simple-property name="destinationJndiName"
+                                               displayName="Destination JNDI Name"
+                                               description="The JNDI name of the destination"
+                                               required="true"/>
+                            <c:simple-property name="busName"
+                                               displayName="Bus Name"
+                                               description="The name of the SIBus where the destination is located"
+                                               required="false"/>
+                            <c:simple-property name="destinationName"
+                                               displayName="Destination Name"
+                                               description="The name of the SIBus destination"
+                                               required="false"/>
+                        </c:group>
+                        &deployment-configuration;
+                    </resource-configuration>
                 </service>
             </service>
         </service>

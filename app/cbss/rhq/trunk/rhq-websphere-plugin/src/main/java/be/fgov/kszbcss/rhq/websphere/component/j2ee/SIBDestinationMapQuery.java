@@ -31,17 +31,20 @@ public class SIBDestinationMapQuery implements ConfigQuery<SIBDestinationMap> {
         Map<String,SIBDestination> map = new HashMap<String,SIBDestination>();
         for (ConfigObject ra : config.allScopes(node, server).path("J2CResourceAdapter", "SIB JMS Resource Adapter").resolve()) {
             for (ConfigObject adminObject : ra.getChildren("j2cAdminObjects")) {
-                String busName = null;
-                String destinationName = null;
-                for (ConfigObject property : adminObject.getChildren("properties")) {
-                    String propName = (String)property.getAttribute("name");
-                    if (propName.equals("BusName")) {
-                        busName = (String)property.getAttribute("value");
-                    } else if (propName.equals("QueueName")) {
-                        destinationName = (String)property.getAttribute("value");
+                String jndiName = (String)adminObject.getAttribute("jndiName");
+                if (!map.containsKey(jndiName)) {
+                    String busName = null;
+                    String destinationName = null;
+                    for (ConfigObject property : adminObject.getChildren("properties")) {
+                        String propName = (String)property.getAttribute("name");
+                        if (propName.equals("BusName")) {
+                            busName = (String)property.getAttribute("value");
+                        } else if (propName.equals("QueueName")) {
+                            destinationName = (String)property.getAttribute("value");
+                        }
                     }
+                    map.put(jndiName, new SIBDestination(busName, destinationName));
                 }
-                map.put((String)adminObject.getAttribute("jndiName"), new SIBDestination(busName, destinationName));
             }
         }
         if (log.isDebugEnabled()) {

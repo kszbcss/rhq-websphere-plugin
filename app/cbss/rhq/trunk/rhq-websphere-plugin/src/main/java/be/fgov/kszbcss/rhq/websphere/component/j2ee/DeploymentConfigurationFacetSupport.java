@@ -34,8 +34,7 @@ public class DeploymentConfigurationFacetSupport {
         this.beanName = beanName;
     }
 
-    public Configuration loadResourceConfiguration() throws Exception {
-        Configuration configuration = new Configuration();
+    public void loadResourceConfiguration(Configuration configuration) throws Exception {
         ApplicationConfiguration appConfig = application.getConfiguration();
         
         // Normally, messaging destination references are declared using a specific type of entry in the
@@ -92,7 +91,5 @@ public class DeploymentConfigurationFacetSupport {
             }
             configuration.put(list);
         }
-        
-        return configuration;
     }
 }

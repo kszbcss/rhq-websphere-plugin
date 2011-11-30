@@ -75,8 +75,15 @@ public abstract class EnterpriseBeanComponent extends WebSphereServiceComponent<
         }
     }
 
-    public Configuration loadResourceConfiguration() throws Exception {
-        return configurationFacetSupport.loadResourceConfiguration();
+    public final Configuration loadResourceConfiguration() throws Exception {
+        Configuration configuration = new Configuration();
+        loadResourceConfiguration(configuration);
+        return configuration;
+    }
+    
+    // May be overridden in subclasses to add configurations specific to bean types
+    protected void loadResourceConfiguration(Configuration configuration) throws Exception {
+        configurationFacetSupport.loadResourceConfiguration(configuration);
     }
 
     public void updateResourceConfiguration(ConfigurationUpdateReport report) {

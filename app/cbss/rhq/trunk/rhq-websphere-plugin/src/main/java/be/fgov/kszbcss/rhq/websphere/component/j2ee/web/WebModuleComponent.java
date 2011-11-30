@@ -40,7 +40,9 @@ public class WebModuleComponent extends ModuleComponent implements Configuration
     }
 
     public Configuration loadResourceConfiguration() throws Exception {
-        return configurationFacetSupport.loadResourceConfiguration();
+        Configuration configuration = new Configuration();
+        configurationFacetSupport.loadResourceConfiguration(configuration);
+        return configuration;
     }
 
     public void updateResourceConfiguration(ConfigurationUpdateReport report) {
