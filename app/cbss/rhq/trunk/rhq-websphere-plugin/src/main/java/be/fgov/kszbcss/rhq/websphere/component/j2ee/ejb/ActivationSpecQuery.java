@@ -37,17 +37,11 @@ public class ActivationSpecQuery implements ConfigQuery<ActivationSpecs> {
                     if (destinationJndiName != null && destinationJndiName.length() == 0) {
                         destinationJndiName = null;
                     }
-                    String busName = null;
-                    String destinationName = null;
+                    Map<String,Object> properties = new HashMap<String,Object>();
                     for (ConfigObject property : activationSpec.getChildren("resourceProperties")) {
-                        String propName = (String)property.getAttribute("name");
-                        if (propName.equals("busName")) {
-                            busName = (String)property.getAttribute("value");
-                        } else if (propName.equals("destinationName")) {
-                            destinationName = (String)property.getAttribute("value");
-                        }
+                        properties.put((String)property.getAttribute("name"), property.getAttribute("value"));
                     }
-                    map.put(jndiName, new ActivationSpecInfo(destinationJndiName, busName, destinationName));
+                    map.put(jndiName, new ActivationSpecInfo(destinationJndiName, properties));
                 }
             }
         }

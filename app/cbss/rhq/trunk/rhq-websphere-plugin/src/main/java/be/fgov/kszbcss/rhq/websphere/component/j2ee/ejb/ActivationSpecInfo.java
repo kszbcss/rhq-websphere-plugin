@@ -1,34 +1,30 @@
 package be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Map;
 
 public class ActivationSpecInfo implements Serializable {
-    private static final long serialVersionUID = -8038983088637379941L;
+    private static final long serialVersionUID = -6772635832761203196L;
     
     private final String destinationJndiName;
-    private final String busName;
-    private final String destinationName;
+    private final Map<String,Object> properties;
 
-    public ActivationSpecInfo(String destinationJndiName, String busName, String destinationName) {
+    public ActivationSpecInfo(String destinationJndiName, Map<String,Object> properties) {
         this.destinationJndiName = destinationJndiName;
-        this.busName = busName;
-        this.destinationName = destinationName;
+        this.properties = properties;
     }
 
     public String getDestinationJndiName() {
         return destinationJndiName;
     }
 
-    public String getBusName() {
-        return busName;
-    }
-
-    public String getDestinationName() {
-        return destinationName;
+    public Map<String, Object> getProperties() {
+        return Collections.unmodifiableMap(properties);
     }
 
     @Override
     public String toString() {
-        return "[destinationJndiName=" + destinationJndiName + ",busName=" + busName + ",destinationName=" + destinationName + "]";
+        return "[destinationJndiName=" + destinationJndiName + ",properties=" + properties + "]";
     }
 }

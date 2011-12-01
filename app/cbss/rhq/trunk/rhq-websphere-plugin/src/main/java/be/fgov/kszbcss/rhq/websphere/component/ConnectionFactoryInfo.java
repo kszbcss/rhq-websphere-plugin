@@ -13,7 +13,7 @@ public final class ConnectionFactoryInfo implements Serializable {
     private final String jndiName;
     private final Map<String,Object> properties;
     
-    public ConnectionFactoryInfo(String id, String providerName, String name, String jndiName, Map<String,Object> properties) {
+    ConnectionFactoryInfo(String id, String providerName, String name, String jndiName, Map<String,Object> properties) {
         this.id = id;
         this.providerName = providerName;
         this.name = name;

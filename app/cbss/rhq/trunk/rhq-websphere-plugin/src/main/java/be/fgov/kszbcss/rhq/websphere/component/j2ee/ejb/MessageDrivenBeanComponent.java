@@ -84,21 +84,20 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent implemen
         Map<String,String> binding = data.get(0);
         String activationSpecJndiName = binding.get("JNDI");
         String destinationJndiName = binding.get("jndi.dest");
+        ActivationSpecInfo activationSpec = server.queryConfig(new ActivationSpecQuery(server.getNode(), server.getServer())).getActivationSpec(activationSpecJndiName);
         String busName = null;
         String destinationName = null;
         if (destinationJndiName != null && destinationJndiName.length() == 0) {
             destinationJndiName = null;
         }
-        if (destinationJndiName == null) {
+        if (destinationJndiName == null && activationSpec != null) {
             // In this case, the destination is specified in the activation spec
-            ActivationSpecInfo activationSpec = server.queryConfig(new ActivationSpecQuery(server.getNode(), server.getServer())).getActivationSpec(activationSpecJndiName);
-            if (activationSpec != null) {
-                destinationJndiName = activationSpec.getDestinationJndiName();
-                if (destinationJndiName == null) {
-                    // This case occurs e.g. for activation specs created automatically for SCA modules in WPS
-                    busName = activationSpec.getBusName();
-                    destinationName = activationSpec.getDestinationName();
-                }
+            destinationJndiName = activationSpec.getDestinationJndiName();
+            if (destinationJndiName == null) {
+                // This case occurs e.g. for activation specs created automatically for SCA modules in WPS
+                Map<String,Object> properties = activationSpec.getProperties();
+                busName = (String)properties.get("busName");
+                destinationName = (String)properties.get("destinationName");
             }
         }
         if (destinationJndiName != null) {
@@ -113,6 +112,10 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent implemen
         configuration.put(new PropertySimple("destinationJndiName", destinationJndiName));
         configuration.put(new PropertySimple("busName", busName));
         configuration.put(new PropertySimple("destinationName", destinationName));
+        if (activationSpec != null) {
+            Map<String,Object> properties = activationSpec.getProperties();
+            configuration.put(new PropertySimple("maxConcurrency", properties.get("maxConcurrency")));
+        }
     }
 
     public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {

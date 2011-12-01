@@ -422,6 +422,10 @@
                                                displayName="Destination Name"
                                                description="The name of the SIBus destination"
                                                required="false" readOnly="true"/>
+                            <c:simple-property name="maxConcurrency"
+                                               displayName="Max Concurrency"
+                                               description="Maximum concurrent endpoints"
+                                               required="false" readOnly="true" type="integer"/>
                         </c:group>
                         &deployment-configuration;
                     </resource-configuration>
