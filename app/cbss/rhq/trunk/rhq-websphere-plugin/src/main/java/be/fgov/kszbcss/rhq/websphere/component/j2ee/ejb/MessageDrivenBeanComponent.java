@@ -84,23 +84,35 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent implemen
         Map<String,String> binding = data.get(0);
         String activationSpecJndiName = binding.get("JNDI");
         String destinationJndiName = binding.get("jndi.dest");
+        String busName = null;
+        String destinationName = null;
+        if (destinationJndiName != null && destinationJndiName.length() == 0) {
+            destinationJndiName = null;
+        }
         if (destinationJndiName == null) {
             // In this case, the destination is specified in the activation spec
             ActivationSpecInfo activationSpec = server.queryConfig(new ActivationSpecQuery(server.getNode(), server.getServer())).getActivationSpec(activationSpecJndiName);
             if (activationSpec != null) {
                 destinationJndiName = activationSpec.getDestinationJndiName();
+                if (destinationJndiName == null) {
+                    // This case occurs e.g. for activation specs created automatically for SCA modules in WPS
+                    busName = activationSpec.getBusName();
+                    destinationName = activationSpec.getDestinationName();
+                }
             }
         }
-        configuration.put(new PropertySimple("activationSpecJndiName", activationSpecJndiName));
-        configuration.put(new PropertySimple("destinationJndiName", destinationJndiName));
         if (destinationJndiName != null) {
             SIBDestinationMap sibDestinationMap = server.queryConfig(new SIBDestinationMapQuery(server.getNode(), server.getServer()));
             SIBDestination dest = sibDestinationMap.getSIBDestination(destinationJndiName);
             if (dest != null) {
-                configuration.put(new PropertySimple("busName", dest.getBusName()));
-                configuration.put(new PropertySimple("destinationName", dest.getDestinationName()));
+                busName = dest.getBusName();
+                destinationName = dest.getDestinationName();
             }
         }
+        configuration.put(new PropertySimple("activationSpecJndiName", activationSpecJndiName));
+        configuration.put(new PropertySimple("destinationJndiName", destinationJndiName));
+        configuration.put(new PropertySimple("busName", busName));
+        configuration.put(new PropertySimple("destinationName", destinationName));
     }
 
     public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {

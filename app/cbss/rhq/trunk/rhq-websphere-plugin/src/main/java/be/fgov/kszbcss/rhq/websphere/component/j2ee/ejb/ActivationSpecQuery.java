@@ -29,11 +29,25 @@ public class ActivationSpecQuery implements ConfigQuery<ActivationSpecs> {
 
     public ActivationSpecs execute(CellConfiguration config) throws JMException, ConnectorException {
         Map<String,ActivationSpecInfo> map = new HashMap<String,ActivationSpecInfo>();
-        for (ConfigObject ra : config.allScopes(node, server).path("J2CResourceAdapter", "SIB JMS Resource Adapter").resolve()) {
+        for (ConfigObject ra : config.allScopes(node, server).path("J2CResourceAdapter").resolve()) {
             for (ConfigObject activationSpec : ra.getChildren("j2cActivationSpec")) {
                 String jndiName = (String)activationSpec.getAttribute("jndiName");
                 if (!map.containsKey(jndiName)) {
-                    map.put(jndiName, new ActivationSpecInfo((String)activationSpec.getAttribute("destinationJndiName")));
+                    String destinationJndiName = (String)activationSpec.getAttribute("destinationJndiName");
+                    if (destinationJndiName != null && destinationJndiName.length() == 0) {
+                        destinationJndiName = null;
+                    }
+                    String busName = null;
+                    String destinationName = null;
+                    for (ConfigObject property : activationSpec.getChildren("resourceProperties")) {
+                        String propName = (String)property.getAttribute("name");
+                        if (propName.equals("busName")) {
+                            busName = (String)property.getAttribute("value");
+                        } else if (propName.equals("destinationName")) {
+                            destinationName = (String)property.getAttribute("value");
+                        }
+                    }
+                    map.put(jndiName, new ActivationSpecInfo(destinationJndiName, busName, destinationName));
                 }
             }
         }

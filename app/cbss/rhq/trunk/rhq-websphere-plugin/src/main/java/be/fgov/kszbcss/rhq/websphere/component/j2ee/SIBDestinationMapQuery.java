@@ -29,7 +29,7 @@ public class SIBDestinationMapQuery implements ConfigQuery<SIBDestinationMap> {
 
     public SIBDestinationMap execute(CellConfiguration config) throws JMException, ConnectorException {
         Map<String,SIBDestination> map = new HashMap<String,SIBDestination>();
-        for (ConfigObject ra : config.allScopes(node, server).path("J2CResourceAdapter", "SIB JMS Resource Adapter").resolve()) {
+        for (ConfigObject ra : config.allScopes(node, server).path("J2CResourceAdapter").resolve()) {
             for (ConfigObject adminObject : ra.getChildren("j2cAdminObjects")) {
                 String jndiName = (String)adminObject.getAttribute("jndiName");
                 if (!map.containsKey(jndiName)) {
