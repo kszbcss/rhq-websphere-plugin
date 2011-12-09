@@ -25,7 +25,13 @@ public class CacheComponent extends WebSphereServiceComponent<SIBMessagingEngine
                 "Storage Management", "Cache"));
     }
 
-    public AvailabilityType getAvailability() {
+    @Override
+    protected boolean isConfigured() throws Exception {
+        // The SIB messaging engine cache is always configured
+        return true;
+    }
+
+    protected AvailabilityType doGetAvailability() {
         return AvailabilityType.UP;
     }
 

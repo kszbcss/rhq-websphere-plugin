@@ -65,14 +65,14 @@ public abstract class EnterpriseBeanComponent extends WebSphereServiceComponent<
         measurementFacetSupport.getValues(report, requests);
     }
 
-    public AvailabilityType getAvailability() {
-        // Same as for servlets: we check that the bean is still present in the deployment
-        // descriptor.
-        try {
-            return getModule().getBeanNames(getType()).contains(getBeanName()) ? AvailabilityType.UP : AvailabilityType.DOWN;
-        } catch (Exception ex) {
-            return AvailabilityType.DOWN;
-        }
+    @Override
+    protected boolean isConfigured() throws Exception {
+        return getModule().getBeanNames(getType()).contains(getBeanName());
+    }
+
+    protected AvailabilityType doGetAvailability() {
+        // Same as for servlets: if the bean is configured, then it is expected to be available.
+        return AvailabilityType.UP;
     }
 
     public final Configuration loadResourceConfiguration() throws Exception {

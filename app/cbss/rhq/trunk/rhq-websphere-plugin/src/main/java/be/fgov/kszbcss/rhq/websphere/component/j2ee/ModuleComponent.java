@@ -41,7 +41,12 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
         return getApplication().getApplicationInfo().getModule(getModuleName());
     }
     
-    public AvailabilityType getAvailability() {
+    @Override
+    protected boolean isConfigured() throws Exception {
+        return getModuleInfo() != null;
+    }
+
+    protected AvailabilityType doGetAvailability() {
         try {
             mbean.getAttribute("name");
             return AvailabilityType.UP;

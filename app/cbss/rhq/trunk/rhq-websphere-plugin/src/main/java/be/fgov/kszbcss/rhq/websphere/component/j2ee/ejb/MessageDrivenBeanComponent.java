@@ -53,8 +53,8 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent implemen
     }
 
     @Override
-    public AvailabilityType getAvailability() {
-        AvailabilityType availability = super.getAvailability();
+    protected AvailabilityType doGetAvailability() {
+        AvailabilityType availability = super.doGetAvailability();
         if (availability == AvailabilityType.DOWN) {
             return AvailabilityType.DOWN;
         } else {

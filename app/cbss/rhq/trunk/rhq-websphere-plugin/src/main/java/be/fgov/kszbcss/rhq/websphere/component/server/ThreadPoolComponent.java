@@ -12,6 +12,7 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
+import be.fgov.kszbcss.rhq.websphere.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.support.configuration.ConfigurationFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
@@ -57,7 +58,18 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
         configurationFacetSupport.updateResourceConfiguration(report);
     }
 
-    public AvailabilityType getAvailability() {
+    @Override
+    protected boolean isConfigured() throws Exception {
+        ManagedServer server = getServer();
+        for (ThreadPoolConfiguration threadPool : server.queryConfig(new ThreadPoolQuery(server.getNode(), server.getServer()))) {
+            if (threadPool.getName().equals(getResourceContext().getResourceKey())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected AvailabilityType doGetAvailability() {
         // TODO Auto-generated method stub
         return AvailabilityType.UP;
     }

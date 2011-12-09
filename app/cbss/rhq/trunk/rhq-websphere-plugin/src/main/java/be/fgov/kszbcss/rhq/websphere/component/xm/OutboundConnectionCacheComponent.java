@@ -47,7 +47,13 @@ public class OutboundConnectionCacheComponent extends WebSphereServiceComponent<
         configurationFacetSupport.updateResourceConfiguration(report);
     }
 
-    public AvailabilityType getAvailability() {
+    @Override
+    protected boolean isConfigured() throws Exception {
+        // TODO
+        return true;
+    }
+
+    protected AvailabilityType doGetAvailability() {
         try {
             return mbean.isRegistered() ? AvailabilityType.UP : AvailabilityType.DOWN;
         } catch (Exception ex) {

@@ -22,7 +22,13 @@ public class UnixProcessComponent extends WebSphereServiceComponent<WebSphereSer
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(getServer().getServerMBean(), "ProcStats"));
     }
 
-    public AvailabilityType getAvailability() {
+    @Override
+    protected boolean isConfigured() throws Exception {
+        // TODO
+        return true;
+    }
+
+    protected AvailabilityType doGetAvailability() {
         // TODO Auto-generated method stub
         return AvailabilityType.UP;
     }

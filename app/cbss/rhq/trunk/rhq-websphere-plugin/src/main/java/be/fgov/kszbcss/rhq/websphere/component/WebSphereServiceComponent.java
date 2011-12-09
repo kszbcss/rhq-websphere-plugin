@@ -1,6 +1,7 @@
 package be.fgov.kszbcss.rhq.websphere.component;
 
 import org.mc4j.ems.connection.EmsConnection;
+import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 
@@ -27,4 +28,27 @@ public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>>
     public final ManagedServer getServer() {
         return context.getParentResourceComponent().getServer();
     }
+    
+    /**
+     * Determine whether the resource corresponding to this component is still present in the
+     * WebSphere configuration.
+     * 
+     * @return <code>true</code> if the resource is present in the WebSphere configuration,
+     *         <code>false</code> otherwise
+     * @throws Exception 
+     */
+    protected abstract boolean isConfigured() throws Exception;
+
+    public final AvailabilityType getAvailability() {
+        try {
+            if (!isConfigured()) {
+                return AvailabilityType.DOWN;
+            }
+        } catch (Exception ex) {
+            return AvailabilityType.DOWN;
+        }
+        return doGetAvailability();
+    }
+    
+    protected abstract AvailabilityType doGetAvailability();
 }

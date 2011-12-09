@@ -1,5 +1,6 @@
 package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import javax.management.ObjectName;
@@ -61,7 +62,13 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
         getResourceContext().getParentResourceComponent().unregisterLogEventContext(getApplicationName(), moduleName, componentName);
     }
     
-    public AvailabilityType getAvailability() {
+    @Override
+    protected boolean isConfigured() throws Exception {
+        ManagedServer server = getServer();
+        return Arrays.asList(server.queryConfig(new DeployedApplicationsQuery(server.getNode(), server.getServer()))).contains(getApplicationName());
+    }
+
+    protected AvailabilityType doGetAvailability() {
         try {
             mbean.getAttribute("name");
             return AvailabilityType.UP;

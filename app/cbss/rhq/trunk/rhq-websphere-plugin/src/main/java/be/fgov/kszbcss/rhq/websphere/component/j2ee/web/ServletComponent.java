@@ -40,17 +40,18 @@ public class ServletComponent extends WebSphereServiceComponent<WebModuleCompone
         measurementFacetSupport.getValues(report, requests);
     }
 
-    public AvailabilityType getAvailability() {
+    @Override
+    protected boolean isConfigured() throws Exception {
+        ResourceContext<WebModuleComponent> context = getResourceContext();
+        return context.getParentResourceComponent().getServletNames().contains(context.getResourceKey());
+    }
+
+    protected AvailabilityType doGetAvailability() {
         // The MBean representing the servlet is registered lazily (or not at all if the application is
         // configured with "Create MBeans for resources" disabled). Therefore the only check we can do is
-        // to see if the servlet is declared in the deployment descriptor. This is important so that we
-        // can identify servlets that no longer exist.
-        try {
-            ResourceContext<WebModuleComponent> context = getResourceContext();
-            return context.getParentResourceComponent().getServletNames().contains(context.getResourceKey()) ? AvailabilityType.UP : AvailabilityType.DOWN;
-        } catch (Exception ex) {
-            return AvailabilityType.DOWN;
-        }
+        // to see if the servlet is declared in the deployment descriptor, which is done in the
+        // isConfigured method.
+        return AvailabilityType.UP;
     }
 
     public void stop() {

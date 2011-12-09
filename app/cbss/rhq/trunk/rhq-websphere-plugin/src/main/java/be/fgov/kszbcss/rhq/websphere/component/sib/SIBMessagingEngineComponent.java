@@ -12,6 +12,7 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
+import be.fgov.kszbcss.rhq.websphere.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
@@ -48,7 +49,18 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         return name;
     }
 
-    public AvailabilityType getAvailability() {
+    @Override
+    protected boolean isConfigured() throws Exception {
+        ManagedServer server = getServer();
+        for (SIBMessagingEngineInfo me : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()))) {
+            if (me.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected AvailabilityType doGetAvailability() {
         if (log.isDebugEnabled()) {
             log.debug("Starting to determine availability of messaging engine " + name);
         }

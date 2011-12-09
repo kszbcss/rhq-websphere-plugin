@@ -63,7 +63,12 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
         return server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getByJndiName(jndiName);
     }
     
-    public AvailabilityType getAvailability() {
+    @Override
+    protected boolean isConfigured() throws Exception {
+        return getConnectionFactoryInfo() != null;
+    }
+
+    protected AvailabilityType doGetAvailability() {
         if (log.isDebugEnabled()) {
             log.debug("Starting to determine availability of " + jndiName);
         }
