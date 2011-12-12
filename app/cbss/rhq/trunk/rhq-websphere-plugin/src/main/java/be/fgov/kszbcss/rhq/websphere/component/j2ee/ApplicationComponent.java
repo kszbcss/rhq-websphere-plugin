@@ -12,7 +12,6 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.event.EventContext;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
-import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
@@ -24,7 +23,7 @@ import be.fgov.kszbcss.rhq.websphere.proxy.ApplicationManager;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
-public class ApplicationComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, OperationFacet {
+public class ApplicationComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet {
     private ObjectName pattern;
     private MBeanClient mbean;
     private MeasurementFacetSupport measurementFacetSupport;
@@ -81,7 +80,7 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
         measurementFacetSupport.getValues(report, requests);
     }
 
-    public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("start")) {
             applicationManager.startApplication(getApplicationName());
         } else if (name.equals("stop")) {

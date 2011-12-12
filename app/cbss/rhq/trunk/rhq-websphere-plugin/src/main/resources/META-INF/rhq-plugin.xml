@@ -28,6 +28,13 @@
         </c:list-property>
     </c:group>
 '>
+<!ENTITY isConfigured-operation '
+    <operation name="checkConfiguration" description="Determines if the resource is still configured in the WebSphere configuration. Useful to determine if a resource should be uninventoried automatically.">
+        <results>
+            <c:simple-property name="isConfigured" displayName="Is Configured" type="boolean"/>
+        </results>
+    </operation>
+'>
 ]>
 <plugin name="WebSphere"
         displayName="WebSphere Application Server"
@@ -110,7 +117,9 @@
                  discovery="be.fgov.kszbcss.rhq.websphere.component.server.ThreadPoolDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.server.ThreadPoolComponent"
                  description="WebSphere Thread Pool">
-    
+            
+            &isConfigured-operation;
+            
             <metric property="stats.PoolSize" displayName="Pool size"
                     category="utilization" displayType="summary" defaultInterval="600000"
                     description="The average number of threads in a pool."/>
@@ -157,6 +166,7 @@
                  class="be.fgov.kszbcss.rhq.websphere.component.server.DynaCacheComponent"
                  description="WebSphere Dynamic Cache">
     
+            &isConfigured-operation;
             <operation name="clearCache" description="Clear the cache."/>
             
             <metric property="CacheHits" displayName="Cache Hits"
@@ -173,6 +183,8 @@
                  discovery="be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceComponent"
                  description="Datasource">
+            &isConfigured-operation;
+            
             <metric property="stats.PoolSize" displayName="Pool size"
                     category="utilization" displayType="summary" defaultInterval="600000"
                     description="The size of the connection pool."/>
@@ -271,6 +283,8 @@
                  discovery="be.fgov.kszbcss.rhq.websphere.component.j2c.J2CConnectionFactoryDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.j2c.J2CConnectionFactoryComponent"
                  description="Datasource">
+            &isConfigured-operation;
+            
             <metric property="stats.PoolSize" displayName="Pool size"
                     category="utilization" displayType="summary" defaultInterval="600000"
                     description="The size of the connection pool."/>
@@ -314,6 +328,7 @@
                  class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ApplicationComponent"
                  description="Application (EAR)">
             
+            &isConfigured-operation;
             <operation name="start" description="Start the application."/>
             <operation name="stop" description="Stop the application."/>
             
@@ -328,6 +343,8 @@
                      class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleComponent"
                      description="Web module">
                 
+                &isConfigured-operation;
+            
                 <resource-configuration>
                 &deployment-configuration;
                 </resource-configuration>
@@ -365,10 +382,14 @@
                      class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.EJBModuleComponent"
                      description="EJB module">
                 
+                &isConfigured-operation;
+            
                 <service name="Stateless Session Bean"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanDiscoveryComponent"
                          class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanComponent"
                          description="Stateless Session Bean">
+                    &isConfigured-operation;
+                
                     <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
                             category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                             description="The average response time in milliseconds on the remote methods of the bean"/>
@@ -386,6 +407,7 @@
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanDiscoveryComponent"
                          class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanComponent"
                          description="Message Driven Bean">
+                    &isConfigured-operation;
                     <operation name="pause" description="Deactivate the Message Endpoint for this MDB."/>
                     <operation name="resume" description="Activate the Message Endpoint for this MDB."/>
                     
@@ -438,6 +460,8 @@
                  class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBMessagingEngineComponent"
                  description="SIBus Messaging Engine">
             
+            &isConfigured-operation;
+        
             <metric property="health" displayName="Health" dataType="trait"
                     displayType="summary" defaultOn="true"
                     description="The current Health of the Messaging Engine."/>
@@ -466,6 +490,8 @@
                      discovery="be.fgov.kszbcss.rhq.websphere.component.sib.SIBQueuePointDiscoveryComponent"
                      class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBQueuePointComponent"
                      description="SIBus Queue">
+                
+                &isConfigured-operation;
                 
                 <metric property="stats.TotalMessagesProducedCount" displayName="Total Msg. Produced"
                         category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"

@@ -10,7 +10,6 @@ import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
-import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
@@ -22,7 +21,7 @@ import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
 
 import com.ibm.websphere.pmi.PmiConstants;
 
-public class MessageDrivenBeanComponent extends EnterpriseBeanComponent implements OperationFacet {
+public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
     private static final Log log = LogFactory.getLog(MessageDrivenBeanComponent.class);
     
     private J2CMessageEndpoint endpoint;
@@ -118,7 +117,7 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent implemen
         }
     }
 
-    public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("pause")) {
             endpoint.pause();
         } else if (name.equals("resume")) {
