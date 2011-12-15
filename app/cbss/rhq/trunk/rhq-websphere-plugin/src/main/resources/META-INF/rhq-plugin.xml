@@ -113,6 +113,25 @@
                     description="The number of file descriptors used by the process."/>
         </service>
         
+        <service name="Class Loader Stats"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.xm.ClassLoaderStatsDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.xm.ClassLoaderStatsComponent"
+                 description="Class Loader Statistics"
+                 singleton="true">
+            <metric property="stats.CreateCount" displayName="Create Count"
+                    category="utilization" defaultInterval="600000" defaultOn="false"
+                    description="The number of application and module class loaders created."/>
+            <metric property="stats.StopCount" displayName="Stop Count"
+                    category="utilization" defaultInterval="600000" defaultOn="false"
+                    description="The number of class loaders for modules that have been stopped."/>
+            <metric property="stats.DestroyedCount" displayName="Destroyed Count"
+                    category="utilization" defaultInterval="600000" defaultOn="false"
+                    description="The number of application and module class loaders that have been destroyed (garbage collected)."/>
+            <metric property="stats.LeakedCount" displayName="Leaked Count" defaultOn="true"
+                    category="utilization" displayType="summary" defaultInterval="600000"
+                    description="The number of leaked class loaders."/>
+        </service>
+        
         <service name="Thread Pool"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.server.ThreadPoolDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.server.ThreadPoolComponent"

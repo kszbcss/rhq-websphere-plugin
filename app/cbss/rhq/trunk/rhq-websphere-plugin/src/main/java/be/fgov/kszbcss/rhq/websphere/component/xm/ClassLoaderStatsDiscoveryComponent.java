@@ -1,18 +1,18 @@
 package be.fgov.kszbcss.rhq.websphere.component.xm;
 
-public class UnixProcessDiscoveryComponent extends SingletonPMIModuleDiscoveryComponent {
+public class ClassLoaderStatsDiscoveryComponent extends SingletonPMIModuleDiscoveryComponent {
     @Override
     protected String getPMIModuleName() {
-        return "ProcStats";
+        return "ClassLoaderStats";
     }
 
     @Override
     protected String getResourceDescription() {
-        return "UNIX Process";
+        return "Class Loader Stats";
     }
 
     @Override
     protected String getResourceName() {
-        return "UNIX Process Statistics";
+        return "Class Loader Statistics";
     }
 }
