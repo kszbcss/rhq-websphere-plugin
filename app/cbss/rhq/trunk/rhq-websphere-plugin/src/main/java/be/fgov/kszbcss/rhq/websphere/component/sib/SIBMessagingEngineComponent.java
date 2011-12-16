@@ -68,9 +68,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         try {
             state = getState();
         } catch (Exception ex) {
-            if (log.isDebugEnabled()) {
-                log.debug("Failed to get messaging engine state => messaging engine DOWN", ex);
-            }
+            log.debug("Failed to get messaging engine state => messaging engine DOWN", ex);
             return AvailabilityType.DOWN;
         }
         if (log.isDebugEnabled()) {
@@ -78,18 +76,17 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         }
         if (state == null) {
             // We get here if SIBMain#showMessagingEngines doesn't list the messaging engine
-            if (log.isDebugEnabled()) {
-                log.debug("Failed to get messaging engine state => messaging engine DOWN");
-            }
+            log.debug("Failed to get messaging engine state => messaging engine DOWN");
+            return AvailabilityType.DOWN;
+        } else if (state.equals("Stopped")) {
+            log.debug("Messaging engine is in state Stopped => messaging engine DOWN");
             return AvailabilityType.DOWN;
         } else if (state.equals("Started")) {
             String health;
             try {
                 health = sibMessagingEngine.getHealth();
             } catch (Exception ex) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Failed to get messaging engine health => messaging engine DOWN", ex);
-                }
+                log.debug("Failed to get messaging engine health => messaging engine DOWN", ex);
                 return AvailabilityType.DOWN;
             }
             if (log.isDebugEnabled()) {
@@ -97,9 +94,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
             }
             return health.equals("State=OK") ? AvailabilityType.UP : AvailabilityType.DOWN;
         } else if (state.equals("Joined")) {
-            if (log.isDebugEnabled()) {
-                log.debug("Messaging engine is in state Joined => messaging engine UP");
-            }
+            log.debug("Messaging engine is in state Joined => messaging engine UP");
             return AvailabilityType.UP;
         } else {
             log.error("Unknown state " + state + " for messaging engine " + name);
