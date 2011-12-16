@@ -82,6 +82,8 @@
         </plugin-configuration>
         
         <operation name="restart" description="Restart the server process."/>
+        <operation name="pauseAllMessageEndpoints" description="Pause all J2C message endpoints on this server."/>
+        <operation name="resumeAllMessageEndpoints" description="Resume all J2C message endpoints on this server."/>
         
         <metric property="pid" displayName="PID" dataType="trait"
                 displayType="summary" defaultOn="true"

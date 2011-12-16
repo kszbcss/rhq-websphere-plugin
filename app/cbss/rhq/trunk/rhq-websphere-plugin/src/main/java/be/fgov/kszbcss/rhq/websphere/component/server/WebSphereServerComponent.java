@@ -50,6 +50,7 @@ import be.fgov.kszbcss.rhq.websphere.component.server.log.none.NoneLoggingProvid
 import be.fgov.kszbcss.rhq.websphere.component.server.log.ras.RasLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.xm.ExtendedLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
+import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
 import be.fgov.kszbcss.rhq.websphere.proxy.Server;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
@@ -198,6 +199,23 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         Server server = getServer().getServerMBean().getProxy(Server.class);
         if (name.equals("restart")) {
             server.restart();
+        } else if (name.equals("pauseAllMessageEndpoints")) {
+            changeMessageEndpointState(true);
+        } else if (name.equals("resumeAllMessageEndpoints")) {
+            changeMessageEndpointState(false);
+        }
+        return null;
+    }
+    
+    private OperationResult changeMessageEndpointState(boolean pause) throws Exception {
+        AdminClient adminClient = getServer().getAdminClient();
+        for (ObjectName endpointObjectName : adminClient.queryNames(new ObjectName("WebSphere:type=J2CMessageEndpoint,*"), null)) {
+            J2CMessageEndpoint endpoint = getServer().getMBeanClient(endpointObjectName).getProxy(J2CMessageEndpoint.class);
+            if (pause) {
+                endpoint.pause();
+            } else {
+                endpoint.resume();
+            }
         }
         return null;
     }
