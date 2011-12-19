@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.rhq.websphere.component.server;
+package be.fgov.kszbcss.rhq.websphere.component.pme;
 
 import java.util.Set;
 
@@ -15,12 +15,11 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.component.ThreadPoolPMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
+import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.support.configuration.ConfigurationFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
-import com.ibm.websphere.pmi.PmiConstants;
-
-public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, ConfigurationFacet {
+public class WorkManagerComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, ConfigurationFacet {
     private MeasurementFacetSupport measurementFacetSupport;
     private ConfigurationFacetSupport configurationFacetSupport;
     
@@ -28,12 +27,12 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
     protected void start() throws InvalidPluginConfigurationException, Exception {
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        String name = context.getResourceKey();
-        // We don't use the ThreadPool mbean here because for some thread pools, no MBean is created
-        // by the server (see the design document for more details).
-        measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(getServer().getServerMBean(), PmiConstants.THREADPOOL_MODULE, name));
+        ManagedServer server = getServer();
+        String jndiName = context.getResourceKey();
+        measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(server.getServerMBean(),
+                new WorkManagerThreadPoolPMIModuleSelector(server, jndiName)));
         configurationFacetSupport = new ConfigurationFacetSupport(this,
-                getServer().getMBeanClient("WebSphere:type=ThreadPool,name=" + name + ",*"));
+                server.getMBeanClient(new WorkManagerThreadPoolMBeanLocator(jndiName)));
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
@@ -51,12 +50,7 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
     @Override
     protected boolean isConfigured() throws Exception {
         ManagedServer server = getServer();
-        for (ThreadPoolConfiguration threadPool : server.queryConfig(new ThreadPoolQuery(server.getNode(), server.getServer()))) {
-            if (threadPool.getName().equals(getResourceContext().getResourceKey())) {
-                return true;
-            }
-        }
-        return false;
+        return server.queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer())).containsKey(getResourceContext().getResourceKey());
     }
 
     protected AvailabilityType doGetAvailability() {

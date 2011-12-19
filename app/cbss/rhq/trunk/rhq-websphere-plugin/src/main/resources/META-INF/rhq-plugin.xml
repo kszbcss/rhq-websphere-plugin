@@ -35,6 +35,49 @@
         </results>
     </operation>
 '>
+<!ENTITY threadpool-metrics '
+    <metric property="stats.PoolSize" displayName="Pool size"
+            category="utilization" displayType="summary" defaultInterval="600000"
+            description="The average number of threads in a pool."/>
+    <metric property="stats.PercentMaxed" displayName="&#37; Maxed"
+            category="utilization" units="percentage" defaultInterval="600000"
+            description="The average percent of the time that all threads are in use."/>
+    <metric property="stats.ConcurrentHungThreadCount" displayName="Hung Thread Count"
+            category="performance" displayType="summary" defaultInterval="600000"
+            description="The number of concurrently stopped threads."/>
+    <metric property="stats.ActiveTime" displayName="Avg. Active Time"
+            category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+            description="The average time in milliseconds that the threads are in active state."/>
+    <metric property="stats.CreateCount" displayName="Threads created"
+            category="utilization" defaultInterval="600000" measurementType="trendsup"
+            description="The total number of threads that are created."/>
+    <metric property="stats.DestroyCount" displayName="Threads destroyed"
+            category="utilization" defaultInterval="600000" measurementType="trendsup"
+            description="The total number of threads that are destroyed."/>
+    <!-- Since ActiveCount may fluctuate rapidly and only gives a snapshot value,
+         we use a lower default interval, but don t enable the metric by default -->
+    <metric property="stats.ActiveCount" displayName="Active Threads"
+            category="utilization" defaultInterval="60000"
+            description="The number of concurrently active threads."/>
+    <metric property="stats.DeclaredThreadHungCount" displayName="Threads Declared Hung"
+            category="performance" defaultInterval="600000" measurementType="trendsup"
+            description="The number of threads that are declared stopped."/>
+    <metric property="stats.ClearedThreadHangCount" displayName="Hung Threads Cleared"
+            category="performance" defaultInterval="600000" measurementType="trendsup"
+            description="The number of thread stops that cleared."/>
+'>
+<!ENTITY threadpool-configuration '
+    <resource-configuration>
+        <c:simple-property name="minimumSize" displayName="Minimum Size" type="integer"
+                           description="Minimum size of the thread pool."/>
+        <c:simple-property name="maximumSize" displayName="Maximum Size" type="integer"
+                           description="Maximum size of the thread pool."/>
+        <c:simple-property name="inactivityTimeout" displayName="Inactivity Timeout" type="long"
+                           description="The number of milliseconds to keep threads alive waiting for a new request (-1 = infinite, 0 = immediate)."/>
+        <c:simple-property name="growable" displayName="Growable" type="boolean"
+                           description="Allow the thread pool to grow past the maximum size."/>
+    </resource-configuration>
+'>
 ]>
 <plugin name="WebSphere"
         displayName="WebSphere Application Server"
@@ -140,48 +183,20 @@
                  description="WebSphere Thread Pool">
             
             &isConfigured-operation;
-            
-            <metric property="stats.PoolSize" displayName="Pool size"
-                    category="utilization" displayType="summary" defaultInterval="600000"
-                    description="The average number of threads in a pool."/>
-            <metric property="stats.PercentMaxed" displayName="% Maxed"
-                    category="utilization" units="percentage" defaultInterval="600000"
-                    description="The average percent of the time that all threads are in use."/>
-            <metric property="stats.ConcurrentHungThreadCount" displayName="Hung Thread Count"
-                    category="performance" displayType="summary" defaultInterval="600000"
-                    description="The number of concurrently stopped threads."/>
-            <metric property="stats.ActiveTime" displayName="Avg. Active Time"
-                    category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
-                    description="The average time in milliseconds that the threads are in active state."/>
-            <metric property="stats.CreateCount" displayName="Threads created"
-                    category="utilization" defaultInterval="600000" measurementType="trendsup"
-                    description="The total number of threads that are created."/>
-            <metric property="stats.DestroyCount" displayName="Threads destroyed"
-                    category="utilization" defaultInterval="600000" measurementType="trendsup"
-                    description="The total number of threads that are destroyed."/>
-            <!-- Since ActiveCount may fluctuate rapidly and only gives a snapshot value,
-                 we use a lower default interval, but don't enable the metric by default -->
-            <metric property="stats.ActiveCount" displayName="Active Threads"
-                    category="utilization" defaultInterval="60000"
-                    description="The number of concurrently active threads."/>
-            <metric property="stats.DeclaredThreadHungCount" displayName="Threads Declared Hung"
-                    category="performance" defaultInterval="600000" measurementType="trendsup"
-                    description="The number of threads that are declared stopped."/>
-            <metric property="stats.ClearedThreadHangCount" displayName="Hung Threads Cleared"
-                    category="performance" defaultInterval="600000" measurementType="trendsup"
-                    description="The number of thread stops that cleared."/>
-
-            <resource-configuration>
-                <c:simple-property name="minimumSize" displayName="Minimum Size" type="integer"
-                                   description="Minimum size of the thread pool."/>
-                <c:simple-property name="maximumSize" displayName="Maximum Size" type="integer"
-                                   description="Maximum size of the thread pool."/>
-                <c:simple-property name="inactivityTimeout" displayName="Inactivity Timeout" type="long"
-                                   description="The number of milliseconds to keep threads alive waiting for a new request (-1 = infinite, 0 = immediate)."/>
-                <c:simple-property name="growable" displayName="Growable" type="boolean"
-                                   description="Allow the thread pool to grow past the maximum size."/>
-            </resource-configuration>
+            &threadpool-metrics;
+            &threadpool-configuration;
         </service>
+        
+        <service name="Work Manager"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.pme.WorkManagerDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.pme.WorkManagerComponent"
+                 description="WebSphere Work Manager">
+            
+            &isConfigured-operation;
+            &threadpool-metrics;
+            &threadpool-configuration;
+        </service>
+        
         <service name="DynaCache"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.server.DynaCacheDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.server.DynaCacheComponent"
