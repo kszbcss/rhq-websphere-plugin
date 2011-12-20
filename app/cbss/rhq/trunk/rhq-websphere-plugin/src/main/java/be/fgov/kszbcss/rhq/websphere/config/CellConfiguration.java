@@ -162,7 +162,8 @@ public class CellConfiguration {
     public Map<String,List<Map<String,String>>> getApplicationInfo(final String appName) throws JMException, ConnectorException {
         Map<String,List<Map<String,String>>> result = execute(new SessionAction<Map<String,List<Map<String,String>>>>() {
             public Map<String,List<Map<String,String>>> execute(ConfigService configService, AppManagement appManagement, Session session) throws JMException, ConnectorException {
-                Vector<AppDeploymentTask> tasks = appManagement.getApplicationInfo(appName, new Hashtable(), session.getSessionId());
+                // workspaceId = session.toString() as explained in the Javadoc of SessionAction
+                Vector<AppDeploymentTask> tasks = appManagement.getApplicationInfo(appName, new Hashtable(), session.toString());
                 Map<String,List<Map<String,String>>> result = new HashMap<String,List<Map<String,String>>>();
                 for (AppDeploymentTask task : tasks) {
                     // The task data is organized as a table where the first row is a header

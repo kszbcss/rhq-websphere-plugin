@@ -10,12 +10,9 @@ import com.ibm.websphere.management.exception.ConnectorException;
 
 /**
  * An action that is executed in the context of a {@link Session}. This applies to methods of the
- * <tt>ConfigService</tt> and <tt>AppManagement</tt> MBeans. Note that the workspace ID in the
- * <tt>AppManagement</tt> API is the same as the session ID, as implied by the following quote from
- * the WebSphere documentation:
- * <blockquote>
- * Every method on the AppMangement interface takes session ID (workspace ID) as the last parameter.
- * </blockquote>
+ * <tt>ConfigService</tt> and <tt>AppManagement</tt> MBeans. Note that the workspace ID used by the
+ * <tt>AppManagement</tt> API can be derived from the {@link Session} object by calling
+ * {@link Session#toString()} (it is the concatenation of the user name and session ID).
  * 
  * @param <T>
  *            the result type for the action
