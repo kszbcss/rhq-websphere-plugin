@@ -1,5 +1,6 @@
 package be.fgov.kszbcss.rhq.websphere.xm.occ;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -19,6 +20,7 @@ public class OutboundConnectionCacheMonitor extends StatisticActions {
     private final Object outboundConnectionCache;
     private final Method maxConnectionMethod;
     private final Method connTimeoutMethod;
+    private final Field chainlistField;
     private final Method connectionsInUseMethod;
     private final Method poolSizeMethod;
     private SPIBoundedRangeStatistic connectionsInUseStatistic;
@@ -29,6 +31,9 @@ public class OutboundConnectionCacheMonitor extends StatisticActions {
         // maxConnection and connTimeout are public methods
         maxConnectionMethod = outboundConnectionCacheClass.getMethod("maxConnection");
         connTimeoutMethod = outboundConnectionCacheClass.getMethod("connTimeout");
+        // chainlist is a private field
+        chainlistField = outboundConnectionCacheClass.getDeclaredField("chainlist");
+        chainlistField.setAccessible(true);
         // connectionsInUse and poolSize are protected methods -> need to use getDeclaredMethod
         // instead of getMethod and override access modifier
         connectionsInUseMethod = outboundConnectionCacheClass.getDeclaredMethod("connectionsInUse");
@@ -88,7 +93,11 @@ public class OutboundConnectionCacheMonitor extends StatisticActions {
     
     private void updateStatistic(SPIBoundedRangeStatistic statistic, Method method) {
         try {
-            statistic.set((Integer)method.invoke(outboundConnectionCache));
+            // The poolSize and connectionsInUse methods are unsynchronized but the code in
+            // OutboundConnectionCache always synchronizes on the chainlist
+            synchronized (chainlistField.get(outboundConnectionCache)) {
+                statistic.set((Integer)method.invoke(outboundConnectionCache));
+            }
         } catch (IllegalAccessException ex) {
             log.error("Unable to update statistic " + statistic.getName(), ex);
         } catch (InvocationTargetException ex) {
