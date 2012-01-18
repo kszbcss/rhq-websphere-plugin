@@ -1,7 +1,12 @@
 package be.fgov.kszbcss.rhq.websphere.support.measurement;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,11 +31,19 @@ import com.ibm.websphere.pmi.stat.WSStatistic;
 import com.ibm.websphere.pmi.stat.WSStats;
 
 public class PMIMeasurementHandler implements MeasurementGroupHandler {
+    private static long STAT_ENABLE_ATTEMPT_INTERVAL = 12*3600*1000;
+    
     private static final Log log = LogFactory.getLog(PMIMeasurementHandler.class);
     
     private final MBeanClient mbean;
     private final PMIModuleSelector moduleSelector;
     private final Map<String,WSAverageStatistic> lastStats = new HashMap<String,WSAverageStatistic>();
+    
+    /**
+     * Records failed attempts to enable a statistic. The key is the dataId of the statistic, and
+     * the value is the timestamp of the last attempt to enable the statistic.
+     */
+    private final Map<Integer,Long> failedAttemptsToEnableStat = new HashMap<Integer,Long>();
     
     public PMIMeasurementHandler(MBeanClient mbean, String... path) {
         this(mbean, new StaticPMIModuleSelector(path));
@@ -41,7 +54,19 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
         this.moduleSelector = moduleSelector;
     }
 
+    private void purgeFailedAttemptsToEnableStat() {
+        long currentTime = System.currentTimeMillis();
+        for (Iterator<Long> it = failedAttemptsToEnableStat.values().iterator(); it.hasNext(); ) {
+            // Purge every 12h
+            if (currentTime > it.next() + STAT_ENABLE_ATTEMPT_INTERVAL) {
+                it.remove();
+            }
+        }
+    }
+    
     public void getValues(WebSphereServer server, MeasurementReport report, Map<String,MeasurementScheduleRequest> requests) {
+        purgeFailedAttemptsToEnableStat();
+        
         ObjectName objectName;
         try {
             objectName = mbean.getObjectName(true); // TODO: we could first try with the cached name
@@ -93,11 +118,18 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
             // automatically enable the statistics if necessary.
             WSStatistic statistic = stats.getStatistic(dataId);
             if (statistic == null) {
-                log.info("Statistic with name " + statisticName + " (ID " + dataId + ") not available; will attempt to enable it");
-                if (statisticsToEnable == null) {
-                    statisticsToEnable = new HashSet<Integer>();
+                if (failedAttemptsToEnableStat.containsKey(dataId)) {
+                    if (log.isDebugEnabled()) {
+                        Date nextAttempt = new Date(failedAttemptsToEnableStat.get(dataId) + STAT_ENABLE_ATTEMPT_INTERVAL);
+                        log.debug("Statistic with name " + statisticName + " (ID " + dataId + ") not available, but a previous attempt to enable the statistic failed; will retry at " + SimpleDateFormat.getInstance().format(nextAttempt));
+                    }
+                } else {
+                    log.info("Statistic with name " + statisticName + " (ID " + dataId + ") not available; will attempt to enable it");
+                    if (statisticsToEnable == null) {
+                        statisticsToEnable = new HashSet<Integer>();
+                    }
+                    statisticsToEnable.add(dataId);
                 }
-                statisticsToEnable.add(dataId);
                 continue;
             }
             if (log.isDebugEnabled()) {
@@ -145,7 +177,16 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
             report.addData(new MeasurementDataNumeric(request, value));
         }
         if (statisticsToEnable != null) {
-            server.enableStatistics(descriptor, statisticsToEnable);
+            statisticsToEnable.removeAll(server.enableStatistics(descriptor, statisticsToEnable));
+            if (!statisticsToEnable.isEmpty()) {
+                Long currentTime = System.currentTimeMillis();
+                for (Integer dataId : statisticsToEnable) {
+                    failedAttemptsToEnableStat.put(dataId, currentTime);
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("failedAttemptsToEnable = " + failedAttemptsToEnableStat);
+                }
+            }
         }
     }
     

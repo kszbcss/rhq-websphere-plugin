@@ -253,7 +253,15 @@ public abstract class WebSphereServer {
         }
     }
     
-    public void enableStatistics(MBeanStatDescriptor descriptor, Set<Integer> statisticsToEnable) {
+    /**
+     * 
+     * 
+     * @param descriptor
+     * @param statisticsToEnable
+     * @return the set of statistics that have effectively been enabled; it excludes statistics that
+     *         were already enabled before the call
+     */
+    public Set<Integer> enableStatistics(MBeanStatDescriptor descriptor, Set<Integer> statisticsToEnable) {
         try {
             if (log.isDebugEnabled()) {
                 log.debug("Attempting to enable statistics " + statisticsToEnable + " on " + descriptor);
@@ -263,7 +271,7 @@ public abstract class WebSphereServer {
             MBeanLevelSpec[] specs = perf.getInstrumentationLevel(descriptor, Boolean.FALSE);
             if (specs.length != 1) {
                 log.error("Expected getInstrumentationLevel to return exactly one MBeanLevelSpec object");
-                return;
+                return Collections.emptySet();
             }
             MBeanLevelSpec spec = specs[0];
             if (log.isDebugEnabled()) {
@@ -305,8 +313,11 @@ public abstract class WebSphereServer {
                 
                 log.info("Enabled statistics " + newStats + " on " + descriptor);
             }
+            
+            return newStats;
         } catch (Exception ex) {
             log.error(ex); // TODO
+            return Collections.emptySet();
         }
     }
 }
