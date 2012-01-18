@@ -33,7 +33,7 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
         // by the server (see the design document for more details).
         measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(getServer().getServerMBean(), PmiConstants.THREADPOOL_MODULE, name));
         configurationFacetSupport = new ConfigurationFacetSupport(this,
-                getServer().getMBeanClient("WebSphere:type=ThreadPool,name=" + name + ",*"));
+                getServer().getMBeanClient("WebSphere:type=ThreadPool,name=" + name + ",*"), true);
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {

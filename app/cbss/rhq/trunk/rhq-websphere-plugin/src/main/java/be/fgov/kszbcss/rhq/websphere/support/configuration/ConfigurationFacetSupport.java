@@ -5,6 +5,7 @@ import java.util.Set;
 
 import javax.management.Attribute;
 import javax.management.AttributeList;
+import javax.management.InstanceNotFoundException;
 
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.configuration.ConfigurationUpdateStatus;
@@ -22,10 +23,16 @@ import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 public class ConfigurationFacetSupport implements ConfigurationFacet {
     private final WebSphereComponent<?> component;
     private final MBeanClient mbean;
+    private final boolean ignoreMissingMBean;
     
-    public ConfigurationFacetSupport(WebSphereComponent<?> component, MBeanClient mbean) {
+    public ConfigurationFacetSupport(WebSphereComponent<?> component, MBeanClient mbean, boolean ignoreMissingMBean) {
         this.component = component;
         this.mbean = mbean;
+        this.ignoreMissingMBean = ignoreMissingMBean;
+    }
+    
+    public ConfigurationFacetSupport(WebSphereComponent<?> component, MBeanClient mbean) {
+        this(component, mbean, false);
     }
 
     public Configuration loadResourceConfiguration() throws Exception {
@@ -37,7 +44,19 @@ public class ConfigurationFacetSupport implements ConfigurationFacet {
                 attributeNames.add(property.getName());
             }
         }
-        AttributeList attributes = mbean.getAttributes(attributeNames.toArray(new String[attributeNames.size()]));
+        AttributeList attributes;
+        try {
+            attributes = mbean.getAttributes(attributeNames.toArray(new String[attributeNames.size()]));
+        } catch (InstanceNotFoundException ex) {
+            // In some cases, the MBean is created lazily; we then simply ignore the InstanceNotFoundException
+            // and don't load any configuration
+            if (ignoreMissingMBean) {
+                // TODO: not sure if this is the right way; maybe RHQ will save a new configuration if we do this...
+                return null;
+            } else {
+                throw ex;
+            }
+        }
         for (int i=0; i<attributes.size(); i++) {
             Attribute attribute = (Attribute)attributes.get(i);
             configuration.put(new PropertySimple(attribute.getName(), attribute.getValue()));

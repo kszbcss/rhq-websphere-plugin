@@ -32,7 +32,7 @@ public class WorkManagerComponent extends WebSphereServiceComponent<WebSphereSer
         measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(server.getServerMBean(),
                 new WorkManagerThreadPoolPMIModuleSelector(server, jndiName)));
         configurationFacetSupport = new ConfigurationFacetSupport(this,
-                server.getMBeanClient(new WorkManagerThreadPoolMBeanLocator(jndiName)));
+                server.getMBeanClient(new WorkManagerThreadPoolMBeanLocator(jndiName)), true);
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
