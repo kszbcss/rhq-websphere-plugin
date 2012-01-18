@@ -50,6 +50,12 @@ public class DB2MonitorComponent implements ResourceComponent<DataSourceComponen
         Configuration config = context.getPluginConfiguration();
         principal = config.getSimpleValue("principal", null);
         credentials = config.getSimpleValue("credentials", null);
+        try {
+            Class.forName("com.ibm.db2.jcc.DB2Driver");
+        } catch (ClassNotFoundException ex) {
+            log.error("DB2 monitor unavailable: JDBC driver not present in the class path");
+            throw ex;
+        }
     }
 
     public AvailabilityType getAvailability() {
@@ -66,7 +72,6 @@ public class DB2MonitorComponent implements ResourceComponent<DataSourceComponen
         }
         
         if (connection == null) {
-            Class.forName("com.ibm.db2.jcc.DB2Driver");
             Properties info = new Properties();
             for (Map.Entry<String,Object> entry : dataSourceProps.entrySet()) {
                 Object value = entry.getValue();
@@ -75,8 +80,10 @@ public class DB2MonitorComponent implements ResourceComponent<DataSourceComponen
                 }
             }
             info.setProperty("clientProgramName", "RHQ");
-            info.setProperty("user", principal);
-            info.setProperty("password", credentials);
+            if (principal != null) {
+                info.setProperty("user", principal);
+                info.setProperty("password", credentials);
+            }
             String url = "jdbc:db2://" + info.remove("serverName") + ":" + info.remove("portNumber") + "/" + info.remove("databaseName");
             if (log.isDebugEnabled()) {
                 log.debug("Attempting to connect with URL " + url + " and properties " + info);
