@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE plugin [
 <!-- Resource configuration shared by session beans, MDBs and WAR modules -->
+<!ENTITY logevent-configuration '
+    <c:simple-property name="suppressLogEvents"
+                       displayName="Suppress Log Events"
+                       type="boolean"
+                       description="Suppresses all log events from this component. Useful for components that generate too much events."
+                       required="true"
+                       default="false"/>
+'>
 <!ENTITY deployment-configuration '
     <c:group name="bindings" displayName="Bindings">
         <c:list-property name="messagingDestinationRefs"
@@ -392,6 +400,10 @@
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletDiscoveryComponent"
                          class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletComponent"
                          description="Servlet">
+                    <plugin-configuration>
+                    &logevent-configuration;
+                    </plugin-configuration>                         
+                    
                     <metric property="stats.ServiceTime" displayName="Avg. Servlet Resp. Time"
                             category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                             description="Average response time of a servlet"/>
@@ -420,6 +432,10 @@
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanDiscoveryComponent"
                          class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanComponent"
                          description="Stateless Session Bean">
+                    <plugin-configuration>
+                    &logevent-configuration;
+                    </plugin-configuration>                         
+                    
                     &isConfigured-operation;
                 
                     <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
@@ -439,6 +455,10 @@
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanDiscoveryComponent"
                          class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanComponent"
                          description="Message Driven Bean">
+                    <plugin-configuration>
+                    &logevent-configuration;
+                    </plugin-configuration>                         
+                    
                     &isConfigured-operation;
                     <operation name="pause" description="Deactivate the Message Endpoint for this MDB."/>
                     <operation name="resume" description="Activate the Message Endpoint for this MDB."/>

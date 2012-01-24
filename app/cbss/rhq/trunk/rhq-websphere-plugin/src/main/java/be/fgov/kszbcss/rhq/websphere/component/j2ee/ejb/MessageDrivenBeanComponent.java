@@ -42,11 +42,6 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
     }
 
     @Override
-    protected String getMBeanType() {
-        return "MessageDrivenBean";
-    }
-
-    @Override
     protected String getPMISubmodule() {
         return PmiConstants.EJB_MESSAGEDRIVEN;
     }

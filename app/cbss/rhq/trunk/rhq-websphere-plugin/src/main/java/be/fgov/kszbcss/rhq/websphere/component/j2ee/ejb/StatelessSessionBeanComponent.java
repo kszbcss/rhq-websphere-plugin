@@ -9,11 +9,6 @@ public class StatelessSessionBeanComponent extends EnterpriseBeanComponent {
     }
 
     @Override
-    protected String getMBeanType() {
-        return "StatelessSessionBean";
-    }
-
-    @Override
     protected String getPMISubmodule() {
         return PmiConstants.EJB_STATELESS;
     }

@@ -35,7 +35,8 @@ public interface LoggingProvider {
      * @param key
      *            the key identifying the J2EE application component
      * @param context
-     *            the event context
+     *            the event context or <code>null</code> if no events should be generated for this
+     *            component
      */
     void registerEventContext(J2EEComponentKey key, EventContext context);
     

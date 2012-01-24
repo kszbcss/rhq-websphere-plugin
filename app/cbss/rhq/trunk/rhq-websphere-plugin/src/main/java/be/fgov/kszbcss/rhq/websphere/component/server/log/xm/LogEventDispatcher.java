@@ -75,13 +75,18 @@ class LogEventDispatcher extends TimerTask {
                     if (applicationName == null || moduleName == null || componentName == null) {
                         eventContext = defaultEventContext;
                     } else {
-                        eventContext = eventContexts.get(new J2EEComponentKey(applicationName, moduleName, componentName));
-                        if (eventContext == null) {
+                        J2EEComponentKey key = new J2EEComponentKey(applicationName, moduleName, componentName);
+                        // Note: the value may be null (in which case we don't publish the event)
+                        if (eventContexts.containsKey(key)) {
+                            eventContext = eventContexts.get(key);
+                        } else {
                             eventContext = defaultEventContext;
                         }
                     }
-                    eventPublisher.publishEvent(eventContext, message.getLoggerName(), message.getTimestamp(),
-                            convertLevel(message.getLevel()), message.getMessage());
+                    if (eventContext != null) {
+                        eventPublisher.publishEvent(eventContext, message.getLoggerName(), message.getTimestamp(),
+                                convertLevel(message.getLevel()), message.getMessage());
+                    }
                 }
                 if (firstSequence != -1) {
                     if (log.isDebugEnabled()) {
