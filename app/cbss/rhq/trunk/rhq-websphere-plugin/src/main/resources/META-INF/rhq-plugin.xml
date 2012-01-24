@@ -392,13 +392,6 @@
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletDiscoveryComponent"
                          class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletComponent"
                          description="Servlet">
-                    <plugin-configuration>
-                        <c:simple-property name="objectName" readOnly="true" default="WebSphere:name=%name%,WebModule={moduleName},Application={applicationName},type=Servlet"/>
-                        <c:simple-property name="nameTemplate" default="{name}"/>
-                        <c:simple-property name="descriptionTemplate" default="A servlet."/>
-                        <c:simple-property name="name" readOnly="true" type="string" description="The name of this servlet"/>
-                    </plugin-configuration>
-                    
                     <metric property="stats.ServiceTime" displayName="Avg. Servlet Resp. Time"
                             category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                             description="Average response time of a servlet"/>
