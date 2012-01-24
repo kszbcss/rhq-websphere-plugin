@@ -13,7 +13,7 @@ for (var i = 0; i < resourcePageList.size(); i++) {
 var schedules = new java.util.ArrayList()
 while (!resources.empty || !schedules.empty) {
     // Process resources in chunks to avoid server overload and OOM on the client side
-    while (!resources.empty && schedules.size() < 10) {
+    while (!resources.empty && schedules.size() < 6) {
         var resource = resources.removeFirst()
         var opDefCriteria = new OperationDefinitionCriteria()
         opDefCriteria.setPageControl(PageControl.getUnlimitedInstance())
@@ -37,9 +37,14 @@ while (!resources.empty || !schedules.empty) {
         if (historyList.size() == 1) {
             var history = historyList.get(0)
             if (history.status == OperationRequestStatus.SUCCESS) {
-                if (!history.results.getSimple("isConfigured").booleanValue.booleanValue()) {
-                    println("About to uninventory " + schedule.resource.name + " (" + schedule.resource.id + ")")
-                    ResourceManager.uninventoryResources([schedule.resource.id])
+                if (history.results == null) {
+                    println("No results available for operation on " + schedule.resource.name + " (" + schedule.resource.id + ")")
+                } else {
+                    if (!history.results.getSimple("isConfigured").booleanValue.booleanValue()) {
+                        println("About to uninventory " + schedule.resource.name + " (" + schedule.resource.id + ")")
+                        ResourceManager.uninventoryResources([schedule.resource.id])
+                    }
+                    OperationManager.deleteOperationHistory(history.id, false)
                 }
             } else if (history.status == OperationRequestStatus.INPROGRESS) {
                 println("Deferring operation on " + schedule.resource.name + " (" + schedule.resource.id + "): still in progress")
