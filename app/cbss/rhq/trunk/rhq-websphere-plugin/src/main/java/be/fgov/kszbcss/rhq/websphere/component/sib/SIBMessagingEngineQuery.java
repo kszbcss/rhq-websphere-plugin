@@ -22,7 +22,7 @@ public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineIn
         this.server = server;
     }
 
-    public SIBMessagingEngineInfo[] execute(CellConfiguration config) throws JMException, ConnectorException {
+    public SIBMessagingEngineInfo[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
         List<SIBMessagingEngineInfo> result = new ArrayList<SIBMessagingEngineInfo>();
         for (ConfigObject me : config.allScopes(node, server).path("SIBMessagingEngine").resolve()) {
             List<SIBLocalizationPointInfo> localizationPoints = new ArrayList<SIBLocalizationPointInfo>();

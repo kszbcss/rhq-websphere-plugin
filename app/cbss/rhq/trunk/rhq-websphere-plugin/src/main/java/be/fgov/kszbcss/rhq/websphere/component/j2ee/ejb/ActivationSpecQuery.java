@@ -27,7 +27,7 @@ public class ActivationSpecQuery implements ConfigQuery<ActivationSpecs> {
         this.server = server;
     }
 
-    public ActivationSpecs execute(CellConfiguration config) throws JMException, ConnectorException {
+    public ActivationSpecs execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
         Map<String,ActivationSpecInfo> map = new HashMap<String,ActivationSpecInfo>();
         for (ConfigObject ra : config.allScopes(node, server).path("J2CResourceAdapter").resolve()) {
             for (ConfigObject activationSpec : ra.getChildren("j2cActivationSpec")) {

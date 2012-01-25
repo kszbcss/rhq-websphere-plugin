@@ -10,7 +10,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 public abstract class Path {
     private static final Log log = LogFactory.getLog(Path.class);
     
-    abstract ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException;
+    abstract ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException, InterruptedException;
     
     public final Path path(String type, String name) {
         return new RelativePath(this, type + "=" + name);
@@ -20,7 +20,7 @@ public abstract class Path {
         return path(type, "");
     }
     
-    public ConfigObject[] resolve() throws JMException, ConnectorException {
+    public ConfigObject[] resolve() throws JMException, ConnectorException, InterruptedException {
         ConfigObject[] configObjects = resolveRelative(null);
         if (log.isDebugEnabled()) {
             if (configObjects.length == 0) {
@@ -37,7 +37,7 @@ public abstract class Path {
         return configObjects;
     }
     
-    public ConfigObject resolveSingle() throws JMException, ConnectorException {
+    public ConfigObject resolveSingle() throws JMException, ConnectorException, InterruptedException {
         ConfigObject[] configObjects = resolve();
         if (configObjects.length == 1) {
             return configObjects[0];

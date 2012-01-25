@@ -21,7 +21,7 @@ public class DeployedApplicationsQuery implements ConfigQuery<String[]> {
         this.server = server;
     }
 
-    public String[] execute(CellConfiguration config) throws JMException, ConnectorException {
+    public String[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
         // AdminConfig.getid("/Node:twas02/ServerIndex:/ServerEntry:TENVCBSS.AppCluster.twas02.1/")
         // AdminConfig.showAttribute("TENVCBSS.AppCluster.twas02.1(cells/tcell/nodes/twas02|serverindex.xml#ServerEntry_1306410389272)", "deployedApplications")
         

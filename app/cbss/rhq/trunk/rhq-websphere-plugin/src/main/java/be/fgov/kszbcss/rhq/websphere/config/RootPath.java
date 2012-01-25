@@ -17,7 +17,7 @@ class RootPath extends Path {
     }
 
     @Override
-    ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException {
+    ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException, InterruptedException {
         if (relativePath == null) {
             throw new IllegalArgumentException("relativePath can't be null");
         }

@@ -25,7 +25,7 @@ public class ThreadPoolQuery implements ConfigQuery<ThreadPoolConfiguration[]> {
         this.server = server;
     }
 
-    public ThreadPoolConfiguration[] execute(CellConfiguration config) throws JMException, ConnectorException {
+    public ThreadPoolConfiguration[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
         ConfigObject threadPoolManager = config.server(node, server).path("ThreadPoolManager").resolveSingle();
         List<ConfigObject> threadPools = threadPoolManager.getChildren("threadPools");
         ThreadPoolConfiguration[] configs = new ThreadPoolConfiguration[threadPools.size()];

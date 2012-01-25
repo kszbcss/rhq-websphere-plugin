@@ -66,35 +66,30 @@ public class CellConfiguration {
         return ((MBeanClientProxy)configService).getMBeanClient().getObjectName(false).getKeyProperty("version");
     }
     
-    <T> T execute(SessionAction<T> action) throws JMException, ConnectorException {
+    <T> T execute(SessionAction<T> action) throws JMException, ConnectorException, InterruptedException {
         // Note: a read lock can't be upgraded to a write lock, so we need to acquire a write
         // lock first.
         Lock readLock = sessionLock.readLock();
         Lock writeLock = sessionLock.writeLock();
+        writeLock.lockInterruptibly();
         try {
-            writeLock.lockInterruptibly();
-            try {
-                if (destroyed) {
-                    throw new IllegalStateException("Object already destroyed; not accepting any new requests");
-                }
-                if (session == null) {
-                    session = new Session("rhq-websphere-plugin", false);
-                    if (log.isDebugEnabled()) {
-                        log.debug("New session created: " + session);
-                    }
-                }
-                readLock.lockInterruptibly();
-            } finally {
-                writeLock.unlock();
+            if (destroyed) {
+                throw new IllegalStateException("Object already destroyed; not accepting any new requests");
             }
-            try {
-                return action.execute(configService, appManagement, session);
-            } finally {
-                readLock.unlock();
+            if (session == null) {
+                session = new Session("rhq-websphere-plugin", false);
+                if (log.isDebugEnabled()) {
+                    log.debug("New session created: " + session);
+                }
             }
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            throw new ConnectorException("Interrupted"); // TODO: probably we should define a proper exception type to be used by this class
+            readLock.lockInterruptibly();
+        } finally {
+            writeLock.unlock();
+        }
+        try {
+            return action.execute(configService, appManagement, session);
+        } finally {
+            readLock.unlock();
         }
     }
     
@@ -119,7 +114,7 @@ public class CellConfiguration {
         return node(nodeName).path("Server", serverName);
     }
     
-    public Path allScopes(String nodeName, String serverName) throws JMException, ConnectorException {
+    public Path allScopes(String nodeName, String serverName) throws JMException, ConnectorException, InterruptedException {
         Path cell = cell();
         Path node = cell.path("Node", nodeName);
         Path server = node.path("Server", serverName);
@@ -129,7 +124,7 @@ public class CellConfiguration {
         return new PathGroup(server, cluster, node, cell);
     }
     
-    ConfigObject[] resolve(final String containmentPath) throws JMException, ConnectorException {
+    ConfigObject[] resolve(final String containmentPath) throws JMException, ConnectorException, InterruptedException {
         ObjectName[] objectNames = execute(new SessionAction<ObjectName[]>() {
             public ObjectName[] execute(ConfigService configService, AppManagement appManagement, Session session) throws JMException, ConnectorException {
                 return configService.resolve(session, containmentPath);
@@ -159,7 +154,7 @@ public class CellConfiguration {
         }
     }
     
-    public Map<String,List<Map<String,String>>> getApplicationInfo(final String appName) throws JMException, ConnectorException {
+    public Map<String,List<Map<String,String>>> getApplicationInfo(final String appName) throws JMException, ConnectorException, InterruptedException {
         Map<String,List<Map<String,String>>> result = execute(new SessionAction<Map<String,List<Map<String,String>>>>() {
             public Map<String,List<Map<String,String>>> execute(ConfigService configService, AppManagement appManagement, Session session) throws JMException, ConnectorException {
                 // workspaceId = session.toString() as explained in the Javadoc of SessionAction

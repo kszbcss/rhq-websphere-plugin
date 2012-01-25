@@ -16,7 +16,7 @@ public class ApplicationConfigurationQuery implements ConfigQuery<ApplicationCon
         this.applicationName = applicationName;
     }
 
-    public ApplicationConfiguration execute(CellConfiguration config) throws JMException, ConnectorException {
+    public ApplicationConfiguration execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
         return new ApplicationConfiguration(config.getApplicationInfo(applicationName));
     }
 

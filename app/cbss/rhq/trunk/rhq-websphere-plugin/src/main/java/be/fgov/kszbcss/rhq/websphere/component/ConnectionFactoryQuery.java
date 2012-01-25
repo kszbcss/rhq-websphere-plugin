@@ -26,7 +26,7 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
         this.type = type;
     }
 
-    public ConnectionFactories execute(CellConfiguration config) throws JMException, ConnectorException {
+    public ConnectionFactories execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
         List<ConnectionFactoryInfo> result = new ArrayList<ConnectionFactoryInfo>();
         for (ConfigObject cf : config.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve()) {
             String jndiName = (String)cf.getAttribute("jndiName");

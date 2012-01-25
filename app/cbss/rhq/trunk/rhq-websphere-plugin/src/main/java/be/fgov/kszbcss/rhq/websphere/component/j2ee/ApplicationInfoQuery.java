@@ -25,7 +25,7 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
         this.applicationName = applicationName;
     }
 
-    public ApplicationInfo execute(CellConfiguration config) throws JMException, ConnectorException {
+    public ApplicationInfo execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
         ConfigObject applicationDeployment = config.path("Deployment", applicationName).path("ApplicationDeployment").resolveSingle();
         String dataId = applicationDeployment.getId();
         String baseURI = dataId.substring(0, dataId.indexOf('|'));

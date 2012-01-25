@@ -37,7 +37,7 @@ public class ConfigObject {
         return objectName.getKeyProperty(SystemAttributes._WEBSPHERE_CONFIG_DATA_TYPE);
     }
     
-    private AttributeList getAttributes() throws JMException, ConnectorException {
+    private AttributeList getAttributes() throws JMException, ConnectorException, InterruptedException {
         if (attributes == null) {
             attributes = config.execute(new SessionAction<AttributeList>() {
                 public AttributeList execute(ConfigService configService, AppManagement appManagement, Session session) throws JMException, ConnectorException {
@@ -48,7 +48,7 @@ public class ConfigObject {
         return attributes;
     }
     
-    public Object getAttribute(String name) throws JMException, ConnectorException {
+    public Object getAttribute(String name) throws JMException, ConnectorException, InterruptedException {
         Object value = ConfigServiceHelper.getAttributeValue(getAttributes(), name);
         if (value instanceof ObjectName) {
             return new ConfigObject(config, (ObjectName)value);
@@ -57,7 +57,7 @@ public class ConfigObject {
         }
     }
     
-    public List<ConfigObject> getChildren(String attributeName) throws JMException, ConnectorException {
+    public List<ConfigObject> getChildren(String attributeName) throws JMException, ConnectorException, InterruptedException {
         List<ConfigObject> children = new ArrayList<ConfigObject>();
         for (ObjectName objectName : (List<ObjectName>)getAttribute(attributeName)) {
             children.add(new ConfigObject(config, objectName));

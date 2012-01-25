@@ -27,7 +27,7 @@ public class SIBDestinationMapQuery implements ConfigQuery<SIBDestinationMap> {
         this.server = server;
     }
 
-    public SIBDestinationMap execute(CellConfiguration config) throws JMException, ConnectorException {
+    public SIBDestinationMap execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
         Map<String,SIBDestination> map = new HashMap<String,SIBDestination>();
         for (ConfigObject ra : config.allScopes(node, server).path("J2CResourceAdapter").resolve()) {
             for (ConfigObject adminObject : ra.getChildren("j2cAdminObjects")) {

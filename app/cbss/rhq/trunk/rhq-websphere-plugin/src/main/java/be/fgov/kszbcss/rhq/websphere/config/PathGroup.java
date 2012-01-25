@@ -16,7 +16,7 @@ class PathGroup extends Path {
     }
 
     @Override
-    ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException {
+    ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException, InterruptedException {
         List<ConfigObject> result = new ArrayList<ConfigObject>();
         for (Path path : paths) {
             result.addAll(Arrays.asList(path.resolveRelative(relativePath)));

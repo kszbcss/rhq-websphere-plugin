@@ -18,7 +18,7 @@ public class ClusterNameQuery implements ConfigQuery<String> {
         this.server = server;
     }
 
-    public String execute(CellConfiguration config) throws JMException, ConnectorException {
+    public String execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
         return (String)config.server(node, server).resolveSingle().getAttribute("clusterName");
     }
     

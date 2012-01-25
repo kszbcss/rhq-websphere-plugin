@@ -14,7 +14,7 @@ class RelativePath extends Path {
     }
 
     @Override
-    ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException {
+    ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException, InterruptedException {
         if (relativePath == null) {
             return parent.resolveRelative(path);
         } else {

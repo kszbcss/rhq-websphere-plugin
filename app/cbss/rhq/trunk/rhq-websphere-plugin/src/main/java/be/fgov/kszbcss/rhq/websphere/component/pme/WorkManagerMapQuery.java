@@ -26,7 +26,7 @@ public class WorkManagerMapQuery implements ConfigQuery<HashMap<String,String>> 
         this.server = server;
     }
 
-    public HashMap<String,String> execute(CellConfiguration config) throws JMException, ConnectorException {
+    public HashMap<String,String> execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
         HashMap<String,String> map = new HashMap<String,String>();
         for (ConfigObject wm : config.allScopes(node, server).path("WorkManagerProvider").path("WorkManagerInfo").resolve()) {
             String jndiName = (String)wm.getAttribute("jndiName");
