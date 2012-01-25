@@ -312,6 +312,9 @@
                 <metric property="rows_selected" displayName="Rows Selected"
                         category="utilization" defaultInterval="120000" measurementType="trendsup"
                         description="The number of rows that have been selected and returned to the application."/>
+                <metric property="rows_read" displayName="Rows Read"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
+                        description="The number of rows read."/>
                 <metric property="agent_usr_cpu_time" displayName="CPU Time"
                         category="utilization" units="milliseconds" defaultInterval="120000" measurementType="trendsup"
                         description="The CPU time consumed by the DB2 agents linked to this data source."/>
