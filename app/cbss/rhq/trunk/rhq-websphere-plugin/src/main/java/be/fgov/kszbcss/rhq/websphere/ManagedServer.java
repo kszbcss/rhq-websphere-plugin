@@ -75,7 +75,7 @@ public class ManagedServer extends WebSphereServer {
         return configQueryService;
     }
 
-    public <T extends Serializable> T queryConfig(ConfigQuery<T> query) {
+    public <T extends Serializable> T queryConfig(ConfigQuery<T> query) throws InterruptedException {
         return getConfigQueryService().query(query);
     }
 }

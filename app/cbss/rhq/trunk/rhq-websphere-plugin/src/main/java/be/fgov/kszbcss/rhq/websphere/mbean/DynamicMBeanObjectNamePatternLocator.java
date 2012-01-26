@@ -23,11 +23,11 @@ public abstract class DynamicMBeanObjectNamePatternLocator extends MBeanObjectNa
     }
 
     @Override
-    protected final ObjectName getPattern(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
+    protected final ObjectName getPattern(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException, InterruptedException {
         Hashtable<String,String> props = new Hashtable<String,String>();
         applyKeyProperties(processInfo, adminClient, props);
         return new ObjectName(new ObjectName(domain, props).toString() + ",*");
     }
     
-    protected abstract void applyKeyProperties(ProcessInfo processInfo, AdminClient adminClient, Map<String,String> props) throws JMException, ConnectorException;
+    protected abstract void applyKeyProperties(ProcessInfo processInfo, AdminClient adminClient, Map<String,String> props) throws JMException, ConnectorException, InterruptedException;
 }

@@ -20,9 +20,9 @@ public abstract class MBeanObjectNamePatternLocator implements MBeanLocator {
         this.recursive = recursive;
     }
     
-    protected abstract ObjectName getPattern(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException;
+    protected abstract ObjectName getPattern(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException, InterruptedException;
     
-    public final Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
+    public final Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException, InterruptedException {
         ObjectName pattern = getPattern(processInfo, adminClient);
         ObjectName actualPattern;
         if (recursive || processInfo.getProcessType().equals("ManagedProcess")) {

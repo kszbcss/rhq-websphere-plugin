@@ -38,7 +38,7 @@ public class ModuleInfoFactory {
         return factories.get(configDataType);
     }
     
-    public String locateDeploymentDescriptor(CellConfiguration config, String moduleURI) throws JMException, ConnectorException {
+    public String locateDeploymentDescriptor(CellConfiguration config, String moduleURI) throws JMException, ConnectorException, InterruptedException {
         if (config.getWebSphereVersion().startsWith("6.")) {
             log.debug("Server implements J2EE 1.4; returning URI of static deployment descriptor");
         } else {

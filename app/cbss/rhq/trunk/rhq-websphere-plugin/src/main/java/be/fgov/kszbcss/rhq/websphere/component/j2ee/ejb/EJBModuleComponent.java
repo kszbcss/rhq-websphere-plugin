@@ -14,7 +14,7 @@ public class EJBModuleComponent extends ModuleComponent {
         return "EJBModule";
     }
     
-    public Set<String> getBeanNames(EnterpriseBeanType type) {
+    public Set<String> getBeanNames(EnterpriseBeanType type) throws InterruptedException {
         Set<String> names = new HashSet<String>();
         Element beans = Utils.getFirstElement(getModuleInfo().getDeploymentDescriptor().getDocumentElement(), "enterprise-beans");
         if (beans != null) {

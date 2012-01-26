@@ -45,11 +45,11 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
         return getResourceContext().getResourceKey();
     }
     
-    public ApplicationInfo getApplicationInfo() {
+    public ApplicationInfo getApplicationInfo() throws InterruptedException {
         return getServer().queryConfig(new ApplicationInfoQuery(getApplicationName()));
     }
     
-    public ApplicationConfiguration getConfiguration() {
+    public ApplicationConfiguration getConfiguration() throws InterruptedException {
         return getServer().queryConfig(new ApplicationConfigurationQuery(getApplicationName()));
     }
     

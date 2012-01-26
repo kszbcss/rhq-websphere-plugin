@@ -38,7 +38,7 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
         mbean = server.getMBeanClient(new ConnectionFactoryMBeanLocator(getType(), jndiName));
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
-            public String[] getPath() throws JMException, ConnectorException {
+            public String[] getPath() throws JMException, ConnectorException, InterruptedException {
                 ConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getByJndiName(jndiName);
                 return new String[] { getType().getPmiModule(), cf.getProviderName(), cf.getJndiName() };
             }
@@ -58,7 +58,7 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
     public void stop() {
     }
 
-    public ConnectionFactoryInfo getConnectionFactoryInfo() throws JMException, ConnectorException {
+    public ConnectionFactoryInfo getConnectionFactoryInfo() throws JMException, ConnectorException, InterruptedException {
         ManagedServer server = getServer();
         return server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getByJndiName(jndiName);
     }

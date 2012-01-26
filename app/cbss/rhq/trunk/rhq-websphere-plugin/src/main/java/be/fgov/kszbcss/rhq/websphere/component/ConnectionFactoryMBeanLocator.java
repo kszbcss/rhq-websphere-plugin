@@ -27,7 +27,7 @@ public final class ConnectionFactoryMBeanLocator extends DynamicMBeanObjectNameP
     }
 
     @Override
-    protected void applyKeyProperties(ProcessInfo processInfo, AdminClient adminClient, Map<String,String> props) throws JMException, ConnectorException {
+    protected void applyKeyProperties(ProcessInfo processInfo, AdminClient adminClient, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
         ManagedServer server = (ManagedServer)processInfo.getServer();
         ConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), type)).getByJndiName(jndiName);
         if (cf == null) {

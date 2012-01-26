@@ -61,8 +61,9 @@ public class CellConfiguration {
      * @return
      * @throws JMException
      * @throws ConnectorException
+     * @throws InterruptedException 
      */
-    public String getWebSphereVersion() throws JMException, ConnectorException {
+    public String getWebSphereVersion() throws JMException, ConnectorException, InterruptedException {
         return ((MBeanClientProxy)configService).getMBeanClient().getObjectName(false).getKeyProperty("version");
     }
     

@@ -42,7 +42,7 @@ public class MBeanClient {
         return locator;
     }
 
-    public ObjectName getObjectName(boolean refresh) throws JMException, ConnectorException {
+    public ObjectName getObjectName(boolean refresh) throws JMException, ConnectorException, InterruptedException {
         if (refresh) {
             ObjectName objectName = internalGetObjectName();
             synchronized (this) {
@@ -59,7 +59,7 @@ public class MBeanClient {
         }
     }
     
-    private ObjectName internalGetObjectName() throws JMException, ConnectorException {
+    private ObjectName internalGetObjectName() throws JMException, ConnectorException, InterruptedException {
         if (log.isDebugEnabled()) {
             log.debug("Attempting to resolve " + locator);
         }
@@ -91,7 +91,7 @@ public class MBeanClient {
         }
     }
     
-    private <T> T execute(Action<T> action) throws JMException, ConnectorException {
+    private <T> T execute(Action<T> action) throws JMException, ConnectorException, InterruptedException {
         AdminClient adminClient = processInfo.getAdminClient();
         ObjectName cachedObjectName;
         synchronized (this) {
@@ -114,7 +114,7 @@ public class MBeanClient {
         return action.execute(adminClient, cachedObjectName);
     }
     
-    public Object invoke(final String operationName, final Object[] params, final String[] signature) throws JMException, ConnectorException {
+    public Object invoke(final String operationName, final Object[] params, final String[] signature) throws JMException, ConnectorException, InterruptedException {
         return execute(new Action<Object>() {
             public Object execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException {
                 return adminClient.invoke(objectName, operationName, params, signature);
@@ -122,7 +122,7 @@ public class MBeanClient {
         });
     }
     
-    public Object getAttribute(final String attribute) throws JMException, ConnectorException {
+    public Object getAttribute(final String attribute) throws JMException, ConnectorException, InterruptedException {
         return execute(new Action<Object>() {
             public Object execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException {
                 return adminClient.getAttribute(objectName, attribute);
@@ -130,7 +130,7 @@ public class MBeanClient {
         });
     }
     
-    public AttributeList getAttributes(final String[] attributes) throws JMException, ConnectorException {
+    public AttributeList getAttributes(final String[] attributes) throws JMException, ConnectorException, InterruptedException {
         return execute(new Action<AttributeList>() {
             public AttributeList execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException {
                 return adminClient.getAttributes(objectName, attributes);
@@ -138,7 +138,7 @@ public class MBeanClient {
         });
     }
     
-    public AttributeList setAttributes(final AttributeList attributes) throws JMException, ConnectorException {
+    public AttributeList setAttributes(final AttributeList attributes) throws JMException, ConnectorException, InterruptedException {
         return execute(new Action<AttributeList>() {
             public AttributeList execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException {
                 return adminClient.setAttributes(objectName, attributes);
@@ -153,8 +153,9 @@ public class MBeanClient {
      * @return <code>true</code> if the MBean is registered, <code>false</code> otherwise
      * @throws JMException
      * @throws ConnectorException
+     * @throws InterruptedException 
      */
-    public boolean isRegistered() throws JMException, ConnectorException {
+    public boolean isRegistered() throws JMException, ConnectorException, InterruptedException {
         return execute(new Action<Boolean>() {
             public Boolean execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException {
                 return adminClient.isRegistered(objectName);

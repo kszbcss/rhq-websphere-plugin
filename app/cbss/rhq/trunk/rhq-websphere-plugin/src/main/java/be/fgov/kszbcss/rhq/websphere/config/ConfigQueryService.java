@@ -30,8 +30,17 @@ public class ConfigQueryService {
     }
     
     @SuppressWarnings("unchecked")
-    public <T extends Serializable> T query(ConfigQuery<T> query) {
-        return (T)((ConfigQueryResult)cache.get(new ConfigQueryKey(cell, query)).getObjectValue()).object;
+    public <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException {
+        // If the current thread is already interrupted, then don't query the cache at all
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+        T result = (T)((ConfigQueryResult)cache.get(new ConfigQueryKey(cell, query)).getObjectValue()).object;
+        // The interrupt flag may have been set by ConfigQueryResultFactory
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+        return result;
     }
     
     public void release() {

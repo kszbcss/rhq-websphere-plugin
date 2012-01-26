@@ -37,7 +37,7 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
         getApplication().unregisterLogEventContext(getModuleName(), componentName);
     }
     
-    public ModuleInfo getModuleInfo() {
+    public ModuleInfo getModuleInfo() throws InterruptedException {
         return getApplication().getApplicationInfo().getModule(getModuleName());
     }
     

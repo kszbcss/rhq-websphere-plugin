@@ -51,7 +51,16 @@ class ConfigQueryResultFactory implements UpdatingCacheEntryFactory {
                 if (log.isDebugEnabled()) {
                     log.debug("Reexecuting query: " + key);
                 }
-                Object resultObject = key.getQuery().execute(dmc.getCellConfiguration());
+                Object resultObject;
+                try {
+                    resultObject = key.getQuery().execute(dmc.getCellConfiguration());
+                } catch (InterruptedException ex) {
+                    // Ehcache will swallow the exception in UpdatingSelfPopulatingCache#update, which is not
+                    // a good thing. Therefore we set the interrupt flag (which will be checked in
+                    // ConfigQueryService#query) and rethrow the exception.
+                    Thread.currentThread().interrupt();
+                    throw ex;
+                }
                 // Only update fields if no exception is thrown:
                 result.epoch = epoch;
                 result.object = resultObject;

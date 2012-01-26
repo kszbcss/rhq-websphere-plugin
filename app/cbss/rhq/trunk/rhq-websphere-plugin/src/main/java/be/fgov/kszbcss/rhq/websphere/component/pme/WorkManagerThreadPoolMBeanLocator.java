@@ -20,7 +20,7 @@ public class WorkManagerThreadPoolMBeanLocator extends DynamicMBeanObjectNamePat
     }
 
     @Override
-    protected void applyKeyProperties(ProcessInfo processInfo, AdminClient adminClient, Map<String,String> props) throws JMException, ConnectorException {
+    protected void applyKeyProperties(ProcessInfo processInfo, AdminClient adminClient, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
         ManagedServer server = (ManagedServer)processInfo.getServer();
         String name = server.queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer())).get(jndiName);
         if (name == null) {

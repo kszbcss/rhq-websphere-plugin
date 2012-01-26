@@ -29,7 +29,7 @@ public class MBeanAttributeMatcherLocator implements MBeanLocator {
         this(new StaticMBeanObjectNamePatternLocator(pattern), attributeName, attributeValue);
     }
 
-    public Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
+    public Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException, InterruptedException {
         Set<ObjectName> result = new HashSet<ObjectName>();
         for (ObjectName objectName : parent.queryNames(processInfo, adminClient)) {
             if (adminClient.getAttribute(objectName, attributeName).equals(attributeValue)) {

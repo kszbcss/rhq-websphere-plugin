@@ -14,5 +14,5 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * {@link Object#hashCode()}.
  */
 public interface MBeanLocator {
-    Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException;
+    Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException, InterruptedException;
 }
