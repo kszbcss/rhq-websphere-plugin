@@ -5,7 +5,7 @@ var resources = new java.util.LinkedList()
 var resourcePageList = ResourceManager.findResourcesByCriteria(resourceCriteria)
 for (var i = 0; i < resourcePageList.size(); i++) {
     var resource = resourcePageList.get(i)
-    if (!resources.contains(resource.parentResource)) {
+    if (!resourcePageList.contains(resource.parentResource)) {
         resources.add(resource)
     }
 }
