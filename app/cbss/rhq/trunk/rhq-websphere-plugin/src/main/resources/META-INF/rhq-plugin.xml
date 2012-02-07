@@ -205,6 +205,33 @@
             &threadpool-configuration;
         </service>
         
+        <service name="Timer Manager"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.pme.TimerManagerDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.pme.TimerManagerComponent"
+                 description="WebSphere Timer Manager">
+            
+            &isConfigured-operation;
+            
+            &threadpool-metrics;
+            <metric property="alarm-stats.AlarmsCreatedCount" displayName="Alarms Created"
+                    category="utilization" defaultInterval="600000" measurementType="trendsup"
+                    description="Total number of alarms created."/>
+            <metric property="alarm-stats.AlarmsCancelledCount" displayName="Alarms Cancelled"
+                    category="utilization" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of alarms cancelled by the application."/>
+            <metric property="alarm-stats.AlarmsFiredCount" displayName="Alarms Fired"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="Number of alarms fired."/>
+            <metric property="alarm-stats.AlarmLatencyDuration" displayName="Latency"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="Latency of alarms fired in milliseconds."/>
+            <metric property="alarm-stats.AlarmsPendingSize" displayName="Alarms Pending"
+                    category="utilization" defaultInterval="600000"
+                    description="Number of alarms waiting to fire."/>
+            
+            &threadpool-configuration;
+        </service>
+        
         <service name="DynaCache"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.server.DynaCacheDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.server.DynaCacheComponent"
