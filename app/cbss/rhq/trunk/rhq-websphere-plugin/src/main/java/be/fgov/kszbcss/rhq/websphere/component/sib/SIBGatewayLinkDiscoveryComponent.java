@@ -8,7 +8,7 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-public abstract class SIBLocalizationPointDiscoveryComponent implements ResourceDiscoveryComponent<SIBMessagingEngineComponent> {
+public class SIBGatewayLinkDiscoveryComponent implements ResourceDiscoveryComponent<SIBMessagingEngineComponent> {
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<SIBMessagingEngineComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         SIBMessagingEngineComponent me = context.getParentResourceComponent();
@@ -16,11 +16,9 @@ public abstract class SIBLocalizationPointDiscoveryComponent implements Resource
         if (meInfo == null) {
             throw new InvalidPluginConfigurationException("Messaging engine " + me.getName() + " not found");
         }
-        for (String destination : meInfo.getDestinationNames(getType())) {
-            result.add(new DiscoveredResourceDetails(context.getResourceType(), destination, destination, null, "SIBus Destination", null, null));
+        for (String link : meInfo.getGatewayLinkNames()) {
+            result.add(new DiscoveredResourceDetails(context.getResourceType(), link, link, null, "SIBus link", null, null));
         }
         return result;
     }
-
-    protected abstract SIBLocalizationPointType getType();
 }

@@ -32,8 +32,13 @@ public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineIn
                         localizationPoint.getType().equals("SIBQueueLocalizationPoint") ? SIBLocalizationPointType.QUEUE : SIBLocalizationPointType.TOPIC,
                         identifier.substring(0, identifier.indexOf('@'))));
             }
+            List<SIBGatewayLinkInfo> gatewayLinks = new ArrayList<SIBGatewayLinkInfo>();
+            for (ConfigObject gatewayLink : me.getChildren("gatewayLink")) {
+                gatewayLinks.add(new SIBGatewayLinkInfo(gatewayLink.getId(), (String)gatewayLink.getAttribute("name"), (String)gatewayLink.getAttribute("targetUuid")));
+            }
             result.add(new SIBMessagingEngineInfo((String)me.getAttribute("name"), (String)me.getAttribute("busName"),
-                    localizationPoints.toArray(new SIBLocalizationPointInfo[localizationPoints.size()])));
+                    localizationPoints.toArray(new SIBLocalizationPointInfo[localizationPoints.size()]),
+                    gatewayLinks.toArray(new SIBGatewayLinkInfo[gatewayLinks.size()])));
         }
         return result.toArray(new SIBMessagingEngineInfo[result.size()]);
     }

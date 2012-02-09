@@ -45,19 +45,28 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         measurementFacetSupport.addHandler("health", new JMXOperationMeasurementHandler(sibMessagingEngineMBeanClient, "getHealth", true));
     }
 
+    /**
+     * Get the messaging engine name.
+     * 
+     * @return the messaging engine name
+     */
     public String getName() {
         return name;
     }
 
-    @Override
-    protected boolean isConfigured() throws Exception {
+    public SIBMessagingEngineInfo getInfo() throws InterruptedException, JMException, ConnectorException {
         ManagedServer server = getServer();
         for (SIBMessagingEngineInfo me : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()))) {
             if (me.getName().equals(name)) {
-                return true;
+                return me;
             }
         }
-        return false;
+        return null;
+    }
+    
+    @Override
+    protected boolean isConfigured() throws Exception {
+        return getInfo() != null;
     }
 
     protected AvailabilityType doGetAvailability() {

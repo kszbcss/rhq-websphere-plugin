@@ -588,6 +588,24 @@
                         category="utilization" displayType="summary" defaultInterval="600000"
                         description="Number of messages on this queue but not available for consumption."/>
             </service>
+            
+            <service name="Gateway Link"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.sib.SIBGatewayLinkDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBGatewayLinkComponent"
+                     description="SIBus Gateway Link">
+                
+                &isConfigured-operation;
+                
+                <metric property="depth" displayName="Depth"
+                        category="utilization" displayType="summary" defaultInterval="600000"
+                        description="Depth."/>
+                <metric property="numberOfMessagesSent" displayName="Msg. Sent"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="The number of messages sent over the link."/>
+                <metric property="numberOfMessagesReceived" displayName="Msg. Received"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="The number of messages received over the link."/>
+            </service>
         </service>
     </server>
     
