@@ -40,8 +40,11 @@ public class SIBGatewayLinkComponent extends WebSphereServiceComponent<SIBMessag
             @Override
             protected Object getValue() throws Exception {
                 long numberOfMessagesReceived = 0;
-                for (SIBLinkReceiver receiver : gatewayLink.listLinkReceivers()) {
-                    numberOfMessagesReceived += receiver.getNumberOfMessagesReceived();
+                SIBLinkReceiver[] receivers = gatewayLink.listLinkReceivers();
+                if (receivers != null) {
+                    for (SIBLinkReceiver receiver : receivers) {
+                        numberOfMessagesReceived += receiver.getNumberOfMessagesReceived();
+                    }
                 }
                 return numberOfMessagesReceived;
             }
