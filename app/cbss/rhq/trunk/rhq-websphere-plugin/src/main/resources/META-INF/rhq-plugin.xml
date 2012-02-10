@@ -568,6 +568,35 @@
                         description="The number of items currently in the dynamic memory cache which are either persistent or potentially persistent."/>
             </service>
             
+            <service name="Transactions"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.sib.TransactionsDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.sib.TransactionsComponent"
+                     description="SIBus Messaging Engine Transaction Statistics"
+                     singleton="true">
+                
+                <metric property="stats.GlobalTransactionStartCount" displayName="Global Transactions Started"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Global transactions started."/>
+                <metric property="stats.GlobalTransactionInDoubtCount" displayName="Global Transactions In Doubt"
+                        category="utilization" displayType="summary" defaultInterval="600000"
+                        description="Global transactions in doubt."/>
+                <metric property="stats.GlobalTransactionAbortCount" displayName="Global Transactions Aborted"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Global transactions aborted."/>
+                <metric property="stats.GlobalTransactionCommitCount" displayName="Global Transactions Committed"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Global transactions committed."/>
+                <metric property="stats.LocalTransactionStartCount" displayName="Local Transactions Started"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Local transactions started."/>
+                <metric property="stats.LocalTransactionAbortCount" displayName="Local Transactions Aborted"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Local transactions aborted."/>
+                <metric property="stats.LocalTransactionCommitCount" displayName="Local Transactions Committed"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Local transactions committed."/>
+            </service>
+            
             <service name="Queue"
                      discovery="be.fgov.kszbcss.rhq.websphere.component.sib.SIBQueuePointDiscoveryComponent"
                      class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBQueuePointComponent"
