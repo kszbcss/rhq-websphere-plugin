@@ -11,4 +11,9 @@ import org.rhq.core.pluginapi.event.EventContext;
  */
 public interface EventPublisher {
     void publishEvent(EventContext context, String sourceLocation, long timestamp, EventSeverity severity, String detail);
+    
+    /**
+     * Inform the event publisher that a logging event has been suppressed.
+     */
+    void eventSuppressed();
 }

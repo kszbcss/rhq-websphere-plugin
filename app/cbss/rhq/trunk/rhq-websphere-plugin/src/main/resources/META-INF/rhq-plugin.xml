@@ -648,6 +648,12 @@
             <parent-resource-type name="RHQ Agent" plugin="RHQAgent"/>
         </runs-inside>
         
+        <metric property="LogEventsPublished" displayName="Log Events Published"
+                category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                description="The number of log events received from WebSphere and published to RHQ."/>
+        <metric property="LogEventsSuppressed" displayName="Log Events Suppressed"
+                category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                description="The number of log events received from WebSphere but not published to RHQ."/>
         <metric property="InvocationTime" dataType="calltime" units="milliseconds"
                 defaultOn="false" defaultInterval="600000" destinationType="Operation/Attribute Name"
                 description="The minimum, maximum, and average invocation times for JMX invocations."/>

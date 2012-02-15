@@ -28,6 +28,7 @@ import org.rhq.core.domain.content.transfer.DeployPackagesResponse;
 import org.rhq.core.domain.content.transfer.RemovePackagesResponse;
 import org.rhq.core.domain.content.transfer.ResourcePackageDetails;
 import org.rhq.core.domain.measurement.AvailabilityType;
+import org.rhq.core.domain.measurement.MeasurementDataNumeric;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.domain.measurement.calltime.CallTimeData;
@@ -65,7 +66,8 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
         log.debug("Entering getValues");
         boolean dataAdded = false;
         for (MeasurementScheduleRequest request : requests) {
-            if (request.getName().equals("InvocationTime")) {
+            String name = request.getName();
+            if (name.equals("InvocationTime")) {
                 AdminClientStats stats = AdminClientStatsCollector.INSTANCE.rotateStats();
                 CallTimeData data = new CallTimeData(request);
                 for (AdminClientStatsData statsData : stats.getData()) {
@@ -77,6 +79,10 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
                     log.debug("Added " + data.getValues().size() + " call time data items to the report");
                 }
                 dataAdded = true;
+            } else if (name.equals("LogEventsPublished")) {
+                report.addData(new MeasurementDataNumeric(request, Double.valueOf(EventStats.getLogEventsPublished())));
+            } else if (name.equals("LogEventsSuppressed")) {
+                report.addData(new MeasurementDataNumeric(request, Double.valueOf(EventStats.getLogEventsSuppressed())));
             }
         }
         if (!dataAdded) {

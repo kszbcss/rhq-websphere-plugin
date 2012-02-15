@@ -83,7 +83,9 @@ class LogEventDispatcher extends TimerTask {
                             eventContext = defaultEventContext;
                         }
                     }
-                    if (eventContext != null) {
+                    if (eventContext == null) {
+                        eventPublisher.eventSuppressed();
+                    } else {
                         eventPublisher.publishEvent(eventContext, message.getLoggerName(), message.getTimestamp(),
                                 convertLevel(message.getLevel()), message.getMessage());
                     }

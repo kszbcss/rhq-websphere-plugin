@@ -8,6 +8,7 @@ import org.rhq.core.pluginapi.event.EventContext;
 
 import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.EventPublisher;
+import be.fgov.kszbcss.rhq.websphere.connector.agent.EventStats;
 
 public class EventPublisherImpl implements EventPublisher {
     public static final EventPublisherImpl INSTANCE = new EventPublisherImpl();
@@ -48,5 +49,10 @@ public class EventPublisherImpl implements EventPublisher {
             }
         }
         Utils.publishEvent(context, new Event("LogEvent", sourceLocation, timestamp, severity, detail));
+        EventStats.incrementEventsPublished();
+    }
+
+    public void eventSuppressed() {
+        EventStats.incrementEventsSuppressed();
     }
 }
