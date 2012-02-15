@@ -124,22 +124,32 @@ public class DB2MonitorComponent implements ResourceComponent<DataSourceComponen
         for (int i=0; i<newData.length; i++) {
             newData[i] = new DB2BaseMetricData();
         }
-        PreparedStatement stmt = connection.prepareStatement(sql);
         try {
-            stmt.setString(1, applName);
-            ResultSet rs = stmt.executeQuery();
+            PreparedStatement stmt = connection.prepareStatement(sql);
             try {
-                while (rs.next()) {
-                    long agentId = rs.getLong(1);
-                    for (int i=0; i<baseMetrics.size(); i++) {
-                        newData[i].addValue(agentId, rs.getLong(i+2));
+                stmt.setString(1, applName);
+                ResultSet rs = stmt.executeQuery();
+                try {
+                    while (rs.next()) {
+                        long agentId = rs.getLong(1);
+                        for (int i=0; i<baseMetrics.size(); i++) {
+                            newData[i].addValue(agentId, rs.getLong(i+2));
+                        }
                     }
+                } finally {
+                    rs.close();
                 }
             } finally {
-                rs.close();
+                stmt.close();
             }
-        } finally {
-            stmt.close();
+        } catch (SQLException ex) {
+            // Discard connection; we will re-attempt next time
+            try {
+                connection.close();
+            } catch (SQLException ex2) {
+                // Ignore
+            }
+            throw ex;
         }
 
         int i = 0;
