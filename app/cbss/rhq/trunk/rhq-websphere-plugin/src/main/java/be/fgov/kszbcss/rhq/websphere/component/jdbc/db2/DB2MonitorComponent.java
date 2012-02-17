@@ -149,6 +149,7 @@ public class DB2MonitorComponent implements ResourceComponent<DataSourceComponen
             } catch (SQLException ex2) {
                 // Ignore
             }
+            connection = null;
             throw ex;
         }
 
