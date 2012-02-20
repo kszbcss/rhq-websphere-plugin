@@ -54,6 +54,10 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         return name;
     }
 
+    public SIBMessagingEngine getSibMessagingEngine() {
+        return sibMessagingEngine;
+    }
+
     public SIBMessagingEngineInfo getInfo() throws InterruptedException, JMException, ConnectorException {
         ManagedServer server = getServer();
         for (SIBMessagingEngineInfo me : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()))) {

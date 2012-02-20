@@ -218,7 +218,7 @@
             <metric property="stats.LocalTimeoutCount" displayName="Local Transactions Timed Out"
                     category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                     description="The number of local transactions that timed out."/>
-            <metric property="IndoubtTransactions" displayName="Indoubt Transactions"
+            <metric property="IndoubtTransactions" displayName="In-doubt Transactions"
                     category="utilization" displayType="summary" defaultInterval="600000"
                     description="The number of transactions that require manual review."/>
         </service>
@@ -644,9 +644,11 @@
                 <metric property="stats.GlobalTransactionStartCount" displayName="Global Transactions Started"
                         category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                         description="Global transactions started."/>
-                <metric property="stats.GlobalTransactionInDoubtCount" displayName="Global Transactions In Doubt"
+                <!-- The PMI metric for in-doubt transactions doesn't seem to be reliable; instead, we use
+                     the getPreparedTransactions() on the MBean (see below) -->
+                <!-- metric property="stats.GlobalTransactionInDoubtCount" displayName="Global Transactions In Doubt"
                         category="utilization" displayType="summary" defaultInterval="600000"
-                        description="Global transactions in doubt."/>
+                        description="Global transactions in doubt."/ -->
                 <metric property="stats.GlobalTransactionAbortCount" displayName="Global Transactions Aborted"
                         category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                         description="Global transactions aborted."/>
@@ -662,6 +664,9 @@
                 <metric property="stats.LocalTransactionCommitCount" displayName="Local Transactions Committed"
                         category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
                         description="Local transactions committed."/>
+                <metric property="IndoubtTransactions" displayName="In-doubt Transactions"
+                        category="utilization" displayType="summary" defaultInterval="600000"
+                        description="In-doublt transactions."/>
             </service>
             
             <service name="Queue"

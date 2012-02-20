@@ -10,8 +10,10 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
+import be.fgov.kszbcss.rhq.websphere.proxy.SIBMessagingEngine;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
+import be.fgov.kszbcss.rhq.websphere.support.measurement.SimpleMeasurementHandler;
 
 public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagingEngineComponent> implements MeasurementFacet {
     private MeasurementFacetSupport measurementFacetSupport;
@@ -23,6 +25,13 @@ public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagin
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(server.getServerMBean(),
                 "SIB Service", "SIB Messaging Engines", getResourceContext().getParentResourceComponent().getName(),
                 "Storage Management", "Transactions"));
+        final SIBMessagingEngine sibMessagingEngine = getResourceContext().getParentResourceComponent().getSibMessagingEngine();
+        measurementFacetSupport.addHandler("IndoubtTransactions", new SimpleMeasurementHandler() {
+            @Override
+            protected Object getValue() throws Exception {
+                return sibMessagingEngine.getPreparedTransactions().size();
+            }
+        });
     }
 
     @Override
