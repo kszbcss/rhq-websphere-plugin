@@ -156,6 +156,73 @@
                 class="org.rhq.plugins.jmx.JMXServerComponent"
                 singleton="true"/>
 
+        <service name="Transaction Service"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.server.TransactionServiceDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.server.TransactionServiceComponent"
+                 description="Transaction Service"
+                 singleton="true">
+            <metric property="stats.GlobalBegunCount" displayName="Global Transactions Begun"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of global transactions begun on a server."/>
+            <metric property="stats.GlobalInvolvedCount" displayName="Global Transactions Involved"
+                    category="utilization" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of global transactions that are involved on a server (that is, begun and imported)."/>
+            <metric property="stats.LocalBegunCount" displayName="Local Transactions Begun"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of local transactions begun on the server."/>
+            <metric property="stats.ActiveCount" displayName="Active Global Transactions"
+                    category="utilization" displayType="summary" defaultInterval="120000"
+                    description="The number of concurrently active global transactions."/>
+            <metric property="stats.LocalActiveCount" displayName="Active Local Transactions"
+                    category="utilization" displayType="summary" defaultInterval="120000"
+                    description="The number of concurrently active local transactions."/>
+            <metric property="stats.GlobalTranTime" displayName="Global Transaction Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of global transactions."/>
+            <metric property="stats.LocalTranTime" displayName="Local Transaction Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of local transactions."/>
+            <metric property="stats.GlobalBeforeCompletionTime" displayName="Global Before Completion Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of before_completion for global transactions."/>
+            <metric property="stats.GlobalPrepareTime" displayName="Global Prepare Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of prepare for global transactions."/>
+            <metric property="stats.GlobalCommitTime" displayName="GlobalCommitTime"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of commit for global transactions."/>
+            <metric property="stats.LocalBeforeCompletionTime" displayName="Local Before Completion Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of before_completion for local transactions."/>
+            <metric property="stats.LocalCommitTime" displayName="Local Commit Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of commit for local transactions."/>
+            <metric property="stats.OptimizationCount" displayName="Global Transaction Optimized"
+                    category="utilization" defaultInterval="600000" measurementType="trendsup"
+                    description="The total number of global transactions that are converted to single phase for optimization."/>
+            <metric property="stats.CommittedCount" displayName="Global Transactions Committed"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of global transactions that are committed."/>
+            <metric property="stats.LocalCommittedCount" displayName="Local Transactions Committed"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of local transactions that are committed."/>
+            <metric property="stats.RolledbackCount" displayName="Global Transactions Rolled Back"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of global transactions that are rolled back."/>
+            <metric property="stats.LocalRolledbackCount" displayName="Local Transactions Rolled Back"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of local transactions that rolled back."/>
+            <metric property="stats.GlobalTimeoutCount" displayName="Global Transactions Timed Out"
+                    category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of global transactions that timed out."/>
+            <metric property="stats.LocalTimeoutCount" displayName="Local Transactions Timed Out"
+                    category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of local transactions that timed out."/>
+            <metric property="IndoubtTransactions" displayName="Indoubt Transactions"
+                    category="utilization" displayType="summary" defaultInterval="600000"
+                    description="The number of transactions that require manual review."/>
+        </service>
+        
         <service name="UNIX Process"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.xm.UnixProcessDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.xm.UnixProcessComponent"
