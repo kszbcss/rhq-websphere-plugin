@@ -36,7 +36,7 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
         principal = config.getSimpleValue("principal", null);
         credentials = config.getSimpleValue("credentials", null);
         try {
-            Class.forName("com.ibm.db2.jcc.DB2Driver");
+            Class.forName(Constants.DATASOURCE_CLASS_NAME);
         } catch (ClassNotFoundException ex) {
             log.error("DB2 monitor unavailable: JDBC driver not present in the class path");
             throw ex;
