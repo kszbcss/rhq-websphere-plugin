@@ -69,6 +69,7 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
                         (String)provider.getAttribute("name"),
                         (String)cf.getAttribute("name"),
                         jndiName,
+                        type == ConnectionFactoryType.JDBC ? (String)cf.getAttribute("datasourceHelperClassname") : null,
                         properties));
             }
         }

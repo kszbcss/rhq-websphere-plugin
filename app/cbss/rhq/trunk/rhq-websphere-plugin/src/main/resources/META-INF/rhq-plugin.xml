@@ -421,6 +421,13 @@
                 <metric property="deadlocks" displayName="Deadlocks"
                         category="performance" defaultInterval="120000" measurementType="trendsup"
                         description="The number of deadlocks that have occurred."/>
+                
+                <metric property="acr.primary" displayName="Primary Server" dataType="trait"
+                        displayType="summary" defaultOn="true"
+                        description="The primary server as seen by the RHQ agent, i.e. the DB2 server that the RHQ agent is connected to."/>
+                <metric property="acr.alternate" displayName="Alternate Servers" dataType="trait"
+                        displayType="summary" defaultOn="true"
+                        description="The list of alternate servers as reported by the primary DB2 server."/>
             </service>
         </service>
         <service name="Connection Factory"

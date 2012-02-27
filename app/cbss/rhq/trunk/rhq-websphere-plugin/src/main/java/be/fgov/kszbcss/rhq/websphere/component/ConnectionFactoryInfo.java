@@ -11,13 +11,15 @@ public final class ConnectionFactoryInfo implements Serializable {
     private final String providerName;
     private final String name;
     private final String jndiName;
+    private final String dataSourceHelper;
     private final Map<String,Object> properties;
     
-    ConnectionFactoryInfo(String id, String providerName, String name, String jndiName, Map<String,Object> properties) {
+    ConnectionFactoryInfo(String id, String providerName, String name, String jndiName, String dataSourceHelper, Map<String,Object> properties) {
         this.id = id;
         this.providerName = providerName;
         this.name = name;
         this.jndiName = jndiName;
+        this.dataSourceHelper = dataSourceHelper;
         this.properties = properties;
     }
 
@@ -35,6 +37,10 @@ public final class ConnectionFactoryInfo implements Serializable {
 
     public String getJndiName() {
         return jndiName;
+    }
+
+    public String getDataSourceHelper() {
+        return dataSourceHelper;
     }
 
     public Map<String,Object> getProperties() {

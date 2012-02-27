@@ -7,16 +7,18 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.sql.DataSource;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.ibm.db2.jcc.DB2ClientRerouteServerList;
+import com.ibm.db2.jcc.DB2SimpleDataSource;
 
 /**
  * Contains a local DB2 data source (for monitoring connections) as well as configuration
@@ -32,24 +34,12 @@ public class ConnectionContext {
         "retryIntervalForClientReroute", "maxRetriesForClientReroute", "loginTimeout"));
     
     private final Map<String,Object> dataSourceProperties;
-    private final DataSource dataSource;
+    private final DB2SimpleDataSource dataSource;
     private Connection connection;
     
     public ConnectionContext(Map<String,Object> orgDataSourceProperties, String principal, String credentials) {
         this.dataSourceProperties = orgDataSourceProperties;
-        Class<?> dataSourceClass;
-        try {
-            dataSourceClass = Class.forName(Constants.DATASOURCE_CLASS_NAME);
-        } catch (ClassNotFoundException ex) {
-            throw new NoClassDefFoundError(ex.getMessage());
-        }
-        try {
-            dataSource = (DataSource)dataSourceClass.newInstance();
-        } catch (InstantiationException ex) {
-            throw new InstantiationError(ex.getMessage());
-        } catch (IllegalAccessException ex) {
-            throw new IllegalAccessError(ex.getMessage());
-        }
+        dataSource = new DB2SimpleDataSource();
         Map<String,Object> dataSourceProperties = new HashMap<String,Object>();
         for (Map.Entry<String,Object> entry : orgDataSourceProperties.entrySet()) {
             String key = entry.getKey();
@@ -59,16 +49,14 @@ public class ConnectionContext {
             }
         }
         dataSourceProperties.put("clientProgramName", "RHQ");
-        if (principal != null) {
-            dataSourceProperties.put("user", principal);
-            dataSourceProperties.put("password", credentials);
-        }
+        dataSourceProperties.put("user", principal);
+        dataSourceProperties.put("password", credentials);
         if (log.isDebugEnabled()) {
             log.debug("Configuring data source with properties " + dataSourceProperties);
         }
         BeanInfo beanInfo;
         try {
-            beanInfo = Introspector.getBeanInfo(dataSourceClass);
+            beanInfo = Introspector.getBeanInfo(DB2SimpleDataSource.class);
         } catch (IntrospectionException ex) {
             throw new Error(ex);
         }
@@ -101,6 +89,22 @@ public class ConnectionContext {
 
     public Map<String,Object> getDataSourceProperties() {
         return dataSourceProperties;
+    }
+    
+    public DB2ClientRerouteServerList getClientRerouteServerList() throws SQLException {
+        // Need to execute a query first to make sure the reroute information is up to date
+        execute(new Query<Void>() {
+            public Void execute(Connection connection) throws SQLException {
+                Statement statement = connection.createStatement();
+                try {
+                    statement.execute("SELECT 1 FROM SYSIBM.SYSDUMMY1");
+                } finally {
+                    statement.close();
+                }
+                return null;
+            }
+        });
+        return dataSource.getClientRerouteServerList();
     }
     
     public <T> T execute(Query<T> query) throws SQLException {

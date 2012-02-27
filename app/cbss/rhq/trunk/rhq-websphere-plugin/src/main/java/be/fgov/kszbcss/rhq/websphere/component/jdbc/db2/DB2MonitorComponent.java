@@ -36,13 +36,16 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
         principal = config.getSimpleValue("principal", null);
         credentials = config.getSimpleValue("credentials", null);
         try {
-            Class.forName(Constants.DATASOURCE_CLASS_NAME);
+            Class.forName("com.ibm.db2.jcc.DB2SimpleDataSource");
         } catch (ClassNotFoundException ex) {
             log.error("DB2 monitor unavailable: JDBC driver not present in the class path");
             throw ex;
         }
-        measurementFacetSupport = new MeasurementFacetSupport(this);
-        measurementFacetSupport.setDefaultHandler(new SnapshotMeasurementGroupHandler(this, adminOperations));
+        if (principal != null) {
+            measurementFacetSupport = new MeasurementFacetSupport(this);
+            measurementFacetSupport.setDefaultHandler(new SnapshotMeasurementGroupHandler(this, adminOperations));
+            measurementFacetSupport.addHandler("acr", new ACRMeasurementGroupHandler(this));
+        }
     }
 
     @Override
@@ -68,7 +71,13 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
     }
     
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
-        measurementFacetSupport.getValues(report, requests);
+        if (measurementFacetSupport == null) {
+            log.warn("No monitoring user defined for data source "
+                    + getResourceContext().getParentResourceComponent().getResourceContext().getResourceKey()
+                    + "; unable to collect measurements");
+        } else {
+            measurementFacetSupport.getValues(report, requests);
+        }
     }
 
     public void stop() {
