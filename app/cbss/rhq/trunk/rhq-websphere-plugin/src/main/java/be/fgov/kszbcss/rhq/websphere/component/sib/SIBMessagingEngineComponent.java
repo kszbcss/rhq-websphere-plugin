@@ -91,8 +91,10 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
             // We get here if SIBMain#showMessagingEngines doesn't list the messaging engine
             log.debug("Failed to get messaging engine state => messaging engine DOWN");
             return AvailabilityType.DOWN;
-        } else if (state.equals("Stopped")) {
-            log.debug("Messaging engine is in state Stopped => messaging engine DOWN");
+        } else if (state.equals("Stopped") || state.equals("Starting")) {
+            if (log.isDebugEnabled()) {
+                log.debug("Messaging engine is in state " + state + " => messaging engine DOWN");
+            }
             return AvailabilityType.DOWN;
         } else if (state.equals("Started")) {
             String health;
