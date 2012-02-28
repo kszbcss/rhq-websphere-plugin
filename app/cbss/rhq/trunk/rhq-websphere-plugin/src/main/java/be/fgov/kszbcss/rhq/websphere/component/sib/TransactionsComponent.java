@@ -1,5 +1,7 @@
 package be.fgov.kszbcss.rhq.websphere.component.sib;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.rhq.core.domain.measurement.AvailabilityType;
@@ -9,11 +11,11 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.component.InDoubtTransactionsMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.proxy.SIBMessagingEngine;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
-import be.fgov.kszbcss.rhq.websphere.support.measurement.SimpleMeasurementHandler;
 
 public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagingEngineComponent> implements MeasurementFacet {
     private MeasurementFacetSupport measurementFacetSupport;
@@ -26,10 +28,14 @@ public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagin
                 "SIB Service", "SIB Messaging Engines", getResourceContext().getParentResourceComponent().getName(),
                 "Storage Management", "Transactions"));
         final SIBMessagingEngine sibMessagingEngine = getResourceContext().getParentResourceComponent().getSibMessagingEngine();
-        measurementFacetSupport.addHandler("IndoubtTransactions", new SimpleMeasurementHandler() {
+        measurementFacetSupport.addHandler("IndoubtTransactions", new InDoubtTransactionsMeasurementHandler() {
             @Override
-            protected Object getValue() throws Exception {
-                return sibMessagingEngine.getPreparedTransactions().size();
+            protected Set<String> getTransactionIds() throws Exception {
+                Set<String> ids = new HashSet<String>();
+                for (Iterator<?> it = sibMessagingEngine.getPreparedTransactions().iterator(); it.hasNext(); ) {
+                    ids.add((String)it.next());
+                }
+                return ids;
             }
         });
     }
