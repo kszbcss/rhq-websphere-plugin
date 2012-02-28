@@ -12,7 +12,10 @@ public abstract class SimpleMeasurementHandler implements MeasurementHandler {
     
     public final void getValue(WebSphereServer server, MeasurementReport report, MeasurementScheduleRequest request) {
         try {
-            JMXMeasurementDataUtils.addData(report, request, getValue());
+            Object value = getValue();
+            if (value != null) {
+                JMXMeasurementDataUtils.addData(report, request, value);
+            }
         } catch (Exception ex) {
             log.error("Failed to get value for " + request.getName(), ex);
         }

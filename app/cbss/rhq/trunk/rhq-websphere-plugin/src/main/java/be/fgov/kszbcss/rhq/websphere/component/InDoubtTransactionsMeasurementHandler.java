@@ -18,33 +18,39 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.SimpleMeasurementHandle
 public abstract class InDoubtTransactionsMeasurementHandler extends SimpleMeasurementHandler {
     private static final Log log = LogFactory.getLog(InDoubtTransactionsMeasurementHandler.class);
     
-    private final Set<String> transactionIds = new HashSet<String>();
+    private Set<String> transactionIds;
     
     @Override
     protected final Object getValue() throws Exception {
-        int confirmedCount = 0;
-        Set<String> newTransactionIds = getTransactionIds();
-        for (Iterator<String> it = transactionIds.iterator(); it.hasNext(); ) {
-            String id = it.next();
-            if (!newTransactionIds.contains(id)) {
-                it.remove();
-                if (log.isDebugEnabled()) {
-                    log.debug("Transaction " + id + " is no longer in-doubt");
+        if (transactionIds == null) {
+            // This is the first measurement; just initialize the transaction IDs and return nothing
+            transactionIds = new HashSet<String>(getTransactionIds());
+            return null;
+        } else {
+            int confirmedCount = 0;
+            Set<String> newTransactionIds = getTransactionIds();
+            for (Iterator<String> it = transactionIds.iterator(); it.hasNext(); ) {
+                String id = it.next();
+                if (!newTransactionIds.contains(id)) {
+                    it.remove();
+                    if (log.isDebugEnabled()) {
+                        log.debug("Transaction " + id + " is no longer in-doubt");
+                    }
                 }
             }
-        }
-        for (String id : newTransactionIds) {
-            if (transactionIds.add(id)) {
-                // New transaction ID
-                if (log.isDebugEnabled()) {
-                    log.debug("New (unconfirmed) in-doubt transaction " + id);
+            for (String id : newTransactionIds) {
+                if (transactionIds.add(id)) {
+                    // New transaction ID
+                    if (log.isDebugEnabled()) {
+                        log.debug("New (unconfirmed) in-doubt transaction " + id);
+                    }
+                } else {
+                    // The transaction ID was already contained in the set
+                    confirmedCount++;
                 }
-            } else {
-                // The transaction ID was already contained in the set
-                confirmedCount++;
             }
+            return confirmedCount;
         }
-        return confirmedCount;
     }
     
     protected abstract Set<String> getTransactionIds() throws Exception;
