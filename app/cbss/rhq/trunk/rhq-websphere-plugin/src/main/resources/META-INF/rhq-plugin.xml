@@ -188,7 +188,7 @@
             <metric property="stats.GlobalPrepareTime" displayName="Global Prepare Time"
                     category="performance" units="milliseconds" defaultInterval="600000"
                     description="The average duration of prepare for global transactions."/>
-            <metric property="stats.GlobalCommitTime" displayName="GlobalCommitTime"
+            <metric property="stats.GlobalCommitTime" displayName="Global Commit Time"
                     category="performance" units="milliseconds" defaultInterval="600000"
                     description="The average duration of commit for global transactions."/>
             <metric property="stats.LocalBeforeCompletionTime" displayName="Local Before Completion Time"
