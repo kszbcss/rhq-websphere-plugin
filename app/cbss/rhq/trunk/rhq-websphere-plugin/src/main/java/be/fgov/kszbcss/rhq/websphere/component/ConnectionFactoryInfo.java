@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 
 public final class ConnectionFactoryInfo implements Serializable {
-    private static final long serialVersionUID = -5954603072274720579L;
+    private static final long serialVersionUID = -7149468026024845639L;
     
     private final String id;
     private final String providerName;
