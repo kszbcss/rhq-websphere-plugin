@@ -50,8 +50,12 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
 
     @Override
     protected AvailabilityType doGetAvailability() {
-        // TODO Auto-generated method stub
-        return AvailabilityType.UP;
+        try {
+            getConnectionContext().testConnection();
+            return AvailabilityType.UP;
+        } catch (Exception ex) {
+            return AvailabilityType.DOWN;
+        }
     }
 
     @Override

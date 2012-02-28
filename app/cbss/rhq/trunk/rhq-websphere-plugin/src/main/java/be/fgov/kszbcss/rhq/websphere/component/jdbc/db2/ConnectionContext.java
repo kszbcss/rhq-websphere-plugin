@@ -36,6 +36,7 @@ public class ConnectionContext {
     private final Map<String,Object> dataSourceProperties;
     private final DB2SimpleDataSource dataSource;
     private Connection connection;
+    private long lastSuccessfulQuery;
     
     public ConnectionContext(Map<String,Object> orgDataSourceProperties, String principal, String credentials) {
         this.dataSourceProperties = orgDataSourceProperties;
@@ -91,8 +92,7 @@ public class ConnectionContext {
         return dataSourceProperties;
     }
     
-    public DB2ClientRerouteServerList getClientRerouteServerList() throws SQLException {
-        // Need to execute a query first to make sure the reroute information is up to date
+    public void testConnection() throws SQLException {
         execute(new Query<Void>() {
             public Void execute(Connection connection) throws SQLException {
                 Statement statement = connection.createStatement();
@@ -104,6 +104,13 @@ public class ConnectionContext {
                 return null;
             }
         });
+    }
+    
+    public DB2ClientRerouteServerList getClientRerouteServerList() throws SQLException {
+        // Need to make sure that a query has been executed recently so that the reroute information is up to date
+        if (System.currentTimeMillis() - lastSuccessfulQuery > 60000) {
+            testConnection();
+        }
         return dataSource.getClientRerouteServerList();
     }
     
@@ -112,7 +119,9 @@ public class ConnectionContext {
             connection = dataSource.getConnection();
         }
         try {
-            return query.execute(connection);
+            T result = query.execute(connection);
+            lastSuccessfulQuery = System.currentTimeMillis();
+            return result;
         } catch (SQLException ex) {
             // Discard connection; we will re-attempt next time
             try {
