@@ -51,7 +51,7 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
                         value = null;
                     } else if (type == null) {
                         value = stringValue;
-                    } else if (type.equals("java.lang.Integer")) {
+                    } else if (type.equals("java.lang.Integer") || type.equals("int")) {
                         value = Integer.valueOf(stringValue);
                     } else {
                         value = stringValue;

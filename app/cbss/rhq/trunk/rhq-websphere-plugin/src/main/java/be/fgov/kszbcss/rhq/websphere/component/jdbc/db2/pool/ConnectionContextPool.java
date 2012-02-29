@@ -23,25 +23,43 @@ public final class ConnectionContextPool {
     public synchronized static ConnectionContext getConnectionContext(Map<String,Object> properties) {
         ConnectionContextImpl impl = contexts.get(properties);
         if (impl == null) {
-            log.info("Creating connection context for properties " + properties);
             impl = new ConnectionContextImpl(properties);
             contexts.put(properties, impl);
+            log.info("Created connection context for properties " + properties);
         }
         impl.refCounter++;
+        dump();
         return new ConnectionContext(impl);
     }
     
     synchronized static void release(ConnectionContextImpl impl) {
         if (--impl.refCounter == 0) {
             impl.destroy();
+            boolean removed = false;
             for (Iterator<Map.Entry<Map<String,Object>,ConnectionContextImpl>> it = contexts.entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry<Map<String,Object>,ConnectionContextImpl> entry = it.next();
                 if (entry.getValue() == impl) {
                     it.remove();
-                    log.info("Destroying connection context for properties " + entry.getKey());
+                    log.info("Destroyed connection context for properties " + entry.getKey());
+                    removed = true;
                     break;
                 }
             }
+            if (!removed) {
+                throw new IllegalStateException("Failed to remove connection context");
+            }
+        }
+        dump();
+    }
+    
+    private static void dump() {
+        if (log.isDebugEnabled()) {
+            StringBuilder buffer = new StringBuilder("Dump of connection context pool:");
+            int i = 0;
+            for (Map.Entry<Map<String,Object>,ConnectionContextImpl> entry : contexts.entrySet()) {
+                buffer.append("\n[" + i++ + "] properties=" + entry.getKey() + ", refCounter=" + entry.getValue().refCounter);
+            }
+            log.debug(buffer.toString());
         }
     }
 }

@@ -20,7 +20,7 @@ public final class ConnectionContext {
     }
     
     public <T> T execute(Query<T> query) throws SQLException {
-        return execute(query);
+        return impl.execute(query);
     }
     
     public void release() {

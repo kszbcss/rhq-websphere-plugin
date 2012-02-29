@@ -54,6 +54,9 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
             getContext().testConnection();
             return AvailabilityType.UP;
         } catch (Exception ex) {
+            if (log.isDebugEnabled()) {
+                log.debug("Test connection failed ==> availability = DOWN", ex);
+            }
             return AvailabilityType.DOWN;
         }
     }
