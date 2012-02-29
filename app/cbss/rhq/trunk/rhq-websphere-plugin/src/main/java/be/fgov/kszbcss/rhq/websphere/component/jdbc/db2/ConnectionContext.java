@@ -30,8 +30,7 @@ public class ConnectionContext {
     
     private static final Set<String> dataSourcePropertyKeys = new HashSet<String>(Arrays.asList(
         "serverName", "portNumber", "databaseName", "driverType",
-        "clientRerouteAlternateServerName", "clientRerouteAlternatePortNumber",
-        "retryIntervalForClientReroute", "maxRetriesForClientReroute", "loginTimeout"));
+        "clientRerouteAlternateServerName", "clientRerouteAlternatePortNumber"));
     
     private final Map<String,Object> dataSourceProperties;
     private final DB2SimpleDataSource dataSource;
@@ -52,6 +51,10 @@ public class ConnectionContext {
         dataSourceProperties.put("clientProgramName", "RHQ");
         dataSourceProperties.put("user", principal);
         dataSourceProperties.put("password", credentials);
+        // Set the ACR configuration explicitly; we want to fail fast
+        dataSourceProperties.put("retryIntervalForClientReroute", Integer.valueOf(3));
+        dataSourceProperties.put("maxRetriesForClientReroute", Integer.valueOf(1));
+        dataSourceProperties.put("loginTimeout", Integer.valueOf(3));
         if (log.isDebugEnabled()) {
             log.debug("Configuring data source with properties " + dataSourceProperties);
         }
