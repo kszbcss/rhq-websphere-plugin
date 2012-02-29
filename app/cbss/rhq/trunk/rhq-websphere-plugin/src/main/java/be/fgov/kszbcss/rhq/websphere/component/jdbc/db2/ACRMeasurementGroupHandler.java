@@ -25,7 +25,7 @@ public class ACRMeasurementGroupHandler implements MeasurementGroupHandler {
     public void getValues(WebSphereServer server, MeasurementReport report, Map<String,MeasurementScheduleRequest> requests) {
         DB2ClientRerouteServerList serverList;
         try {
-            serverList = monitor.getConnectionContext().getClientRerouteServerList();
+            serverList = monitor.getContext().getClientRerouteServerList();
         } catch (Exception ex) {
             log.error("Failed to get client reroute server list", ex);
             return;

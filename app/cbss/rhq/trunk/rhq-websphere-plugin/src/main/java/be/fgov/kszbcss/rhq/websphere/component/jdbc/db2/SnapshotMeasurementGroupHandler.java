@@ -16,6 +16,7 @@ import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+import be.fgov.kszbcss.rhq.websphere.component.jdbc.db2.pool.Query;
 import be.fgov.kszbcss.rhq.websphere.proxy.AdminOperations;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementGroupHandler;
 
@@ -44,8 +45,8 @@ public class SnapshotMeasurementGroupHandler implements MeasurementGroupHandler 
 
     public void getValues(WebSphereServer server, MeasurementReport report, Map<String,MeasurementScheduleRequest> requests) {
         try {
-            ConnectionContext connectionContext = monitor.getConnectionContext();
-            Map<String,Object> dataSourceProps = connectionContext.getDataSourceProperties();
+            DB2MonitorContext context = monitor.getContext();
+            Map<String,Object> dataSourceProps = context.getDataSourceProperties();
             
             // TODO: this should be done in ConnectionContext!
             String clientProgramName = (String)dataSourceProps.get("clientProgramName");
@@ -90,7 +91,7 @@ public class SnapshotMeasurementGroupHandler implements MeasurementGroupHandler 
             for (int i=0; i<newData.length; i++) {
                 newData[i] = new DB2BaseMetricData();
             }
-            connectionContext.execute(new Query<Void>() {
+            context.execute(new Query<Void>() {
                 public Void execute(Connection connection) throws SQLException {
                     PreparedStatement stmt = connection.prepareStatement(sql);
                     try {

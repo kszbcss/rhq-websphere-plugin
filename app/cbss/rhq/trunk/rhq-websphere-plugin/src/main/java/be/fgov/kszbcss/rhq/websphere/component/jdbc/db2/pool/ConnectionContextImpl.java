@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.rhq.websphere.component.jdbc.db2;
+package be.fgov.kszbcss.rhq.websphere.component.jdbc.db2.pool;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -8,56 +8,25 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+
 import com.ibm.db2.jcc.DB2ClientRerouteServerList;
 import com.ibm.db2.jcc.DB2SimpleDataSource;
 
-/**
- * Contains a local DB2 data source (for monitoring connections) as well as configuration
- * information from the data source configured in WebSphere. When a configuration change is
- * detected, a new instance is created and the old one discarded.
- */
-public class ConnectionContext {
-    private static final Log log = LogFactory.getLog(ConnectionContext.class);
+final class ConnectionContextImpl {
+    private static final Log log = LogFactory.getLog(ConnectionContextImpl.class);
     
-    private static final Set<String> dataSourcePropertyKeys = new HashSet<String>(Arrays.asList(
-        "serverName", "portNumber", "databaseName", "driverType",
-        "clientRerouteAlternateServerName", "clientRerouteAlternatePortNumber"));
-    
-    private final Map<String,Object> dataSourceProperties;
+    int refCounter;
     private final DB2SimpleDataSource dataSource;
     private Connection connection;
     private long lastSuccessfulQuery;
     
-    public ConnectionContext(Map<String,Object> orgDataSourceProperties, String principal, String credentials) {
-        this.dataSourceProperties = orgDataSourceProperties;
+    ConnectionContextImpl(Map<String,Object> properties) {
         dataSource = new DB2SimpleDataSource();
-        Map<String,Object> dataSourceProperties = new HashMap<String,Object>();
-        for (Map.Entry<String,Object> entry : orgDataSourceProperties.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            if (value != null && dataSourcePropertyKeys.contains(key)) {
-                dataSourceProperties.put(entry.getKey(), value);
-            }
-        }
-        dataSourceProperties.put("clientProgramName", "RHQ");
-        dataSourceProperties.put("user", principal);
-        dataSourceProperties.put("password", credentials);
-        // Set the ACR configuration explicitly; we want to fail fast
-        dataSourceProperties.put("retryIntervalForClientReroute", Integer.valueOf(3));
-        dataSourceProperties.put("maxRetriesForClientReroute", Integer.valueOf(1));
-        dataSourceProperties.put("loginTimeout", Integer.valueOf(3));
-        if (log.isDebugEnabled()) {
-            log.debug("Configuring data source with properties " + dataSourceProperties);
-        }
         BeanInfo beanInfo;
         try {
             beanInfo = Introspector.getBeanInfo(DB2SimpleDataSource.class);
@@ -66,8 +35,8 @@ public class ConnectionContext {
         }
         for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors()) {
             String name = descriptor.getName();
-            if (dataSourceProperties.containsKey(name)) {
-                Object value = dataSourceProperties.get(name);
+            if (properties.containsKey(name)) {
+                Object value = properties.get(name);
                 if (log.isDebugEnabled()) {
                     log.debug("Setting property " + name + ": propertyType=" + descriptor.getPropertyType().getName() + ", value=" + value + " (class=" + (value == null ? "<N/A>" : value.getClass().getName()) + ")");
                 }
@@ -90,12 +59,8 @@ public class ConnectionContext {
             }
         }
     }
-
-    public Map<String,Object> getDataSourceProperties() {
-        return dataSourceProperties;
-    }
     
-    public void testConnection() throws SQLException {
+    void testConnection() throws SQLException {
         execute(new Query<Void>() {
             public Void execute(Connection connection) throws SQLException {
                 Statement statement = connection.createStatement();
@@ -109,7 +74,7 @@ public class ConnectionContext {
         });
     }
     
-    public DB2ClientRerouteServerList getClientRerouteServerList() throws SQLException {
+    DB2ClientRerouteServerList getClientRerouteServerList() throws SQLException {
         // Need to make sure that a query has been executed recently so that the reroute information is up to date
         if (System.currentTimeMillis() - lastSuccessfulQuery > 60000) {
             testConnection();
@@ -117,7 +82,7 @@ public class ConnectionContext {
         return dataSource.getClientRerouteServerList();
     }
     
-    public <T> T execute(Query<T> query) throws SQLException {
+    synchronized <T> T execute(Query<T> query) throws SQLException {
         if (connection == null) {
             connection = dataSource.getConnection();
         }
@@ -137,7 +102,7 @@ public class ConnectionContext {
         }
     }
     
-    public void destroy() {
+    void destroy() {
         if (connection != null) {
             try {
                 connection.close();

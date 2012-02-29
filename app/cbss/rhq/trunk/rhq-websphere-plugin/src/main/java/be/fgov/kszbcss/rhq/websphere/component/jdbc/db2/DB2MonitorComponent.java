@@ -25,7 +25,7 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
     private AdminOperations adminOperations;
     private String principal;
     private String credentials;
-    private ConnectionContext connectionContext;
+    private DB2MonitorContext context;
     private MeasurementFacetSupport measurementFacetSupport;
     
     protected void start() throws InvalidPluginConfigurationException, Exception {
@@ -51,7 +51,7 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
     @Override
     protected AvailabilityType doGetAvailability() {
         try {
-            getConnectionContext().testConnection();
+            getContext().testConnection();
             return AvailabilityType.UP;
         } catch (Exception ex) {
             return AvailabilityType.DOWN;
@@ -63,15 +63,15 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
         return true;
     }
 
-    public ConnectionContext getConnectionContext() throws Exception {
+    public DB2MonitorContext getContext() throws Exception {
         Map<String,Object> dataSourceProperties = dataSourceComponent.getConnectionFactoryInfo().getProperties();
-        if (connectionContext == null || !connectionContext.getDataSourceProperties().equals(dataSourceProperties)) {
-            if (connectionContext != null) {
-                connectionContext.destroy();
+        if (context == null || !context.getDataSourceProperties().equals(dataSourceProperties)) {
+            if (context != null) {
+                context.destroy();
             }
-            connectionContext = new ConnectionContext(dataSourceProperties, principal, credentials);
+            context = new DB2MonitorContext(dataSourceProperties, principal, credentials);
         }
-        return connectionContext;
+        return context;
     }
     
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
@@ -85,8 +85,8 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
     }
 
     public void stop() {
-        if (connectionContext != null) {
-            connectionContext.destroy();
+        if (context != null) {
+            context.destroy();
         }
     }
 }
