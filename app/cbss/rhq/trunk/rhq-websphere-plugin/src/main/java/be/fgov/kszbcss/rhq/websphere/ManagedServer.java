@@ -2,6 +2,7 @@ package be.fgov.kszbcss.rhq.websphere;
 
 import java.io.Serializable;
 
+import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotificationFilterSupport;
 import javax.management.ObjectName;
@@ -11,6 +12,9 @@ import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.pluginapi.event.EventContext;
 
+import com.ibm.websphere.management.exception.ConnectorException;
+
+import be.fgov.kszbcss.rhq.websphere.component.server.ClusterNameQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
@@ -77,5 +81,9 @@ public class ManagedServer extends WebSphereServer {
 
     public <T extends Serializable> T queryConfig(ConfigQuery<T> query) throws InterruptedException {
         return getConfigQueryService().query(query);
+    }
+
+    public String getClusterName() throws InterruptedException, JMException, ConnectorException {
+        return queryConfig(new ClusterNameQuery(getNode(), getServer()));
     }
 }

@@ -17,12 +17,16 @@ import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
+import be.fgov.kszbcss.rhq.websphere.proxy.HAManager;
 import be.fgov.kszbcss.rhq.websphere.proxy.SIBMain;
 import be.fgov.kszbcss.rhq.websphere.proxy.SIBMessagingEngine;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXOperationMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
+import com.ibm.websphere.hamanager.jmx.GroupMemberData;
+import com.ibm.websphere.hamanager.jmx.GroupMemberState;
 import com.ibm.websphere.management.exception.ConnectorException;
+import com.ibm.wsspi.hamanager.GroupName;
 
 public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet {
     private static final Log log = LogFactory.getLog(SIBMessagingEngineComponent.class);
@@ -30,6 +34,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     private MeasurementFacetSupport measurementFacetSupport;
     private SIBMain sibMain;
     private SIBMessagingEngine sibMessagingEngine;
+    private HAManager haManager;
     private String name;
     private String cachedState;
     private long cachedStateTimestamp;
@@ -39,6 +44,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         name = getResourceContext().getResourceKey();
         WebSphereServer server = getServer();
         sibMain = server.getMBeanClient("WebSphere:type=SIBMain,*").getProxy(SIBMain.class);
+        haManager = server.getMBeanClient("WebSphere:type=HAManager,*").getProxy(HAManager.class);
         MBeanClient sibMessagingEngineMBeanClient = server.getMBeanClient("WebSphere:type=SIBMessagingEngine,name=" + name + ",*");
         sibMessagingEngine = sibMessagingEngineMBeanClient.getProxy(SIBMessagingEngine.class);
         measurementFacetSupport = new MeasurementFacetSupport(this);
@@ -104,13 +110,36 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
                 log.debug("Failed to get messaging engine health => messaging engine DOWN", ex);
                 return AvailabilityType.DOWN;
             }
+            AvailabilityType availability = health.equals("State=OK") ? AvailabilityType.UP : AvailabilityType.DOWN;
             if (log.isDebugEnabled()) {
-                log.debug("health = " + state);
+                log.debug("health = " + health + " => message engine " + availability);
             }
-            return health.equals("State=OK") ? AvailabilityType.UP : AvailabilityType.DOWN;
+            return availability;
         } else if (state.equals("Joined")) {
-            log.debug("Messaging engine is in state Joined => messaging engine UP");
-            return AvailabilityType.UP;
+            log.debug("Messaging engine is in state Joined; check the state in the HAManager");
+            try {
+                SIBMessagingEngineInfo info = getInfo();
+                ManagedServer server = getServer();
+                GroupName groupName = haManager.createGroupName(GroupName.WAS_CLUSTER + "=" + server.getClusterName()
+                        + ",WSAF_SIB_BUS=" + info.getBusName() + ",WSAF_SIB_MESSAGING_ENGINE=" + info.getName() + ",type=WSAF_SIB");
+                String nodeName = server.getNode();
+                String serverName = server.getServer();
+                for (GroupMemberData member : haManager.retrieveGroupMembers(groupName)) {
+                    if (member.getNodeName().equals(nodeName) && member.getServerName().equals(serverName)) {
+                        GroupMemberState memberState = member.getMemberState();
+                        AvailabilityType availability = memberState.equals(GroupMemberState.IDLE) ? AvailabilityType.UP : AvailabilityType.DOWN;
+                        if (log.isDebugEnabled()) {
+                            log.debug("Group member state = " + memberState + " => messaging engine " + availability);
+                        }
+                        return availability;
+                    }
+                }
+                log.debug("No group member data found => messaging engine DOWN");
+                return AvailabilityType.DOWN;
+            } catch (Exception ex) {
+                log.debug("Failed to get state from HAManager => messaging engine DOWN", ex);
+                return AvailabilityType.DOWN;
+            }
         } else {
             log.error("Unknown state " + state + " for messaging engine " + name);
             return AvailabilityType.DOWN;
