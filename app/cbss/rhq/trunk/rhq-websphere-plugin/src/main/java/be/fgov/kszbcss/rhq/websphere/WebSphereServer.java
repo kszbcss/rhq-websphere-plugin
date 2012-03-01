@@ -20,8 +20,10 @@ import javax.security.auth.Subject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import be.fgov.kszbcss.rhq.websphere.connector.AdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsWrapper;
+import be.fgov.kszbcss.rhq.websphere.connector.AdminClientUtils;
 import be.fgov.kszbcss.rhq.websphere.connector.SecureAdminClient;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientFactory;
@@ -149,7 +151,7 @@ public abstract class WebSphereServer {
 
     public synchronized AdminClient getAdminClient() throws ConnectorException {
         if (adminClient == null) {
-            Properties properties = new Properties();
+            final Properties properties = new Properties();
             
             try {
                 processLocator.getAdminClientProperties(properties);
@@ -167,22 +169,28 @@ public abstract class WebSphereServer {
                 log.debug("Creating AdminClient with properties: " + properties);
             }
             
-            adminClient = AdminClientFactory.createAdminClient(properties);
-            
-            adminClient = new AdminClientStatsWrapper(adminClient, AdminClientStatsCollector.INSTANCE);
-            
-            try {
-                Subject subject = WSSubject.getRunAsSubject();
-                if (log.isDebugEnabled()) {
-                    log.debug("Subject = " + subject);
+            adminClient = AdminClientUtils.createFailFastAdminClient(new AdminClientProvider() {
+                public AdminClient createAdminClient() throws ConnectorException {
+                    adminClient = AdminClientFactory.createAdminClient(properties);
+                    
+                    adminClient = new AdminClientStatsWrapper(adminClient, AdminClientStatsCollector.INSTANCE);
+                    
+                    try {
+                        Subject subject = WSSubject.getRunAsSubject();
+                        if (log.isDebugEnabled()) {
+                            log.debug("Subject = " + subject);
+                        }
+                        if (subject != null) {
+                            WSSubject.setRunAsSubject(null);
+                            adminClient = new SecureAdminClient(adminClient, subject);
+                        }
+                    } catch (WSSecurityException ex) {
+                        throw new ConnectorException(ex);
+                    }
+                    
+                    return adminClient;
                 }
-                if (subject != null) {
-                    WSSubject.setRunAsSubject(null);
-                    adminClient = new SecureAdminClient(adminClient, subject);
-                }
-            } catch (WSSecurityException ex) {
-                throw new ConnectorException(ex);
-            }
+            });
             
             for (NotificationListenerRegistration registration : listeners) {
                 try {
