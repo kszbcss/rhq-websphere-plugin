@@ -37,8 +37,18 @@ final class ConnectionContextImpl {
             String name = descriptor.getName();
             if (properties.containsKey(name)) {
                 Object value = properties.get(name);
+                Class<?> propertyType = descriptor.getPropertyType();
                 if (log.isDebugEnabled()) {
-                    log.debug("Setting property " + name + ": propertyType=" + descriptor.getPropertyType().getName() + ", value=" + value + " (class=" + (value == null ? "<N/A>" : value.getClass().getName()) + ")");
+                    log.debug("Setting property " + name + ": propertyType=" + propertyType.getName() + ", value=" + value + " (class=" + (value == null ? "<N/A>" : value.getClass().getName()) + ")");
+                }
+                if (propertyType != String.class && value instanceof String) {
+                    // Need to convert value to correct type
+                    if (propertyType == Integer.class || propertyType == Integer.TYPE) {
+                        value = Integer.valueOf((String)value);
+                    }
+                    if (log.isDebugEnabled()) {
+                        log.debug("Converted value to " + value + " (class=" + value.getClass().getName() + ")");
+                    }
                 }
                 try {
                     descriptor.getWriteMethod().invoke(dataSource, value);

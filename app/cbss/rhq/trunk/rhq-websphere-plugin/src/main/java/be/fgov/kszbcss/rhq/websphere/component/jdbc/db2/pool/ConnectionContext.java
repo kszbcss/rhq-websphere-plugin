@@ -11,24 +11,29 @@ public final class ConnectionContext {
         this.impl = impl;
     }
 
-    public void testConnection() throws SQLException {
-        impl.testConnection();
-    }
-    
-    public DB2ClientRerouteServerList getClientRerouteServerList() throws SQLException {
-        return impl.getClientRerouteServerList();
-    }
-    
-    public <T> T execute(Query<T> query) throws SQLException {
-        return impl.execute(query);
-    }
-    
-    public void release() {
+    private synchronized ConnectionContextImpl checkState() {
         if (impl == null) {
             throw new IllegalStateException("ConnectionContext already released");
         } else {
-            ConnectionContextPool.release(impl);
-            impl = null;
+            return impl;
         }
+    }
+    
+    public void testConnection() throws SQLException {
+        checkState().testConnection();
+    }
+    
+    public DB2ClientRerouteServerList getClientRerouteServerList() throws SQLException {
+        return checkState().getClientRerouteServerList();
+    }
+    
+    public <T> T execute(Query<T> query) throws SQLException {
+        return checkState().execute(query);
+    }
+    
+    public synchronized void release() {
+        checkState();
+        ConnectionContextPool.release(impl);
+        impl = null;
     }
 }
