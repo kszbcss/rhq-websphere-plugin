@@ -90,6 +90,7 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
     public void stop() {
         if (context != null) {
             context.destroy();
+            context = null;
         }
     }
 }
