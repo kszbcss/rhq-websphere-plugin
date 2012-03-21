@@ -421,6 +421,21 @@
                 <metric property="deadlocks" displayName="Deadlocks"
                         category="performance" defaultInterval="120000" measurementType="trendsup"
                         description="The number of deadlocks that have occurred."/>
+                <metric property="lock_escals" displayName="Lock Escalations"
+                        category="performance" defaultInterval="120000" measurementType="trendsup"
+                        description="The number of times that locks have been escalated from several row locks to a table lock."/>
+                <metric property="locks_held" displayName="Locks Held"
+                        category="utilization" defaultInterval="120000"
+                        description="The total number of locks currently held."/>
+                <metric property="commit_sql_stmts" displayName="Commits"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
+                        description="The total number of SQL COMMIT statements that have been attempted."/>
+                <metric property="rollback_sql_stmts" displayName="Rollbacks"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
+                        description="The total number of SQL ROLLBACK statements that have been attempted."/>
+                <metric property="uow_log_space_used" units="bytes" displayName="Log Space Used"
+                        category="utilization" defaultInterval="120000"
+                        description="The amount of log space used."/>
                 
                 <metric property="acr.primary" displayName="Primary Server" dataType="trait"
                         displayType="summary" defaultOn="true"
