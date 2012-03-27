@@ -19,7 +19,7 @@ public class OutboundConnectionCacheDiscoveryComponent implements ResourceDiscov
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         AdminClient adminClient = context.getParentResourceComponent().getServer().getAdminClient();
-        for (ObjectName objectName : adminClient.queryNames(Utils.createObjectName("be.fgov.kszbcss.rhq.websphere.xm:type=OutboundConnectionCache,*"), null)) {
+        for (ObjectName objectName : adminClient.queryNames(Utils.createObjectName("*:type=OutboundConnectionCache,*"), null)) {
             String name = objectName.getKeyProperty("name");
             result.add(new DiscoveredResourceDetails(context.getResourceType(), name, name, null, "Outbound HTTP connection cache for " + name, null, null));
         }
