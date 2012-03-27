@@ -49,6 +49,7 @@ import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.none.NoneLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.ras.RasLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.xm.ExtendedLoggingProvider;
+import be.fgov.kszbcss.rhq.websphere.component.server.log.xm4was.XM4WASLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
 import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
 import be.fgov.kszbcss.rhq.websphere.proxy.Server;
@@ -69,6 +70,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         loggingProviderClasses.put("none", NoneLoggingProvider.class);
         loggingProviderClasses.put("ras", RasLoggingProvider.class);
         loggingProviderClasses.put("xm", ExtendedLoggingProvider.class);
+        loggingProviderClasses.put("xm4was", XM4WASLoggingProvider.class);
     }
     
     private String cell;
