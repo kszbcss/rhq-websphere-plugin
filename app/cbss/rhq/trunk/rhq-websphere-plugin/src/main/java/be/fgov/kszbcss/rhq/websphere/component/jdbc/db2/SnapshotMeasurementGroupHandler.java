@@ -4,7 +4,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -28,9 +30,20 @@ public class SnapshotMeasurementGroupHandler implements MeasurementGroupHandler 
     
     private static final Map<String,String> expressions;
     
+    /**
+     * A set of base metrics that are dynamic, i.e. which are not counters. They need to be handled
+     * slightly differently, namely their values should not be retained when a connection/agent
+     * disappears.
+     */
+    private static final Set<String> dynamicBaseMetrics = new HashSet<String>(Arrays.asList("locks_held", "uow_log_space_used"));
+    
     static {
         expressions = new HashMap<String,String>();
         expressions.put("agent_usr_cpu_time", "agent_usr_cpu_time_s*1000+agent_usr_cpu_time_ms/1000");
+        // uow_log_space_used is only reset to 0 when a new UOW starts, but the log space is actually freed when
+        // the current UOW is committed; the following entry ensures that we only take into account uow_log_space_used
+        // values for connections with an active UOW
+        expressions.put("uow_log_space_used", "case when uow_stop_time is null then uow_log_space_used else 0 end");
     }
     
     private final DB2MonitorComponent monitor;
@@ -117,15 +130,22 @@ public class SnapshotMeasurementGroupHandler implements MeasurementGroupHandler 
             int i = 0;
             for (String name : baseMetrics) {
                 DB2BaseMetricData raw = newData[i++];
-                DB2BaseMetricData adjusted = baseMetricData.get(name);
-                if (adjusted == null) {
+                if (dynamicBaseMetrics.contains(name)) {
                     baseMetricData.put(name, raw);
-                    adjusted = raw;
+                    if (log.isDebugEnabled()) {
+                        log.debug("Processing data for dynamic base metric " + name + "; raw value: " + raw.getSum());
+                    }
                 } else {
-                    adjusted.update(raw);
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("Processing data for " + name + "; raw value: " + raw.getSum() + "; adjusted value: " + adjusted.getSum());
+                    DB2BaseMetricData adjusted = baseMetricData.get(name);
+                    if (adjusted == null) {
+                        baseMetricData.put(name, raw);
+                        adjusted = raw;
+                    } else {
+                        adjusted.update(raw);
+                    }
+                    if (log.isDebugEnabled()) {
+                        log.debug("Processing data for counter " + name + "; raw value: " + raw.getSum() + "; adjusted value: " + adjusted.getSum());
+                    }
                 }
             }
     
