@@ -64,7 +64,9 @@ public class SnapshotMeasurementGroupHandler implements MeasurementGroupHandler 
             // TODO: this should be done in ConnectionContext!
             String clientProgramName = (String)dataSourceProps.get("clientProgramName");
             if (clientProgramName == null || clientProgramName.length() == 0) {
-                log.warn("clientProgramName not configured; unable to correlate snapshot data");
+                log.warn("clientProgramName not configured for data source "
+                        + monitor.getResourceContext().getParentResourceComponent().getResourceContext().getResourceKey()
+                        + "; unable to correlate snapshot data");
                 return;
             }
             final String applName = adminOperations.expandVariable(clientProgramName);
