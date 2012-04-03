@@ -25,7 +25,9 @@ public final class ConnectionContextPool {
         if (impl == null) {
             impl = new ConnectionContextImpl(properties);
             contexts.put(properties, impl);
-            log.info("Created connection context for properties " + properties);
+            if (log.isDebugEnabled()) {
+                log.debug("Created connection context for properties " + properties);
+            }
         }
         impl.refCounter++;
         dump();
@@ -40,7 +42,9 @@ public final class ConnectionContextPool {
                 Map.Entry<Map<String,Object>,ConnectionContextImpl> entry = it.next();
                 if (entry.getValue() == impl) {
                     it.remove();
-                    log.info("Destroyed connection context for properties " + entry.getKey());
+                    if (log.isDebugEnabled()) {
+                        log.debug("Destroyed connection context for properties " + entry.getKey());
+                    }
                     removed = true;
                     break;
                 }
