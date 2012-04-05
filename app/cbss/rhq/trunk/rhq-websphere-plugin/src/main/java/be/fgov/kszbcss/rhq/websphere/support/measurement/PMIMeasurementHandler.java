@@ -195,4 +195,9 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
     protected double getValue(String name, WSRangeStatistic statistic) {
         return statistic.getCurrent();
     }
+
+    @Override
+    public String toString() {
+        return getClass().getName() + "[" + moduleSelector + "]";
+    }
 }

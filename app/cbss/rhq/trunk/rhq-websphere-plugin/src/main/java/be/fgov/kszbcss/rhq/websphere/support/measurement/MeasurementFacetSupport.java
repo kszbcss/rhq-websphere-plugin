@@ -40,12 +40,19 @@ public class MeasurementFacetSupport implements MeasurementFacet {
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
         WebSphereServer server = component.getServer();
         
+        if (log.isDebugEnabled()) {
+            log.debug("Starting to process the following measurement requests: " + requests);
+        }
+        
         Map<String,Map<String,MeasurementScheduleRequest>> namedRequestMap = new HashMap<String,Map<String,MeasurementScheduleRequest>>();
         Map<String,MeasurementScheduleRequest> defaultRequests = new HashMap<String,MeasurementScheduleRequest>();
         for (MeasurementScheduleRequest request : requests) {
             String name = request.getName();
             MeasurementHandler handler = handlers.get(name);
             if (handler != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Processing " + name + " using handler " + handler);
+                }
                 handler.getValue(server, report, request);
             } else {
                 int idx = name.indexOf('.');
@@ -68,12 +75,19 @@ public class MeasurementFacetSupport implements MeasurementFacet {
         }
         
         for (Map.Entry<String,Map<String,MeasurementScheduleRequest>> entry : namedRequestMap.entrySet()) {
-            groupHandlers.get(entry.getKey()).getValues(server, report, entry.getValue());
+            MeasurementGroupHandler groupHandler = groupHandlers.get(entry.getKey());
+            if (log.isDebugEnabled()) {
+                log.debug("Processing " + entry.getValue().keySet() + " using group handler " + groupHandler + " for group " + entry.getKey());
+            }
+            groupHandler.getValues(server, report, entry.getValue());
         }
         if (!defaultRequests.isEmpty()) {
             if (defaultHandler == null) {
                 log.error("The following measurements could not be collected because no default handler is defined: " + defaultRequests.keySet());
             } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Processing " + defaultRequests.keySet() + " using default handler " + defaultHandler);
+                }
                 defaultHandler.getValues(server, report, defaultRequests);
             }
         }

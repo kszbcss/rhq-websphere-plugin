@@ -1,5 +1,6 @@
 package be.fgov.kszbcss.rhq.websphere.component.jdbc.db2;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -30,13 +31,24 @@ public class ACRMeasurementGroupHandler implements MeasurementGroupHandler {
             log.error("Failed to get client reroute server list", ex);
             return;
         }
+        if (log.isDebugEnabled()) {
+            log.debug("serverList = " + serverList);
+        }
         for (Map.Entry<String,MeasurementScheduleRequest> request : requests.entrySet()) {
             String name = request.getKey();
             if (name.equals("primary")) {
+                if (log.isDebugEnabled()) {
+                    log.debug("primaryServerName = " + serverList.getPrimaryServerName());
+                    log.debug("primaryPortNumber = " + serverList.getPrimaryPortNumber());
+                }
                 report.addData(new MeasurementDataTrait(request.getValue(), serverList.getPrimaryServerName() + ":" + serverList.getPrimaryPortNumber()));
             } else if (name.equals("alternate")) {
                 String[] serverNames = serverList.getAlternateServerName();
                 int[] ports = serverList.getAlternatePortNumber();
+                if (log.isDebugEnabled()) {
+                    log.debug("alternateServerName = " + serverNames);
+                    log.debug("alternatePortNumber = " + ports);
+                }
                 StringBuilder buffer = new StringBuilder();
                 for (int i=0; i<serverNames.length; i++) {
                     if (buffer.length() > 0) {
