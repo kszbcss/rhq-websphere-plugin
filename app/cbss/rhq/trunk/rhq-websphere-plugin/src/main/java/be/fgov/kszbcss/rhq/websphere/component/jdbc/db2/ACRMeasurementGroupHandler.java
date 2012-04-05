@@ -1,6 +1,5 @@
 package be.fgov.kszbcss.rhq.websphere.component.jdbc.db2;
 
-import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -44,21 +43,31 @@ public class ACRMeasurementGroupHandler implements MeasurementGroupHandler {
                 report.addData(new MeasurementDataTrait(request.getValue(), serverList.getPrimaryServerName() + ":" + serverList.getPrimaryPortNumber()));
             } else if (name.equals("alternate")) {
                 String[] serverNames = serverList.getAlternateServerName();
-                int[] ports = serverList.getAlternatePortNumber();
-                if (log.isDebugEnabled()) {
-                    log.debug("alternateServerName = " + serverNames);
-                    log.debug("alternatePortNumber = " + ports);
-                }
-                StringBuilder buffer = new StringBuilder();
-                for (int i=0; i<serverNames.length; i++) {
-                    if (buffer.length() > 0) {
-                        buffer.append(',');
+                String value;
+                if (serverNames == null) {
+                    log.debug("alternateServerName is null => reporting empty value for 'alternate'");
+                    value = "";
+                } else {
+                    int[] ports = serverList.getAlternatePortNumber();
+                    if (log.isDebugEnabled()) {
+                        log.debug("alternateServerName = " + serverNames);
+                        log.debug("alternatePortNumber = " + ports);
                     }
-                    buffer.append(serverNames[i]);
-                    buffer.append(':');
-                    buffer.append(ports[i]);
+                    StringBuilder buffer = new StringBuilder();
+                    for (int i=0; i<serverNames.length; i++) {
+                        if (buffer.length() > 0) {
+                            buffer.append(',');
+                        }
+                        buffer.append(serverNames[i]);
+                        buffer.append(':');
+                        buffer.append(ports[i]);
+                    }
+                    value = buffer.toString();
+                    if (log.isDebugEnabled()) {
+                        log.debug("Reporting '" + value + "' for 'alternate'");
+                    }
                 }
-                report.addData(new MeasurementDataTrait(request.getValue(), buffer.toString()));
+                report.addData(new MeasurementDataTrait(request.getValue(), value));
             }
         }
     }
