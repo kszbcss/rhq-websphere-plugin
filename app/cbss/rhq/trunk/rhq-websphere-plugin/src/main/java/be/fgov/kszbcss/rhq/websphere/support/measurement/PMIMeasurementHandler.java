@@ -1,9 +1,7 @@
 package be.fgov.kszbcss.rhq.websphere.support.measurement;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
