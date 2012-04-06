@@ -86,6 +86,20 @@
                            description="Allow the thread pool to grow past the maximum size."/>
     </resource-configuration>
 '>
+<!ENTITY class-loader-stats-metrics '
+    <metric property="stats.CreateCount" displayName="Create Count"
+            category="utilization" defaultInterval="600000" defaultOn="false"
+            description="The number of application and module class loaders created."/>
+    <metric property="stats.StopCount" displayName="Stop Count"
+            category="utilization" defaultInterval="600000" defaultOn="false"
+            description="The number of class loaders for modules that have been stopped."/>
+    <metric property="stats.DestroyedCount" displayName="Destroyed Count"
+            category="utilization" defaultInterval="600000" defaultOn="false"
+            description="The number of application and module class loaders that have been destroyed (garbage collected)."/>
+    <metric property="stats.LeakedCount" displayName="Leaked Count" defaultOn="true"
+            category="utilization" displayType="summary" defaultInterval="600000"
+            description="The number of leaked class loaders."/>
+'>
 ]>
 <plugin name="WebSphere"
         displayName="WebSphere Application Server"
@@ -239,18 +253,7 @@
                  class="be.fgov.kszbcss.rhq.websphere.component.xm.ClassLoaderStatsComponent"
                  description="Class Loader Statistics"
                  singleton="true">
-            <metric property="stats.CreateCount" displayName="Create Count"
-                    category="utilization" defaultInterval="600000" defaultOn="false"
-                    description="The number of application and module class loaders created."/>
-            <metric property="stats.StopCount" displayName="Stop Count"
-                    category="utilization" defaultInterval="600000" defaultOn="false"
-                    description="The number of class loaders for modules that have been stopped."/>
-            <metric property="stats.DestroyedCount" displayName="Destroyed Count"
-                    category="utilization" defaultInterval="600000" defaultOn="false"
-                    description="The number of application and module class loaders that have been destroyed (garbage collected)."/>
-            <metric property="stats.LeakedCount" displayName="Leaked Count" defaultOn="true"
-                    category="utilization" displayType="summary" defaultInterval="600000"
-                    description="The number of leaked class loaders."/>
+            &class-loader-stats-metrics;
         </service>
         
         <service name="Thread Pool"
@@ -505,6 +508,14 @@
             
             <event name="StateChange" description="State change events"/>
             
+            <service name="Application Class Loader"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.xm.ModuleClassLoaderStatsDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.xm.ApplicationClassLoaderStatsComponent"
+                     description="Application Class Loader Statistics"
+                     singleton="true">
+                &class-loader-stats-metrics;
+            </service>
+            
             <service name="Web module"
                      discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleDiscoveryComponent"
                      class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleComponent"
@@ -521,6 +532,14 @@
                 <resource-configuration>
                 &deployment-configuration;
                 </resource-configuration>
+                
+                <service name="Web Module Class Loader"
+                         discovery="be.fgov.kszbcss.rhq.websphere.component.xm.ModuleClassLoaderStatsDiscoveryComponent"
+                         class="be.fgov.kszbcss.rhq.websphere.component.xm.WebModuleClassLoaderStatsComponent"
+                         description="Web Module Class Loader Statistics"
+                         singleton="true">
+                    &class-loader-stats-metrics;
+                </service>
                 
                 <service name="Servlet"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletDiscoveryComponent"
