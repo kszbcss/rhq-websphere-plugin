@@ -53,9 +53,6 @@
     <metric property="stats.ConcurrentHungThreadCount" displayName="Hung Thread Count"
             category="performance" displayType="summary" defaultInterval="600000"
             description="The number of concurrently stopped threads."/>
-    <metric property="stats.ActiveTime" displayName="Avg. Active Time"
-            category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
-            description="The average time in milliseconds that the threads are in active state."/>
     <metric property="stats.CreateCount" displayName="Threads created"
             category="utilization" defaultInterval="600000" measurementType="trendsup"
             description="The total number of threads that are created."/>
