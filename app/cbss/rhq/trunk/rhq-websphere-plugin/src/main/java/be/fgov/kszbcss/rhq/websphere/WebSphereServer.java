@@ -171,7 +171,7 @@ public abstract class WebSphereServer {
             
             adminClient = AdminClientUtils.createFailFastAdminClient(new AdminClientProvider() {
                 public AdminClient createAdminClient() throws ConnectorException {
-                    adminClient = AdminClientFactory.createAdminClient(properties);
+                    AdminClient adminClient = AdminClientFactory.createAdminClient(properties);
                     
                     adminClient = new AdminClientStatsWrapper(adminClient, AdminClientStatsCollector.INSTANCE);
                     
