@@ -10,5 +10,5 @@ import com.ibm.websphere.management.exception.ConnectorException;
  */
 public interface LoggingService {
     long getNextSequence();
-    String[] getMessages(long startSequence) throws JMException, ConnectorException;
+    String[] getMessages(long startSequence, int maxMessageSize) throws JMException, ConnectorException;
 }

@@ -30,7 +30,7 @@ public class OutboundConnectionCacheComponent extends WebSphereServiceComponent<
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
         WebSphereServer server = getServer();
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        mbean = server.getMBeanClient("*:type=OutboundConnectionCache,name=" + context.getResourceKey() + ",*");
+        mbean = server.getMBeanClient("WebSphere:type=XM4WAS.OutboundConnectionCache,name=" + context.getResourceKey() + ",*");
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(mbean));
         configurationFacetSupport = new ConfigurationFacetSupport(this, mbean);
     }

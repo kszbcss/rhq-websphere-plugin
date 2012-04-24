@@ -59,7 +59,7 @@ class LogEventDispatcher extends TimerTask {
                 }
             } else {
                 // TODO: detect sequence gaps and generate an event so that the user knows that events have been dropped
-                String[] formattedMessages = service.getMessages(sequence);
+                String[] formattedMessages = service.getMessages(sequence, 4000); // rhq_event.detail is varchar(4000)
                 long firstSequence = -1;
                 long lastSequence = -1;
                 for (String formattedMessage : formattedMessages) {
