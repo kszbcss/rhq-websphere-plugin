@@ -147,6 +147,11 @@
         <operation name="restart" description="Restart the server process."/>
         <operation name="pauseAllMessageEndpoints" description="Pause all J2C message endpoints on this server."/>
         <operation name="resumeAllMessageEndpoints" description="Resume all J2C message endpoints on this server."/>
+        <operation name="appendTraceString" description="Add the specified trace string to the trace state already active in the process runtime, without first clearing the current state.">
+            <parameters>
+               <c:simple-property name="traceString" required="true"/>
+            </parameters>
+        </operation>
         
         <metric property="pid" displayName="PID" dataType="trait"
                 displayType="summary" defaultOn="true"

@@ -53,6 +53,7 @@ import be.fgov.kszbcss.rhq.websphere.component.server.log.xm4was.XM4WASLoggingPr
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
 import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
 import be.fgov.kszbcss.rhq.websphere.proxy.Server;
+import be.fgov.kszbcss.rhq.websphere.proxy.TraceService;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
@@ -197,14 +198,16 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     }
 
     public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
-        // TODO: we have too many stuff called "server" here
-        Server server = getServer().getServerMBean().getProxy(Server.class);
         if (name.equals("restart")) {
+            Server server = getServer().getServerMBean().getProxy(Server.class);
             server.restart();
         } else if (name.equals("pauseAllMessageEndpoints")) {
             changeMessageEndpointState(true);
         } else if (name.equals("resumeAllMessageEndpoints")) {
             changeMessageEndpointState(false);
+        } else if (name.equals("appendTraceString")) {
+            TraceService traceService = getServer().getMBeanClient("WebSphere:type=TraceService,*").getProxy(TraceService.class);
+            traceService.appendTraceString(parameters.getSimpleValue("traceString", null));
         }
         return null;
     }
