@@ -9,6 +9,6 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * Monitoring application.
  */
 public interface LoggingService {
-    long getNextSequence();
+    long getNextSequence() throws JMException, ConnectorException;
     String[] getMessages(long startSequence, int maxMessageSize) throws JMException, ConnectorException;
 }

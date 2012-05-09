@@ -1,5 +1,6 @@
 package be.fgov.kszbcss.rhq.websphere.mbean;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,6 +83,21 @@ public class MBeanClient {
             if (proxy == null) {
                 if (log.isDebugEnabled()) {
                     log.debug("Creating dynamic proxy for MBean " + locator);
+                }
+                for (Method method : iface.getMethods()) {
+                    boolean throwsJMException = false;
+                    boolean throwsConnectorException = false;
+                    for (Class<?> exceptionType : method.getExceptionTypes()) {
+                        if (exceptionType == JMException.class) {
+                            throwsJMException = true;
+                        } else if (exceptionType == ConnectorException.class) {
+                            throwsConnectorException = true;
+                        }
+                    }
+                    if (!throwsJMException || !throwsConnectorException) {
+                        throw new IllegalArgumentException(iface.getName() + " is not a valid proxy class: method " + method.getName()
+                                + " must declare JMException and ConnectorException");
+                    }
                 }
                 proxy = Proxy.newProxyInstance(MBeanClient.class.getClassLoader(), new Class<?>[] { iface, MBeanClientProxy.class },
                         new MBeanClientInvocationHandler(this));
