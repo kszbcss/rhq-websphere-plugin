@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.management.JMException;
+
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
@@ -16,6 +18,7 @@ import be.fgov.kszbcss.rhq.websphere.proxy.TransactionService;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 
+import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.PmiConstants;
 
 public class TransactionServiceComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet {
@@ -28,7 +31,7 @@ public class TransactionServiceComponent extends WebSphereServiceComponent<WebSp
         final TransactionService transactionService = getServer().getMBeanClient("WebSphere:type=TransactionService,*").getProxy(TransactionService.class);
         measurementFacetSupport.addHandler("IndoubtTransactions", new InDoubtTransactionsMeasurementHandler() {
             @Override
-            protected Set<String> getTransactionIds() throws Exception {
+            protected Set<String> getTransactionIds() throws JMException, ConnectorException {
                 Set<String> ids = new HashSet<String>();
                 ids.addAll(Arrays.asList(transactionService.listImportedPreparedTransactions()));
                 ids.addAll(Arrays.asList(transactionService.listManualTransactions()));

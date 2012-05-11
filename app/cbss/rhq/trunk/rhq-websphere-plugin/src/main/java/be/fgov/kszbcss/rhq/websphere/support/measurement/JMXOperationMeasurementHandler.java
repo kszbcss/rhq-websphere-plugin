@@ -1,11 +1,14 @@
 package be.fgov.kszbcss.rhq.websphere.support.measurement;
 
 import javax.management.InstanceNotFoundException;
+import javax.management.JMException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
+
+import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
@@ -23,24 +26,20 @@ public class JMXOperationMeasurementHandler implements MeasurementHandler {
         this.ignoreInstanceNotFound = ignoreInstanceNotFound;
     }
 
-    public void getValue(WebSphereServer server, MeasurementReport report, MeasurementScheduleRequest request) {
+    public void getValue(WebSphereServer server, MeasurementReport report, MeasurementScheduleRequest request) throws InterruptedException, JMException, ConnectorException {
+        Object value;
         try {
-            Object value;
-            try {
-                value = mbean.invoke(operationName, new Object[0], new String[0]);
-            } catch (InstanceNotFoundException ex) {
-                if (ignoreInstanceNotFound) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Ignoring InstanceNotFoundException for measurement of " + request.getName() + " on " + mbean);
-                    }
-                    value = null;
-                } else {
-                    throw ex;
+            value = mbean.invoke(operationName, new Object[0], new String[0]);
+        } catch (InstanceNotFoundException ex) {
+            if (ignoreInstanceNotFound) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Ignoring InstanceNotFoundException for measurement of " + request.getName() + " on " + mbean);
                 }
+                value = null;
+            } else {
+                throw ex;
             }
-            JMXMeasurementDataUtils.addData(report, request, value);
-        } catch (Exception ex) {
-            log.error("Unable to get value for " + request.getName() + " on " + mbean);
         }
+        JMXMeasurementDataUtils.addData(report, request, value);
     }
 }

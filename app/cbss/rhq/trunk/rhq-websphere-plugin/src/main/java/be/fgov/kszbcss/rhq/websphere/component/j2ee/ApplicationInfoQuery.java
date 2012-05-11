@@ -15,7 +15,7 @@ import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
-    private static final long serialVersionUID = 5507520583493264072L;
+    private static final long serialVersionUID = 5507520583493264073L;
     
     private static final Log log = LogFactory.getLog(ApplicationInfoQuery.class);
     
@@ -47,7 +47,7 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
             }
             moduleInfos.add(factory.create(uri, config.extract(deploymentDescriptorURI)));
         }
-        return new ApplicationInfo(moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
+        return new ApplicationInfo(config.extract(baseURI + "/META-INF/application.xml"), moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
     }
 
     @Override

@@ -4,11 +4,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import javax.management.JMException;
+
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
+
+import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.component.InDoubtTransactionsMeasurementHandler;
@@ -30,7 +34,7 @@ public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagin
         final SIBMessagingEngine sibMessagingEngine = getResourceContext().getParentResourceComponent().getSibMessagingEngine();
         measurementFacetSupport.addHandler("IndoubtTransactions", new InDoubtTransactionsMeasurementHandler() {
             @Override
-            protected Set<String> getTransactionIds() throws Exception {
+            protected Set<String> getTransactionIds() throws JMException, ConnectorException {
                 Set<String> ids = new HashSet<String>();
                 for (Iterator<?> it = sibMessagingEngine.getPreparedTransactions().iterator(); it.hasNext(); ) {
                     ids.add((String)it.next());

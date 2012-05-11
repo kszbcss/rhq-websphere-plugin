@@ -1,20 +1,29 @@
 package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
+import java.util.Set;
+
 import org.rhq.core.domain.measurement.AvailabilityType;
+import org.rhq.core.domain.measurement.MeasurementReport;
+import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.event.EventContext;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
+import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
+import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
-public abstract class ModuleComponent extends WebSphereServiceComponent<ApplicationComponent> {
+public abstract class ModuleComponent extends WebSphereServiceComponent<ApplicationComponent> implements MeasurementFacet {
     private MBeanClient mbean;
+    private MeasurementFacetSupport measurementFacetSupport;
     
     protected abstract String getMBeanType();
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         mbean = getServer().getMBeanClient("WebSphere:type=" + getMBeanType() + ",Application=" + getApplicationName() + ",name=" + getModuleName() + ",*");
+        measurementFacetSupport = new MeasurementFacetSupport(this);
+        measurementFacetSupport.addHandler("specVersion", new ModuleSpecVersionMeasurementHandler(this));
     }
 
     public ApplicationComponent getApplication() {
@@ -53,6 +62,10 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
         } catch (Exception ex) {
             return AvailabilityType.DOWN;
         }
+    }
+
+    public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
+        measurementFacetSupport.getValues(report, requests);
     }
 
     public void stop() {

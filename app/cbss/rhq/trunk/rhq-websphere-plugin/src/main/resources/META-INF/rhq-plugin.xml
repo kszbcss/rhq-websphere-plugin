@@ -507,6 +507,9 @@
             <metric property="implementationVersion" displayName="Version" dataType="trait"
                     displayType="summary" defaultOn="true"
                     description="The version of the application instance currently running."/>
+            <metric property="specVersion" displayName="Spec Version" dataType="trait"
+                    displayType="summary" defaultOn="true"
+                    description="The version of the J2EE specification used by the application, as defined in the deployment descriptor."/>
             
             <event name="StateChange" description="State change events"/>
             
@@ -529,6 +532,10 @@
                                          
                 &isConfigured-operation;
             
+                <metric property="specVersion" displayName="Spec Version" dataType="trait"
+                        displayType="summary" defaultOn="true"
+                        description="The version of the servlet specification used by the module as defined in the deployment descriptor."/>
+                
                 <event name="LogEvent" description="Logging message"/>
                 
                 <resource-configuration>
@@ -575,6 +582,10 @@
                 
                 &isConfigured-operation;
             
+                <metric property="specVersion" displayName="Spec Version" dataType="trait"
+                        displayType="summary" defaultOn="true"
+                        description="The version of the EJB specification used by the module, as defined in the deployment descriptor."/>
+                
                 <service name="Stateless Session Bean"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanDiscoveryComponent"
                          class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanComponent"

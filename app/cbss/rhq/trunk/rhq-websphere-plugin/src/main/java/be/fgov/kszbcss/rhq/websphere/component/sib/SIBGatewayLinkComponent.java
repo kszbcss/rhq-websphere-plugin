@@ -2,6 +2,8 @@ package be.fgov.kszbcss.rhq.websphere.component.sib;
 
 import java.util.Set;
 
+import javax.management.JMException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.measurement.AvailabilityType;
@@ -18,6 +20,7 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXOperationMeasurement
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.SimpleMeasurementHandler;
 
+import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.sib.admin.SIBLinkReceiver;
 
 public class SIBGatewayLinkComponent extends WebSphereServiceComponent<SIBMessagingEngineComponent> implements MeasurementFacet {
@@ -38,7 +41,7 @@ public class SIBGatewayLinkComponent extends WebSphereServiceComponent<SIBMessag
         measurementFacetSupport.addHandler("numberOfMessagesSent", new JMXOperationMeasurementHandler(linkTransmitter, "getNumberOfMessagesSent", false));
         measurementFacetSupport.addHandler("numberOfMessagesReceived", new SimpleMeasurementHandler() {
             @Override
-            protected Object getValue() throws Exception {
+            protected Object getValue() throws JMException, ConnectorException {
                 long numberOfMessagesReceived = 0;
                 SIBLinkReceiver[] receivers = gatewayLink.listLinkReceivers();
                 if (receivers != null) {

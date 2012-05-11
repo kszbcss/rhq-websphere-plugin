@@ -4,8 +4,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import javax.management.JMException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.SimpleMeasurementHandler;
@@ -21,7 +25,7 @@ public abstract class InDoubtTransactionsMeasurementHandler extends SimpleMeasur
     private Set<String> transactionIds;
     
     @Override
-    protected final Object getValue() throws Exception {
+    protected final Object getValue() throws JMException, ConnectorException {
         if (transactionIds == null) {
             // This is the first measurement; just initialize the transaction IDs and return nothing
             transactionIds = new HashSet<String>(getTransactionIds());
@@ -53,5 +57,5 @@ public abstract class InDoubtTransactionsMeasurementHandler extends SimpleMeasur
         }
     }
     
-    protected abstract Set<String> getTransactionIds() throws Exception;
+    protected abstract Set<String> getTransactionIds() throws JMException, ConnectorException;
 }

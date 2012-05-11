@@ -37,6 +37,7 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
         mbean = server.getMBeanClient(pattern);
         server.registerStateChangeEventContext(pattern, context.getEventContext());
         measurementFacetSupport = new MeasurementFacetSupport(this);
+        measurementFacetSupport.addHandler("specVersion", new ApplicationSpecVersionMeasurementHandler(this));
         measurementFacetSupport.setDefaultHandler(new JMXAttributeGroupHandler(mbean));
         applicationManager = server.getMBeanClient("WebSphere:type=ApplicationManager,*").getProxy(ApplicationManager.class);
     }
