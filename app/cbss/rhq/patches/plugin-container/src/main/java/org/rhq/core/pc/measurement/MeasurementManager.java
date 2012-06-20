@@ -524,6 +524,13 @@ public class MeasurementManager extends AgentService implements MeasurementAgent
             this.scheduledRequests.offer(scheduledMeasurement);
         }
     }
+    
+    public synchronized void reschedule(Set<ScheduledMeasurementInfo> scheduledMeasurementInfos, long interval) {
+        for (ScheduledMeasurementInfo scheduledMeasurement : scheduledMeasurementInfos) {
+            scheduledMeasurement.setNextCollection(scheduledMeasurement.getNextCollection() + interval);
+            this.scheduledRequests.offer(scheduledMeasurement);
+        }
+    }
 
     /**
      * Sends the given measurement report to the server, if this plugin container has server services that it can
