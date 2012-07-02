@@ -9,4 +9,6 @@ import com.ibm.wsspi.hamanager.GroupName;
 public interface HAManager {
     GroupName createGroupName(String groupNameCSV) throws JMException, ConnectorException;
     GroupMemberData[] retrieveGroupMembers(GroupName groupName) throws JMException, ConnectorException;
+    void enableMember(GroupName groupName, String nodeName, String serverName) throws JMException, ConnectorException;
+    void disableMember(GroupName groupName, String nodeName, String serverName) throws JMException, ConnectorException;
 }

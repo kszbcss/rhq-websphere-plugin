@@ -671,6 +671,8 @@
                  description="SIBus Messaging Engine">
             
             &isConfigured-operation;
+            <operation name="enable" description="Enable this messaging engine in the HAManager."/>
+            <operation name="disable" description="Disable this messaging engine in the HAManager."/>
         
             <metric property="health" displayName="Health" dataType="trait"
                     displayType="summary" defaultOn="true"

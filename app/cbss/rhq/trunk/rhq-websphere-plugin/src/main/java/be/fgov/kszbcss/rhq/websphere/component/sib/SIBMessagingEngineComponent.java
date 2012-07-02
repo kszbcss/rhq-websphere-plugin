@@ -6,11 +6,13 @@ import javax.management.JMException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
+import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
@@ -38,6 +40,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     private String name;
     private String cachedState;
     private long cachedStateTimestamp;
+    private GroupName groupName;
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
@@ -72,6 +75,16 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
             }
         }
         return null;
+    }
+    
+    private synchronized GroupName getGroupName() throws InterruptedException, JMException, ConnectorException {
+        if (groupName == null) {
+            ManagedServer server = getServer();
+            SIBMessagingEngineInfo info = getInfo();
+            groupName = haManager.createGroupName(GroupName.WAS_CLUSTER + "=" + server.getClusterName()
+                    + ",WSAF_SIB_BUS=" + info.getBusName() + ",WSAF_SIB_MESSAGING_ENGINE=" + info.getName() + ",type=WSAF_SIB");
+        }
+        return groupName;
     }
     
     @Override
@@ -118,13 +131,10 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         } else if (state.equals("Joined")) {
             log.debug("Messaging engine is in state Joined; check the state in the HAManager");
             try {
-                SIBMessagingEngineInfo info = getInfo();
                 ManagedServer server = getServer();
-                GroupName groupName = haManager.createGroupName(GroupName.WAS_CLUSTER + "=" + server.getClusterName()
-                        + ",WSAF_SIB_BUS=" + info.getBusName() + ",WSAF_SIB_MESSAGING_ENGINE=" + info.getName() + ",type=WSAF_SIB");
                 String nodeName = server.getNode();
                 String serverName = server.getServer();
-                for (GroupMemberData member : haManager.retrieveGroupMembers(groupName)) {
+                for (GroupMemberData member : haManager.retrieveGroupMembers(getGroupName())) {
                     if (member.getNodeName().equals(nodeName) && member.getServerName().equals(serverName)) {
                         GroupMemberState memberState = member.getMemberState();
                         AvailabilityType availability = memberState.equals(GroupMemberState.IDLE) ? AvailabilityType.UP : AvailabilityType.DOWN;
@@ -170,6 +180,21 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         return "Started".equals(getState());
     }
     
+    @Override
+    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+        if (name.equals("enable")) {
+            ManagedServer server = getServer();
+            haManager.enableMember(getGroupName(), server.getNode(), server.getServer());
+            return null;
+        } else if (name.equals("disable")) {
+            ManagedServer server = getServer();
+            haManager.disableMember(getGroupName(), server.getNode(), server.getServer());
+            return null;
+        } else {
+            return null;
+        }
+    }
+
     public void stop() {
     }
 }
