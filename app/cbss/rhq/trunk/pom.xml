@@ -20,9 +20,6 @@
         <module>rhq-cert-plugin</module>
         <module>rhq-websphere-plugin</module>
         <module>websphere-apis</module>
-        <module>websphere-extended-monitoring-api</module>
-        <module>websphere-extended-monitoring-ear</module>
-        <module>websphere-extended-monitoring-ejb</module>
     </modules>
     <repositories>
         <repository>

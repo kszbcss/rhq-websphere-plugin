@@ -132,7 +132,6 @@
                     <c:property-options>
                         <c:option value="none" name="None"/>
                         <c:option value="ras" name="RasLoggingService"/>
-                        <c:option value="xm" name="Extended Monitoring (deprecated)"/>
                         <c:option value="xm4was" name="XM4WAS LoggingService"/>
                     </c:property-options>
                 </c:simple-property>
@@ -241,8 +240,8 @@
         </service>
         
         <service name="UNIX Process"
-                 discovery="be.fgov.kszbcss.rhq.websphere.component.xm.UnixProcessDiscoveryComponent"
-                 class="be.fgov.kszbcss.rhq.websphere.component.xm.UnixProcessComponent"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.xm4was.UnixProcessDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.xm4was.UnixProcessComponent"
                  description="UNIX Process Statistics"
                  singleton="true">
             <metric property="stats.FileDescriptors" displayName="File Descriptors"
@@ -251,8 +250,8 @@
         </service>
         
         <service name="Class Loader Stats"
-                 discovery="be.fgov.kszbcss.rhq.websphere.component.xm.ClassLoaderStatsDiscoveryComponent"
-                 class="be.fgov.kszbcss.rhq.websphere.component.xm.ClassLoaderStatsComponent"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.xm4was.ClassLoaderStatsDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.xm4was.ClassLoaderStatsComponent"
                  description="Class Loader Statistics"
                  singleton="true">
             &class-loader-stats-metrics;
@@ -477,8 +476,8 @@
                     description="The total number of connections that are allocated."/>
         </service>
         <service name="Outbound Connection Cache"
-                 discovery="be.fgov.kszbcss.rhq.websphere.component.xm.OutboundConnectionCacheDiscoveryComponent"
-                 class="be.fgov.kszbcss.rhq.websphere.component.xm.OutboundConnectionCacheComponent"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.xm4was.OutboundConnectionCacheDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.xm4was.OutboundConnectionCacheComponent"
                  description="Outbound HTTP Connection Cache">
     
             <metric property="stats.ConnectionsInUse" displayName="Connections In Use"
@@ -514,8 +513,8 @@
             <event name="StateChange" description="State change events"/>
             
             <service name="Application Class Loader"
-                     discovery="be.fgov.kszbcss.rhq.websphere.component.xm.ModuleClassLoaderStatsDiscoveryComponent"
-                     class="be.fgov.kszbcss.rhq.websphere.component.xm.ApplicationClassLoaderStatsComponent"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.xm4was.ModuleClassLoaderStatsDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.xm4was.ApplicationClassLoaderStatsComponent"
                      description="Application Class Loader Statistics"
                      singleton="true">
                 &class-loader-stats-metrics;
@@ -543,8 +542,8 @@
                 </resource-configuration>
                 
                 <service name="Web Module Class Loader"
-                         discovery="be.fgov.kszbcss.rhq.websphere.component.xm.ModuleClassLoaderStatsDiscoveryComponent"
-                         class="be.fgov.kszbcss.rhq.websphere.component.xm.WebModuleClassLoaderStatsComponent"
+                         discovery="be.fgov.kszbcss.rhq.websphere.component.xm4was.ModuleClassLoaderStatsDiscoveryComponent"
+                         class="be.fgov.kszbcss.rhq.websphere.component.xm4was.WebModuleClassLoaderStatsComponent"
                          description="Web Module Class Loader Statistics"
                          singleton="true">
                     &class-loader-stats-metrics;

@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.rhq.websphere.component.xm;
+package be.fgov.kszbcss.rhq.websphere.component.xm4was;
 
 import java.util.Set;
 

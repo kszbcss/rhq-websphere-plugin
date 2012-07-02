@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.rhq.websphere.component.xm;
+package be.fgov.kszbcss.rhq.websphere.component.xm4was;
 
 import java.util.Set;
 
@@ -9,27 +9,25 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
-import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 
-public abstract class SingletonPMIModuleComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet {
+public abstract class ModuleClassLoaderStatsComponent<T extends WebSphereServiceComponent<?>> extends WebSphereServiceComponent<T> implements MeasurementFacet {
     private MeasurementFacetSupport measurementFacetSupport;
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(getServer().getServerMBean(), getPMIModuleName()));
+        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(getServer().getServerMBean(), "ClassLoaderStats", getModuleName()));
     }
 
     @Override
     protected boolean isConfigured() throws Exception {
-        // TODO
         return true;
     }
 
+    @Override
     protected AvailabilityType doGetAvailability() {
-        // TODO Auto-generated method stub
         return AvailabilityType.UP;
     }
 
@@ -40,5 +38,5 @@ public abstract class SingletonPMIModuleComponent extends WebSphereServiceCompon
     public void stop() {
     }
 
-    protected abstract String getPMIModuleName();
+    protected abstract String getModuleName();
 }

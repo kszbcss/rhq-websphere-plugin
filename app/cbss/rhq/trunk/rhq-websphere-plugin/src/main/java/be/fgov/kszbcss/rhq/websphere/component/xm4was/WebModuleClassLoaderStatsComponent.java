@@ -1,4 +1,4 @@
-package be.fgov.kszbcss.rhq.websphere.component.xm;
+package be.fgov.kszbcss.rhq.websphere.component.xm4was;
 
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleComponent;
 
