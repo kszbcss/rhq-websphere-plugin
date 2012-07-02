@@ -1,0 +1,1279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<article>
+    <articleinfo>
+        <title>RHQ WebSphere plugin design</title>
+    </articleinfo>
+    <section>
+        <title>Introduction</title>
+        <para>
+            As noted in XXX, the support for WebSphere Application Server provided by RHQ out of the box
+            is very limited. This chapter discusses the design of the components to be implemented to
+            integrate RHQ with WebSphere.
+        </para>
+    </section>
+    <section>
+        <title>WebSphere connector subsystem</title>
+        <section id="ems-classloading">
+            <title>Class loading</title>
+            <para>
+                Except for simple scenarios, connecting to an application server using JMX requires
+                product specific classes. This includes product specific APIs that are used to establish
+                the connection (such as the <classname>AdminClient</classname> API provided by WebSphere),
+                classes that implement a vendor specific protocol used between the JMX client and the
+                application server (and which may be necessary even if the standard JMX APIs are used to
+                establish the connection) as well as classes that are used as argument or return types
+                in MBean operations. Usually these classes are provided by JAR files included in the
+                server installation.
+            </para>
+            <para>
+                The RHQ agent has a modular design and supports hot updates of agent plugins. To achieve this,
+                each plugin is loaded using its own class loader, in a way that is similar to the class loading
+                schemes used in J2EE or OSGi. Since the agent uses multiple class loaders, it is important
+                to carefully chose how the product specific classes mentioned above should be loaded.
+                The approach used by the existing connection providers included in the EMS library is
+                to load these classes from the server runtime using an isolated class loader. This
+                applies both to the existing WebSphere connection provider, as well as to the connection
+                providers for other application servers, such as JBoss. The design of EMS and RHQ implies that a distinct
+                class loader is created for each server instance to which RHQ connects (even if it is the
+                same product and version). Inside the RHQ agent, all these class loaders will be children of
+                the class loader of the JMX plugin.
+            </para>
+            <para>
+                The rationale behind this is that it allows to set up connections that use libraries from
+                different versions of the same product. Indeed, for some application servers, there may be
+                compatibility issues if there is a version mismatch between the classes used by the client
+                and the server. In this case, not using isolated class loaders would mean that the same
+                agent can't connect to different versions of the same product. 
+            </para>
+            <para>
+                However, for WebSphere, there are several compelling reasons not to use this strategy:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        WebSphere's admin client is specifically designed for compatibility with older WebSphere
+                        versions, e.g. the admin client libraries from WAS 7.0 can be used to connect to WAS 6.1.
+                        Therefore, isolated class loaders are not really necessary when connecting to WAS.
+                        However, things may be more complicated when there is a mix of versions and product variants
+                        (e.g. WPS 6.1 and WAS 7.0).
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        WebSphere's admin client is rather heavyweight. Loading it into a new class loader for each
+                        connection is not very efficient and will increase the memory footprint of the agent.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The WebSphere API doesn't define any way to destroy an <classname>AdminClient</classname>.
+                        The <classname>AdminClient</classname> also makes use of IBM specific JCE providers and
+                        an ORB implementation that will likely register themselves in the JRE. This will
+                        almost inevitably cause a class loader leak, which would have a negative impact on the
+                        ability to update the agent plugin. It will potentially also cause subtle conflicts
+                        between admin clients loaded from different class loaders.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        When connecting to a server (using the RMI connector type), the <classname>AdminClient</classname>
+                        creates an <classname>InitialContext</classname> using an IBM specific factory. If this
+                        class is loaded from the isolated class loader, the connection will only succeed if the thread
+                        context class loader is set appropriately. The same also occurs when the <classname>AdminClient</classname>
+                        automatically reconnects to the server (e.g. after a server restart). This means that
+                        the thread context class loader would have to be set every time when invoking any of the
+                        methods of the <classname>AdminClient</classname>.
+                    </para>
+                    <para>
+                        This is a real problem when implementing an RHQ plugin that interacts with MBeans that use custom
+                        classes. These classes will typically be packaged with the plugin, which means that they are
+                        loaded from a class loader that is a sibling of the isolated class loader from which the WebSphere
+                        classes would be loaded. In order to serialize/deserialize the custom classes, the thread context
+                        class loader must be set to the plugin class loader. This requirement conflicts with the
+                        previous requirement.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                For these reasons we choose not to use isolated class loaders for the WebSphere provider in EMS.
+                Instead, the libraries required to connect to WebSphere must be added to the classpath of the agent.
+                See <xref linkend="agent-conf-libraries"/> for more details.
+            </para>
+        </section>
+        <section>
+            <title>Integration with the EMS API</title>
+            <para>
+                All existing RHQ plugins that rely on JMX create connections using the EMS API, more precisely using
+                the <classname>ConnectionFactory</classname> class in the <package>org.mc4j.ems.connection</package>
+                package. This requires the presence of an appropriate EMS connection provider in the EMS library.
+                For the WebSphere integration this implies that the EMS library needs to be modified because the
+                existing WebSphere support is insufficient.
+            </para>
+            <para>
+                The WebSphere plugin must support the EMS API in order to integrate with existing RHQ features,
+                such as the support for the platform MXBeans (JVM statistics) or Hibernate statistics.
+                On the other hand, using the EMS API to establish the JMX connection means that the WebSphere
+                plugin has no direct access to the <classname>AdminClient</classname> object. This has
+                several disadvantages:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        The notification support in EMS has several issues that make it unusable for the
+                        WebSphere plugin:
+                    </para>
+                    <itemizedlist>
+                        <listitem>
+                            <para>
+                                In addition to being dispatched to listeners, notification events are also stored
+                                in memory, but there is no way to clear that list (see the source code of the
+                                <classname>DNotification</classname> class). Since the plugin will use notification listeners
+                                to receive logging events from the server (via the <classname>RasLoggingService</classname> MBean),
+                                this would quickly lead to an OOM error<footnote><para>This problem is discussed here:
+                                <ulink url="https://fedorahosted.org/pipermail/rhq-devel/2011-June/000842.html"/></para></footnote>.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                It is not possible to register a single listener for multiple notification types.
+                                This is a problem because <classname>RasLoggingService</classname> defines a distinct notification type
+                                for each severity level.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                The code in <classname>DNotification</classname> constructs a notification filter, but this filter
+                                is actually not passed to the <methodname>addNotificationListener</methodname> method.
+                                In addition, the notification filter used by EMS doesn't extend <classname>NotificationFilterSupport</classname>
+                                and is not serializable. That means that it would be evaluated locally (at best) instead of on the server.
+                                These two issues imply that the notification support in EMS can't be used to receive notifications
+                                from <classname>RasLoggingService</classname> because the server would send logging messages at
+                                all severity levels (including INFO) to the RHQ agent, and this would cause too much performance overhead.
+                            </para>
+                        </listitem>
+                    </itemizedlist>
+                    <para>
+                        To avoid these issues, the WebSphere plugin needs access to the <classname>AdminClient</classname> object,
+                        or at least to the <classname>MBeanServer</classname> wrapper.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <classname>AdminClient</classname> supports an extended notification scheme that allows a single
+                        notification listener to receive notifications from multiple MBeans (by allowing wildcards in object names),
+                        including MBeans registered in the future. This feature is very convenient e.g. for processing application
+                        start/stop events. 
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Some part of the WebSphere administrative client API are built directly on top of <classname>AdminClient</classname>.
+                        E.g. <classname>ConfigServiceProxy</classname> provides a high level API that enables remote access to the
+                        configuration data of the server. However, a <classname>ConfigServiceProxy</classname> instance can only be
+                        constructed from an existing <classname>AdminClient</classname> instance.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                The interesting point to note is that supporting the EMS API (to integrate with existing RHQ components)
+                doesn't mean that the WebSphere plugin must use the EMS API (<classname>ConnectionFactory</classname>) to
+                establish the JMX connection. The only requirement is that the resource component representing the
+                WebSphere server implements <classname>JMXComponent</classname> and is able to produce a
+                <classname>EMSConnection</classname> implementation. Whether the <classname>EMSConnection</classname> is created
+                using the <classname>ConnectionFactory</classname> API or not is actually irrelevant.
+            </para>
+        </section>
+        <section>
+            <title>Reusability of components from the JMX plugin</title>
+            <para>
+                As explained in the previous section, in order to integrate with existing plugins, the minimum
+                requirement for the WebSphere plugin is that the resource component representing the WebSphere
+                server instance implements the <classname>JMXComponent</classname> interface defined by the
+                JMX plugin. Another important question is to what extend the implementation of the
+                WebSphere plugin could reuse components from the JMX plugin. E.g. the existing plugin for JBoss
+                is built on top of components from the JMX plugin.
+            </para>
+            <para>
+                A careful analysis shows that WebSphere has specific features that are not handled very well
+                by the base components in the JMX plugin:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        The JMX plugin in RHQ uses the object name of the MBean as resource key. In addition,
+                        it stores the object name in the resource configuration. There are several issues with this:
+                    </para>
+                    <itemizedlist>
+                        <listitem>
+                            <para>
+                                The maximum length for a resource key is 500. However, on WebSphere, for some MBean types
+                                (e.g. <classname>Servlet</classname>), the object name can easily become longer than that.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                For a given resource, the object name not necessarily remains the same over time. E.g. most
+                                object names include a key property with name <literal>version</literal> that stores the WebSphere version.
+                                This version number includes the fix pack level and will therefore change after each upgrade.
+                                Many object names also include an <literal>mbeanIdentifier</literal> key property that
+                                identifies the configuration object from which the resource has been created. This value may
+                                change if the configuration is removed and then recreated. An example where this occurs
+                                is when undeploying and then reinstalling an enterprise application, instead of using
+                                the upgrade feature. Another example are JMS resources created automatically when redeploying
+                                an SCA module on WebSphere ESB or Process Server. Even if the upgrade feature is used,
+                                WebSphere will first remove these configurations and then recreate them, which means that
+                                the identifier changes.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                RHQ uses resource keys to match corresponding services in compatible groups. This is an
+                                essential feature when monitoring a WebSphere cluster. However, corresponding resources in
+                                a cluster are not necessarily created from the same configuration object. E.g. thread pools
+                                are always created from configuration objects defined at server scope. If the object name
+                                is used as resource key (and this object name has an <literal>mbeanIdentifier</literal>
+                                key property), then RHQ will not correctly identify corresponding services in a cluster.
+                            </para>
+                        </listitem>
+                    </itemizedlist>
+                    <para>
+                        Most configuration objects in WebSphere have are named. These names are shown in the admin console
+                        and can be used in wsadmin scripts to look up specific configuration objects. In addition,
+                        configuration objects that define resources that will be bound to JNDI also have an attribute
+                        with the JNDI name. The WebSphere plugin for RHQ should use the JNDI name or the internal name
+                        as resource key. It should then query the WebSphere MBean server for the corresponding MBean
+                        at runtime, instead of storing the object name in the resource configuration.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The JMX plugin only supports collecting metrics from JMX attributes. It doesn't support
+                        JSR 77 statistics. On the other hand, in WebSphere most of the metrics are collected by
+                        the PMI subsystem and exposed via JSR 77 or a proprietary API. That means that the
+                        components in the JMX plugin are of limited use when collecting metrics from WebSphere.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The JMX plugin assumes that the standard approach to discover resources is to query
+                        the MBean server for MBeans with a specific type (or more generally, a specific object
+                        name pattern). However, as explained in <xref linkend="config-data-access"/>, when
+                        discovering resources on a WebSphere server it is in general smarter to query the
+                        persistent configuration of the server.
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </section>
+        <section>
+            <title>Choice of the protocol and API</title>
+            <para>
+                TODO: the JSR stuff doesn't interact well with JMX notifications (see PMR)
+            </para>
+        </section>
+    </section>
+    <section>
+        <title>Configuration query service</title>
+        <section id="config-data-access">
+            <title>Access to the WebSphere configuration data</title>
+            <para>
+                Some aspects of the WebSphere support for RHQ require access to the configuration data, because
+                the MBeans exposed by the WebSphere server at runtime don't provide all the necessary
+                information. E.g. some parts of the resource discovery can only be implemented in a meaningful
+                way if the configuration data can be harvested [TODO: example here; TODO: also speak about
+                the type=Servlet MBeans].
+            </para>
+            <para>
+                There are different ways to access the configuration data:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Using the <classname>ConfigService</classname> MBean. WebSphere provides a class called
+                        <classname>ConfigServiceProxy</classname> that can be used to invoke methods on this
+                        MBean without using the JMX API directly. The API is similar to the
+                        <classname>AdminConfig</classname> object available in <literal>wsadmin</literal>.
+                        It provides high level methods to query configuration objects.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Using the <classname>ConfigRepository</classname> MBean. WebSphere again provides classes
+                        to make interaction with that MBean more convenient (see e.g. the
+                        <classname>JMXRemoteConfigRepositoryClient</classname> class), but in contrast to
+                        the <classname>ConfigServiceProxy</classname> API, these classes are undocumented.
+                        The <classname>ConfigRepository</classname> MBean defines a lower level API that gives
+                        access to configuration documents.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                The problem is that these APIs are only available/usable when connecting to an unmanaged server
+                process, to a deployment manager or (for some of them) when connecting locally to a managed server: 
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        The <classname>ConfigService</classname> MBean only exists on the deployment manager
+                        (or an unmanaged server). It is for that reason that an attempt to use the
+                        <classname>AdminConfig</classname> in a <literal>wsadmin</literal> session connected
+                        to a managed server results in a WASX7070E (The configuration service is not available)
+                        error.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Although the <classname>ConfigRepository</classname> MBean is exposed by all WebSphere
+                        processes (including managed servers), retrieving a configuration document remotely
+                        only works if the FileTransfer application is deployed on the server instance. This
+                        however is only the case for a deployment manager or an unmanaged server.
+                        On the other hand, this will probably work when connecting locally to a managed
+                        process (but this has not been tested).
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                Obviously in the context of the WebSphere plugin for RHQ, the <classname>ConfigRepository</classname>
+                API is less convenient than <classname>ConfigService</classname> because it would require writing code
+                to parse the XML configuration documents. However, simply sending requests to the <classname>ConfigService</classname>
+                of the deployment manager would introduce a single point of failure: if the deployment manager is unavailable,
+                then this may have a negative impact on the ability to monitor the application servers in the WebSphere cell.
+                To avoid this it is necessary to introduce a persistent cache that stores the results of
+                configuration data queries (either the raw results from <classname>ConfigService</classname> or higher
+                level information harvested from <classname>ConfigService</classname>). By periodically checking the
+                repository epoch<footnote><para>See <ulink url="http://www-01.ibm.com/support/docview.wss?uid=swg21233075"/>
+                for an explanation of this concept.</para></footnote> from the deployment manager (via the
+                <classname>ConfigRepository</classname> API), it is possible to automatically invalidate the information in
+                this cache whenever a configuration change occurs.
+            </para>
+            <para>
+                The approach outlined in the previous paragraph has some additional benefits:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        The WebSphere plugin will repeatedly execute the same <classname>ConfigService</classname> queries
+                        (e.g. during resource discovery). It is therefore anyway a good idea to cache these results. 
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Querying configuration data from the deployment manager means that application servers are only
+                        contacted to get status information and collect metrics. This reduces the application server
+                        load generated by the monitoring (which is already small), especially in deployment scenarios
+                        where the RHQ doesn't run locally on the application server host.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Detecting configuration changes could be useful also to trigger automatic service discovery,
+                        so that new items in the server configuration will show up rapidly in RHQ.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <note>
+                <para>
+                    Another approach would be to create a local copy of the configuration
+                    repository (similarly to what a node agent does) and then to build a <classname>ConfigService</classname>
+                    instance from that local copy. In theory this is feasible because it is what
+                    <literal>wsadmin</literal> with <literal>-conntype NONE</literal> does. However the
+                    corresponding APIs are undocumented, so that this would require some reverse engineering
+                    effort.
+                </para>
+            </note>
+        </section>
+        <section>
+            <title>Locating configuration objects for resources on a given server</title>
+            <para>
+                Configuration objects may be defined at different scopes: cell, node, cluster and server.
+                The set of resources that are effectively created in a given server instance is determined by
+                the union of the configuration objects
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        at cell scope;
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        in the scope of the node managing the server;
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        in the scope of the cluster the server belongs to;
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        at server scope.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                This needs to be taken into account when discovering resources based on the persistent configuration.
+            </para>
+            <para>
+                TODO:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Is there a built-in feature in ConfigService to do such a query?
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        What is the exact order of precedence (in particular between node and cluster)?
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </section>
+    </section>
+    <section>
+        <title>Collecting PMI data in RHQ</title>
+        <section>
+            <title>Strategy to access PMI statistics</title>
+            <para>
+                PMI statistics can be retrieved via JMX, but there are two different ways to do so:
+            </para>
+            <orderedlist>
+                <listitem>
+                    <para>
+                        By querying the <literal>stats</literal> attribute
+                        on the MBean representing the resource for which the statistics are collected. E.g., for every
+                        servlet there is an MBean with <literal>type=Servlet</literal> and the <literal>stats</literal>
+                        attribute of that MBean contains information about the request count and response time for that
+                        servlet.
+                        The <literal>stats</literal> attribute contains an object of type
+                        <classname>javax.management.j2ee.statistics.Stats</classname>, i.e. it conforms to the API
+                        defined by JSR 77.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        By invoking the <methodname>getStatsObject</methodname> method on the <classname>Perf</classname>
+                        MBean. This method expects as input the name of the MBean representing the resource for which
+                        the statistics are requested (and which is the same as for the JSR 77 approach) and returns
+                        an object of type <classname>com.ibm.websphere.pmi.stat.WSStats</classname>.
+                        This means that this approach relies on a WebSphere specific API.
+                    </para>
+                </listitem>
+            </orderedlist>
+            <note>
+                <para>
+                    In WebSphere, the implementation classes for the JSR 77 API are actually wrappers
+                    around the IBM specific API defined by the <package>com.ibm.websphere.pmi.stat</package>
+                    package. JSR 77 implementation objects can easily be unwrapped, but this requires access
+                    to an implementation class.
+                </para>
+            </note>
+            <para>
+                Both APIs are very similar. The available statistics of a resource are modelled as
+                a <classname>Stats</classname> (<classname>WSStats</classname>) object, which contains a
+                set of <classname>Statistic</classname> (<classname>WSStatistic</classname>) objects.
+                Both APIs define a set of subinterfaces of <classname>Statistic</classname>/<classname>WSStatistic</classname>
+                that represent different types of statistics (count measurements, timing measurements, etc.).
+                In addtion, JSR 77 defines a set of subinterfaces of <classname>Stats</classname>
+                representing different resource types. These interfaces define getter methods that give
+                access to particular statistic objects. Both APIs also allow to enumerate the statistics
+                contained in a <classname>Stats</classname>/<classname>WSStats</classname> object and access them
+                by name. This in particular means that any metric collected by PMI is accessible via the
+                JSR 77 API, even if it is not explicitly defined by that API.
+            </para>
+            <para>
+                On the other hand, the PMI API has several features that are not available when using the JSR 77 API:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        In constrast to the <classname>Stats</classname> object defined by JSR 77, a
+                        <classname>WSStats</classname> instance is not only a container for <classname>WSStatistic</classname>
+                        objects, but may also contain nested <classname>WSStats</classname> objects.
+                        That is because the PMI statistics are organized in a tree structure (as can be seen in the WebSphere
+                        admin console) and the parent-child relationships between <classname>WSStats</classname> objects
+                        mirror that structure.
+                    </para>
+                    <para>
+                        This implies that some statistics are not accessible via the JSR 77 API, because the resource
+                        to which they refer has no corresponding MBean and/or no corresponding resource type is defined
+                        by JSR 77.
+                        Method level invocation statistics for enterprise beans are an example of this. Obviously there
+                        are no MBeans that represent individual bean methods. Also, the JSR 77 interface
+                        <classname>StatelessSessionBeanStats</classname> doesn't define method level statistics.
+                        This means that the method level statistics are not accessible via the JSR 77 API.
+                        On the other hand, the PMI API exposes them as children of the <classname>WSStats</classname>
+                        object for the MBean representing the enterprise bean. 
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        One additional method available in the PMI API
+                        is <methodname>getSumOfSquares</methodname> defined by <classname>WSAverageStatistic</classname>.
+                        This could potentially be used to calculate the standard deviation for the samples collected
+                        by the server.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        TODO: probably we need information exposed by the PMI API if we want to automatically enable
+                        PMI statistics
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                These are compelling reasons for using the PMI API instead of the JSR 77 API in the WebSphere plugin.
+            </para>
+        </section>
+        <section>
+            <title>Mapping PMI statistics to RHQ metrics</title>
+            <para>
+                In RHQ, a single measurement of a given metric comprises a single value of type double.
+                This value is stored together with a timestamp and an identifier that links the measurement to a given metric and
+                monitored resource (see <classname>org.rhq.core.domain.measurement.MeasurementDataNumeric</classname>).
+                On the other hand, the data model defined by <classname>WSStatistic</classname> and its subclasses
+                is slightly different. An instance of
+                <classname>WSStatistic</classname> represents a measurement of a single metric, but may comprise
+                several pieces of information (such as average/minimum/maximum). It is therefore important
+                to analyze how a <classname>WSStatistic</classname> object should be mapped to RHQ
+                measurement data.
+            </para>
+            <section>
+                <title><classname>WSCountStatistic</classname></title>
+                <para>
+                    <classname>WSCountStatistic</classname> only defines a single property called <literal>count</literal>.
+                    Therefore this type of statistic always maps to a single RHQ metric. However, this metric
+                    should be defined with <literal>measurementType="trendsup"</literal> so that RHQ automatically
+                    converts it to a per-minute metric.
+                </para>
+            </section>
+            <section>
+                <title><classname>WSRangeStatistic</classname> and <classname>WSBoundedRangeStatistic</classname></title>
+                <para>
+                    <classname>WSRangeStatistic</classname> defines three properties: <literal>current</literal>,
+                    <literal>lowWaterMark</literal> and <literal>highWaterMark</literal>. The last two properties
+                    would only be useful if one could control the time interval over which they are calculated
+                    (so that one could determine the minimum and maximum values between two data collections).
+                    This appears to be difficult to achieve. Therefore only the <literal>current</literal>
+                    property is usable, and a <classname>WSRangeStatistic</classname> maps to a single RHQ metric.
+                </para>
+                <para>
+                    <classname>WSBoundedRangeStatistic</classname> defines two additional properties:
+                    <literal>lowerBound</literal> and <literal>upperBound</literal>. However, these values are
+                    static or represent configuration data. E.g. the <literal>PoolSize</literal> statistic for
+                    a thread pool is a <classname>WSBoundedRangeStatistic</classname> and the <literal>lowerBound</literal>
+                    and <literal>upperBound</literal> properties represent the minimum and maximum pool sizes specified
+                    in the thread pool configuration. It is not meaningful to import these values as metrics
+                    into RHQ<footnote><para>However, they could be interesting when imported as traits. However,
+                    in many cases, these values are also available as MBean attributes. E.g. for a thread pool,
+                    these values are available via the <literal>minimumSize</literal> and <literal>maximumSize</literal>
+                    attributes.</para></footnote>. That means that a <classname>WSBoundedRangeStatistic</classname>
+                    also maps to a single RHQ metric.
+                </para>
+            </section>
+            <section id="TimeStatistic">
+                <title><classname>WSAverageStatistic</classname></title>
+                <para>
+                    <classname>WSAverageStatistic</classname> is typically used for response time metrics
+                    (represented by <classname>TimeStatistic</classname> in JSR 77) and defines 5 properties: <literal>count</literal>,
+                    <literal>total</literal>, <literal>min</literal>, <literal>max</literal> and <literal>sumOfSquares</literal>.
+                    <literal>count</literal> and <literal>total</literal> are used together to calculate
+                    average values (see <xref linkend="average-statistics"/> for more details), but
+                    neither of them is useful separately<footnote><para>One may argue that <literal>count</literal>
+                    may be used to determine the number of requests, but in general request counts are exposed
+                    as a separate statistic.</para></footnote>. <literal>min</literal> and <literal>max</literal>
+                    are also not useful, for the same reasons as the <literal>lowWaterMark</literal> and <literal>highWaterMark</literal>
+                    properties defined by <classname>WSRangeStatistic</classname>.
+                </para>
+                <para>
+                    The <literal>sumOfSquares</literal> property is interesting because it could be used
+                    to calculate the variance in addition to the average value. However, to be useful
+                    this information would have to be visualized by RHQ together with the average value.
+                    Importing it into RHQ as a separate metric would make much less sense. Unfortunately,
+                    RHQ doesn't support the concept of variance.
+                </para>
+                <para>
+                    That again leads to the conclusion that a <classname>WSAverageStatistic</classname> maps to
+                    a single RHQ metric.
+                </para>
+            </section>
+            <section>
+                <title>Summary</title>
+                <para>
+                    As a conclusion, a PMI statistic always maps to a single RHQ metric and the mapping
+                    (i.e. the formula to calculate the metric value based on the properties of the <classname>WSStatistic</classname>
+                    object) only depends on the type of statistic.
+                </para>
+            </section>
+        </section>
+        <section id="average-statistics">
+            <title>Handling average statistics</title>
+            <para>
+                Many of the most important statistics that will be collected from WAS are average statistics.
+                This includes e.g. all response time measurements. Obviously it would not be meaningful to
+                collect the response time measurement for the last request only. Instead, it is necessary to
+                determine the average value (and maybe the min/max values) over a meaningful time interval.
+                For a statistic in this category, WebSphere already calculates the average value. However, the
+                value provided by WebSphere represents the average value since the statistic was last reset
+                (which usually means the average value since the start of the server).
+                Importing these values directly into RHQ is not meaningful for two reasons:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        RHQ itself calculates average values (although not running averages).
+                        However, calculating averages of averages is only meaningful if the metric reported to
+                        RHQ represents the average value for the requests occurring between two data collections
+                        run by RHQ. Indeed, it is easy to show that in this case
+                        an average value calculated by RHQ strictly represents the average for all requests
+                        that occurred in the given time interval.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        If the average value is calculated since the last server restart, then there will be
+                        a "damping" effect. The longer the server is running, the slower the average value will
+                        vary and react to actual changes in response time. That means that after some time,
+                        the values reported by RHQ would no longer provide meaningful information about the
+                        current behavior or status of the monitored service.
+                    </para>
+                    <para>
+                        <xref linkend="fig-avg-damping"/> shows an example of this effect. The graph shows
+                        the response time for two instances of the same resource running on different cluster
+                        members. One of the members is running for less than 24 hours, while the other is running
+                        for more than 20 days.
+                    </para>
+                    <figure id="fig-avg-damping">
+                        <title>Example of the "damping" effect seen in average metrics provided by WebSphere</title>
+                        <mediaobject>
+                            <imageobject>
+                                <imagedata fileref="avg-damping.gif" format="GIF" scale="50" align="center"/>
+                            </imageobject>
+                        </mediaobject>
+                    </figure>
+                </listitem>
+            </itemizedlist>
+            <para>
+                As explained in <xref linkend="TimeStatistic"/>, the JSR 77 API (<classname>TimeStatistic</classname>)
+                gives access to the total time (i.e. the sum of all timing samples) and the sample count. Based on
+                these two values, it is possible to calculate the average reponse time between data collections, provided
+                that the information from the previous data collection is available. RHQ supports this type of
+                delta calculation for count metrics, but there is no corresponding builtin feature for response time metrics.
+                This means that it will be the responsibility of the plugin to remember the values between
+                data collections.
+            </para>
+        </section>
+    </section>
+    <section>
+        <title>Resource components</title>
+        <section id="jdbc-data-sources">
+            <title>JDBC data sources</title>
+            <section>
+                <title>Choice of the resource key</title>
+                <para>
+                    Taking into account the general consideration in XXXXXX, there are only two natural choices
+                    for the resource key of a JDBC data source: the JNDI name or the data source name.
+                    It should be noted that in general the JNDI name is used to refer to a particular data source,
+                    while the data source name is only used when configuring the data sources. E.g.:
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            Resource references are defined based on the JNDI name of the data source.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            Inside an application, data sources can only be retrieved using JNDI lookups.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+                <para>
+                    This has several implications:
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            The JNDI name of a data source is less likely to change (because changing the
+                            JNDI name would require a significant amount of additional configuration changes).
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            Administrators, deployers and developers tend to choose the JNDI name more carefully
+                            than the data source name. In particular JNDI names are much more likely to follow
+                            consistent naming conventions than data source names.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            Since developers are used to refer to data sources by JNDI name, it will be easier
+                            for them to identify a data source in the monitoring system if JNDI names are
+                            used in that context as well.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+                <para>
+                    TODO: uniqueness of JNDI names vs. uniqueness of data source names (only provider name + data source name is unique)
+                </para>
+                <para>
+                    Therefore, the JNDI name of the data source will be used as resource key.
+                </para>
+            </section>
+            <section>
+                <title>Discovery</title>
+                <para>
+                    WebSphere creates an MBean with <literal>type=DataSource</literal> for each configurated data source.
+                    Although the server instantiates data sources lazily (during the first JNDI lookup),
+                    it will create the MBeans already during startup (but not all JMX attributes will be available
+                    on uninitialized data sources). This means that data sources can be reliably discovered by
+                    querying the MBean server for MBeans with <literal>type=DataSource</literal>.
+                </para>
+                <para>
+                    On the other hand, it is also useful to retrieve the static configuration for
+                    JDBC data sources and report this data in RHQ. E.g this enables configuration auditing
+                    and also allows to search for (or group) data sources based on the database or schema.
+                </para>
+                <para>
+                    Building a map of the available data source from the static configuration also makes
+                    it easier to locate the MBean and PMI module for a data source:
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            The object name of the MBean doesn't contain the JNDI name of the data source,
+                            but only the provider name and data source name.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            The PMI module for a data source is identified by the JNDI name, but these
+                            modules are grouped by provider, so that it is still necessary to determine
+                            the provider name.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+                <para>
+                    This means that the overall design of the RHQ components for JDBC data sources is
+                    simpler if the plugin always starts from the persistent configuration.
+                </para>
+                <para>
+                    Data sources can be discovered in the persistent configuration by querying for
+                    configuration objects of type <classname>DataSource</classname>. These objects are
+                    children of <classname>JDBCProvider</classname> objects. Therefore the containment
+                    path relative to a given scope is <literal>JDBCProvider=:DataSource=</literal>.
+                </para>
+            </section>
+        </section>
+        <section>
+            <title>Thread pools</title>
+            <para>
+                WebSphere thread pools can be classified into two categories:
+            </para>
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Thread pools that can be configured in the admin console under
+                        "Application servers > <replaceable>server</replaceable> > Thread pools".
+                        In the persistent configuration they will appear as children of the <classname>ThreadPoolManager</classname>
+                        for the server.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Other thread pools that WebSphere will create internally or based on other
+                        configuration objects. E.g. there will be a thread pool for each work manager
+                        (represented by a <classname>WorkManagerInfo</classname> configuration object).
+                        The SOAP admin service connector will also create its own thread pool
+                        (<literal>SoapConnectorThreadPool</literal>).
+                    </para>
+                </listitem>
+            </orderedlist>
+            <para>
+                Unfortunately, there is no simple relationship between thread pools, configuration objects, MBeans and PMI modules:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        The MBean and PMI module for a thread pool will only be created if the thread pool is actually used.
+                        E.g. the <literal>SIBFAPThreadPool</literal> is used by SIB outbound transport chains.
+                        If none of these transport chains have been started yet, then no MBean or PMI module will exist for this
+                        thread pool. This may be the case e.g. on the standby member of a messaging cluster.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Even for a thread pool that is used, it is possible to have no corresponding MBean or PMI module.
+                        This has been observed for the <literal>server.startup</literal> thread pool (no MBean and no PMI module)
+                        as well as for the <literal>Default</literal> thread pool (no MBean, but a PMI module exists).
+                        The reason may be that these thread pools are started before PMI or the MBean server have been started.
+                        A corallary is that there will be thread pools (the <literal>Default</literal> thread pool actually) that have
+                        a PMI module, but no MBean. 
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Some of the <classname>ThreadPool</classname> MBeans are explicitly linked to a configuration object.
+                        This configuration object is identified by the <literal>mbeanIdentifier</literal> key property in
+                        the object name of the MBean. This is the case for the children of <classname>ThreadPoolManager</classname>
+                        as well as the MBean for the <literal>MessageListenerThreadPool</literal>. Other MBeans either have
+                        no <literal>mbeanIdentifier</literal> key property, or the value doesn't identify a configuration object.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The (internal) name of the PMI module for a given thread pool may differ from the <literal>name</literal>
+                        key property of the corresponding MBean. Naming is only consistent for thread pools defined in the
+                        configuration as children of <classname>ThreadPoolManager</classname>.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        At least one thread pool, namely <literal>ORB.thread.pool</literal> may be defined twice in the
+                        configuration, once as a child of <classname>ThreadPoolManager</classname>, once under
+                        <classname>ObjectRequestBroker</classname>. This is related to the settings shown in
+                        <xref linkend="fig-orb-thread-pool-settings"/>. There is only one MBean for these pools,
+                        and the <literal>mbeanIdentifier</literal> refers to one of these configuration objects, depending
+                        on the configuration (for the sample configuration shown in under <xref linkend="fig-orb-thread-pool-settings"/>
+                        this would be the thread pool defined as a child of <classname>ObjectRequestBroker</classname>).
+                    </para>
+                    <figure id="fig-orb-thread-pool-settings">
+                        <title>ORB thread pool settings</title>
+                        <mediaobject>
+                            <imageobject>
+                                <imagedata fileref="orb-thread-pool-settings.png" format="PNG" scale="60" align="center"/>
+                            </imageobject>
+                        </mediaobject>
+                    </figure>
+                </listitem>
+            </itemizedlist>
+            <section>
+                <title>Solution 1: Discovery by querying MBeans</title>
+                <para>
+                    This solution queries the MBean server for MBeans with <literal>type=ThreadPool</literal>.
+                </para>
+                <para>
+                    Advantages:
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            Once the object name of the <classname>ThreadPool</classname> MBean is known, it
+                            is easy to get the related PMI statistics.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            This solution gives direct access to the runtime configuration of the thread pool
+                            (which is exposed as a set of attributes on the MBean).
+                        </para>
+                    </listitem>
+                </itemizedlist>
+                <para>
+                    Disadvantages:
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            At least one thread pool, namely the <literal>Default</literal> thread pool will not
+                            be discovered. One could deal with this special case in an ad hoc way, but since the
+                            thread pool has no MBean, accessing the PMI statistics would have to be implemented in a
+                            different way for this special case.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            The discovery process may miss thread pools that are only created on demand
+                            (such as <literal>SIBFAPThreadPool</literal>).
+                        </para>
+                    </listitem>
+                </itemizedlist>
+            </section>
+            <section>
+                <title>Solution 2: Discovery based on PMI</title>
+                <para>
+                    This solution queries the submodules of the Thread Pool module in PMI.
+                </para>
+                <para>
+                    Advantages:
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            This solution guarantees that all thread pools for which statistcs are available
+                            will be discovered.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+                <para>
+                    Disadvantages:
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            Because naming is not consistent between PMI and JMX, it may be tricky to identify
+                            the MBean corresponding to a given PMI module (which is necessary to get access to
+                            the runtime configuration).
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            The discovery process may miss thread pools that are only created on demand.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+            </section>
+            <section id="thread-pool-discovery-config-data">
+                <title>Solution 3: Discovery based on configuration data</title>
+                <para>
+                    This solution queries the persistent configuration to discover the thread pools.
+                    As noted previously, there is no single place in the configuration that gives a list
+                    of all thread pools. Therefore this solution would be limited to the following categories
+                    of thread pools:
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            Thread pools defined as children of <classname>ThreadPoolManager</classname>
+                            (which are of type <classname>ThreadPool</classname>).
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            Thread pools created for work managers (which are represented as
+                            <classname>WorkManagerInfo</classname> configuration objects).
+                        </para>
+                    </listitem>
+                </itemizedlist>
+                <para>
+                    Currently known thread pools that would be missed by this discovery mechanism are:
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            The thread pool for the HA manager.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            The <literal>MessageListenerThreadPool</literal> (called <literal>Message.Listener.Pool</literal>
+                            in the configuration). This thread pool is used by JMS message listeners. However, since
+                            message listeners have been deprecated in favor of activation specs, this thread pool
+                            should normally not be used (although it is always initialized when the message listener
+                            service starts, even if no message listeners exist).
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            The <literal>SoapConnectorThreadPool</literal> used by the SOAP admin service connector.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+                <para>
+                    Advantages:
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            The solution will discover thread pools that are only initialized on demand.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            Although work managers have associated thread pools, they have additional features that
+                            justify the definition of a distinct resource type. This naturally fits in the solution
+                            described here because it requires special handling of work managers anyway.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            Based on the configuration data it is possible to identify the PMI module and the MBean
+                            for a thread pool. For thread pools defined as children of <classname>ThreadPoolManager</classname>,
+                            the PMI module name matches the name defined in the <classname>ThreadPool</classname> configuration object.
+                            The MBeans can be located either by name or using the <literal>mbeanIdentifier</literal>
+                            (to avoid confusion for the <literal>ORB.thread.pool</literal> case, it is preferable to
+                            use the <literal>mbeanIdentifier</literal>).
+                        </para>
+                    </listitem>
+                </itemizedlist>
+                <para>
+                    Disadvantages:
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            Inclusion of other thread pools will have to be done in an ad hoc way.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+            </section>
+            <section>
+                <title>Conclusion</title>
+                <para>
+                    Selected solution: <xref linkend="thread-pool-discovery-config-data"/>
+                </para>
+                <para>
+                    TODO: discuss choice of resource key
+                </para>
+            </section>
+        </section>
+        <section>
+            <title>Work managers</title>
+            <para>
+                As discussed in the previous section, work managers will be considered as a distinct resource type, although
+                it shares most of the features with the thread pool resource type. A work manager can be identified by its
+                name or JNDI name. We choose to use the JNDI name as resource key for the same reasons as for JDBC
+                data sources (see <xref linkend="jdbc-data-sources"/>).
+                However, the resource component for a work manager still needs to know the work manager name in addition to the
+                JNDI name:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        The <classname>ThreadPool</classname> MBean for a work manager is located by name (using
+                        <literal>WebSphere:type=ThreadPool,name=WorkManager.<replaceable>name</replaceable>,*</literal>).
+                        The object name of that MBean has no key property with the JNDI name.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        WebSphere uses the same naming convention (i.e. <literal>WorkManager.<replaceable>name</replaceable></literal>)
+                        for the PMI module.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                This means that the plugin needs to be able to extract a map containing the (JNDI name, name) information
+                from the WebSphere configuration.
+            </para>
+        </section>
+        <section>
+            <title>Outbound HTTP connection pools</title>
+            <para>
+                WebSphere's Web services runtime, i.e. the implementation of the JAX-RPC and JAX-WS APIs maintains
+                pools of outbound HTTP connections. There is no PMI support to monitor these pools and there are
+                also no MBeans for them. The only way to collect information about the utilization of these pools
+                is to enable additional debug
+                traces<footnote><para>See <ulink url="http://www-01.ibm.com/support/docview.wss?uid=swg1PK77273">PK77273</ulink>
+                for more details.</para></footnote>.
+            </para>
+            <para>
+                The connection pools in the runtime are actually implemented as singletons, and there are two of them:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <classname>com.ibm.ws.webservices.engine.transport.channel.OutboundConnectionCache</classname> for JAX-RPC.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <classname>com.ibm.ws.websvcs.transport.channel.OutboundConnectionCache</classname> for JAX-WS.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                Although these two classes are completely independent, they have a similar interface. They both define
+                the following methods that are relevant for monitoring:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Static methods <methodname>connTimeout</methodname> and <methodname>maxConnection</methodname>
+                        that provide information about the configuration of the pools.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Protected instance methods <methodname>connectionsInUse</methodname> and <methodname>poolSize</methodname>
+                        providing information about the utilization of the pools.
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </section>
+    </section>
+    <section>
+        <title>Receiving log events</title>
+        <para>
+            WebSphere exposes an MBean called <classname>RasLoggingService</classname> that allows a to receive
+            log events in realtime from a remote server. This works for all log message written to
+            <filename>SystemOut.log</filename> with a severity of
+            <literal>INFO</literal> or higher (which excludes messages written using <literal>System.out</literal>).
+        </para>
+        <para>
+            The <classname>RasLoggingService</classname> MBean has the advantage that it is available out of the box
+            on any WebSphere server. However, it has several shortcomings:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    The JMX notifications don't include the exception data for log messages generated using
+                    Commons Logging or the <package>java.util.logging</package> API. Note that some messages
+                    generated internally by WebSphere will contain stack traces because they are part of the
+                    formatted message.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    It is not possible to link log events to the application that triggered the event.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <section>
+            <title>The internals of <classname>RasLoggingService</classname></title>
+            <para>
+                The <classname>RasLoggingService</classname> MBean is backed by a class called
+                <classname>RasLoggingServiceMBean</classname> (package <package>com.ibm.ws.runtime.mbean</package>) that implements
+                the <classname>WsHandler</classname> interface (package <package>com.ibm.ws.logging</package>).
+                That interface defines a single method
+                <methodname>processEvent</methodname> that receives a <classname>j.u.l.LogRecord</classname>
+                object<footnote><para>Actually an instance of the WebSphere specific subclass <classname>CommonBaseEventLogRecord</classname>
+                (package <package>org.eclipse.hyades.logging.java</package>).</para></footnote>
+                as input.
+            </para>
+            <para>
+                When the MBean is created, it registers itself with <classname>ManagerAdmin</classname> (package <package>com.ibm.ejs.ras</package>)
+                using the <methodname>addJmxListener</methodname> method (which expects a <classname>WsHandler</classname>).
+                It then dispatches the received log records as JMX notifications to registered JMX listeners.
+            </para>
+            <para>
+                Actually, the call to <methodname>addJmxListener</methodname> eventually results in a call to
+                the <methodname>addHandler</methodname> on the root <classname>j.u.l.Logger</classname>
+                instance. In the process, the <classname>WsHandler</classname> is wrapped
+                using <classname>WsHandlerWrapper</classname> (package <package>com.ibm.ws.logging</package>) to adapt it to the
+                <classname>j.u.l.Handler</classname> API.
+            </para>
+            <para>
+                The WebSphere runtime will indeed route all log messages through the
+                <package>java.util.logging</package> API, including log messages generated internally by
+                WebSphere and log messages from applications that use the Commons Logging implementation
+                preconfigured by WebSphere. This can be seen in <xref linkend="fig-ras-logging-1"/>
+                and <xref linkend="fig-ras-logging-2"/>.
+            </para>
+            <figure id="fig-ras-logging-1">
+                <title>Processing of a log event generated by an internal WebSphere component</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="ras-logging-1.png" format="PNG" scale="50" align="center"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+            <figure id="fig-ras-logging-2">
+                <title>Processing of a log event generated by an application (using JCL)</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="ras-logging-2.png" format="PNG" scale="50" align="center"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+            <para>
+                This means that a possible approach to overcome the shortcomings of the
+                <classname>RasLoggingService</classname> would simply be to register a custom handler with the
+                <package>java.util.logging</package> API and let this custom handler forward the received
+                events to the RHQ agent (either using JMX notifications or using a polling mechanism).
+                Note that registering a custom JUL handler is a configuration that is explicitly supported
+                by IBM. See section 13.2.5 of <xref linkend="bib-SG24-6446-00"/>.
+            </para>
+            <para>
+                The two figures also show that JUL handlers (including <classname>RasLoggingService</classname>)
+                are invoked synchronously in the same thread that generated the log event. As we will see in
+                the next section this is important to correlate log events with applications.
+            </para>
+        </section>
+        <section>
+            <title>Identifying the application that triggers a log event</title>
+            <para>
+                The <classname>LogRecord</classname> instance created by WebSphere (which is of type
+                <classname>CommonBaseEventLogRecord</classname>) doesn't identify the application that executed
+                the log statement. The only relevant information that is available is the logger name as well
+                as the class and method name of the location of the logging statement. This information is not
+                enough to identify the application (at least not in an automated way).
+            </para>
+            <para>
+                On the other hand, every managed thread that is executing application code has an associated
+                J2EE context. That context is used e.g. when the application performs a JNDI lookup in the
+                <literal>java:comp/env</literal> namespace (which contains component or module specific
+                bindings)<footnote><para>Some application servers use the thread context classloader to identify
+                the J2EE context, while others (such as WebSphere) use the current thread. According to the J2EE
+                specifications an application is neither allowed to change the thread context class loader
+                nor to create unmanaged threads. Therefore both approaches are equivalent.</para></footnote>.
+                As shown in the previous section, a registered <classname>j.u.l.Handler</classname> will be invoked
+                synchronously in the same thread as the application and therefore runs in the same J2EE context.
+            </para>
+            <para>
+                The J2EE specs don't define any API that gives access to the J2EE context. The WebSphere
+                specific APIs are defined in the <package>com.ibm.ws.threadContext</package> package.
+                In particular, the <classname>ComponentMetaDataAccessorImpl</classname> singleton gives access
+                to the <classname>ComponentMeta</classname> which can be used to identify the application (EAR),
+                module (EJB or WAR) and component (enterprise bean or servlet) serving the current request.
+                In addition, for enterprise beans, <classname>EJBMethodInfoAccessorImpl</classname> even
+                allows to identify the bean method.
+            </para>
+            <para>
+                This information can be used to implement a very fine grained log event collection system.
+                Since RHQ is able to aggregate events from child resources and from members of compatible groups,
+                it is still very easy to browse the collected events. E.g. it is easy to browse all log events for an
+                application in a cluster.
+            </para>
+        </section>
+        <section>
+            <title>Design</title>
+            <para>
+                TODO:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Use JMX notifications or a ring buffer and polling?
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The issues described in this section are only relevant for WebSphere instances with
+                        deployed applications, but not for deployment managers, node agents or application servers that
+                        only host SIBus messaging engines (Note that monitoring of deployment managers and node agents
+                        is not supported yet). Should we support <classname>RasLoggingService</classname> as fallback or
+                        should we make it mandatory to install a custom component (which would then be a "Custom Service"
+                        because EARs can't be deployed on deployment managers and node agents?
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        While RHQ can aggregate and visualize events for an entire resource tree, it is not sure
+                        that it is possible to define alerts at the module or application level.
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </section>
+    </section>
+    <section>
+        <title>Uninventory of WebSphere resources</title>
+        <para>
+            RHQ doesn't have a mechanism to automatically uninventory resources that no longer exist, i.e. that
+            have been removed from the monitored service. For the WebSphere plugin this is problematic
+            because the number of inventoried resources may quickly become large, and manually identifying resources to
+            uninventory would be a time consuming task. To make this easier and to enable automation, all resource
+            components in the WebSphere plugin are designed to meet the following requirements:
+        </para>
+        <orderedlist>
+            <listitem>
+                <para>
+                    The availability status for resources that no longer exist in the WebSphere configuration is
+                    reported as down.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    All resource components implement a standard operation that allows to determine if
+                    the resource is still configured in the WebSphere configuration. That allows to distinguish between
+                    resources that are down because they no longer exist and resources that are down for other reasons.
+                </para>
+                <para>
+                    The choice of an operation instead of a trait is justified by the fact that a trait will
+                    not be collected when the resource is down.
+                </para>
+            </listitem>
+        </orderedlist>
+    </section>
+</article>
