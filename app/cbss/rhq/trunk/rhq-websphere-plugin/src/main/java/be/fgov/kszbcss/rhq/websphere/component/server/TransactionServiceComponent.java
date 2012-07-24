@@ -36,7 +36,10 @@ public class TransactionServiceComponent extends WebSphereServiceComponent<WebSp
                 ids.addAll(Arrays.asList(transactionService.listImportedPreparedTransactions()));
                 ids.addAll(Arrays.asList(transactionService.listManualTransactions()));
                 ids.addAll(Arrays.asList(transactionService.listRetryTransactions()));
-                ids.addAll(Arrays.asList(transactionService.listHeuristicTransactions()));
+                // In most cases, transactions with heuristic outcome are not problematic
+                // (they usually indicate that WebSphere couldn't report the correct status back
+                // to the application, but that the transaction status was resolved later). 
+//                ids.addAll(Arrays.asList(transactionService.listHeuristicTransactions()));
                 return ids;
             }
         });
