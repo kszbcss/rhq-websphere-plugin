@@ -247,6 +247,12 @@
             <metric property="stats.FileDescriptors" displayName="File Descriptors"
                     category="utilization" displayType="summary" defaultInterval="120000"
                     description="The number of file descriptors used by the process."/>
+            <metric property="stats.VmSize" units="bytes" displayName="Virtual Size"
+                    category="utilization" displayType="summary" defaultInterval="600000"
+                    description="Virtual memory size of the process."/>
+            <metric property="stats.VmRSS" units="bytes" displayName="Resident Set Size"
+                    category="utilization" displayType="summary" defaultInterval="600000"
+                    description="The number of bytes the process has in real memory."/>
         </service>
         
         <service name="Class Loader Stats"
