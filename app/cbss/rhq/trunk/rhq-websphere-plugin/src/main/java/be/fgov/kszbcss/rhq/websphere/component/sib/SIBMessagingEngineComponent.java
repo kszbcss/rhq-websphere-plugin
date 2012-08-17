@@ -134,7 +134,13 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
                 ManagedServer server = getServer();
                 String nodeName = server.getNode();
                 String serverName = server.getServer();
-                for (GroupMemberData member : haManager.retrieveGroupMembers(getGroupName())) {
+                long startTime = System.currentTimeMillis();
+                GroupMemberData[] members = haManager.retrieveGroupMembers(getGroupName());
+                long duration = System.currentTimeMillis() - startTime;
+                if (log.isDebugEnabled()) {
+                    log.debug("HAManager#retrieveGroupMembers took " + duration + " ms");
+                }
+                for (GroupMemberData member : members) {
                     if (member.getNodeName().equals(nodeName) && member.getServerName().equals(serverName)) {
                         GroupMemberState memberState = member.getMemberState();
                         AvailabilityType availability = memberState.equals(GroupMemberState.IDLE) ? AvailabilityType.UP : AvailabilityType.DOWN;
