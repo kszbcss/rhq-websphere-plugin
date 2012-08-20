@@ -17,12 +17,12 @@ public class ApplicationInfo implements Serializable {
     private final ModuleInfo[] modules;
     
     public ApplicationInfo(byte[] deploymentDescriptor, ModuleInfo[] modules) {
-        this.deploymentDescriptor = new DeploymentDescriptor(deploymentDescriptor);
+        this.deploymentDescriptor = deploymentDescriptor == null ? null : new DeploymentDescriptor(deploymentDescriptor);
         this.modules = modules;
     }
     
     public Document getDeploymentDescriptor() {
-        return deploymentDescriptor.getDOM();
+        return deploymentDescriptor == null ? null : deploymentDescriptor.getDOM();
     }
     
     public List<ModuleInfo> getModules(ModuleType type) {

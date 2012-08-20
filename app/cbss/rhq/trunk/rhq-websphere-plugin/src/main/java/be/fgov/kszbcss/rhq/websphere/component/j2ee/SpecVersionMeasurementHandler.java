@@ -22,30 +22,32 @@ public abstract class SpecVersionMeasurementHandler implements MeasurementHandle
     
     public final void getValue(WebSphereServer server, MeasurementReport report, MeasurementScheduleRequest request) throws InterruptedException {
         Document document = getDeploymentDescriptor();
-        DocumentType docType = document.getDoctype();
-        String version = null;
-        if (docType != null) {
-            String publicId = docType.getPublicId();
-            if (log.isDebugEnabled()) {
-                log.debug("Public ID: " + publicId);
-            }
-            for (Pattern pattern : getPublicIdPatterns()) {
-                Matcher matcher = pattern.matcher(publicId);
-                if (matcher.matches()) {
-                    version = matcher.group(1);
-                    if (log.isDebugEnabled()) {
-                        log.debug("Public ID matches pattern; version=" + version);
+        if (document != null) {
+            DocumentType docType = document.getDoctype();
+            String version = null;
+            if (docType != null) {
+                String publicId = docType.getPublicId();
+                if (log.isDebugEnabled()) {
+                    log.debug("Public ID: " + publicId);
+                }
+                for (Pattern pattern : getPublicIdPatterns()) {
+                    Matcher matcher = pattern.matcher(publicId);
+                    if (matcher.matches()) {
+                        version = matcher.group(1);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Public ID matches pattern; version=" + version);
+                        }
+                        break;
                     }
-                    break;
+                }
+                if (version == null) {
+                    log.warn("Unexpected public ID found in application.xml deployment descriptor: " + publicId);
                 }
             }
             if (version == null) {
-                log.warn("Unexpected public ID found in application.xml deployment descriptor: " + publicId);
+                version = document.getDocumentElement().getAttribute("version");
             }
+            report.addData(new MeasurementDataTrait(request, version));
         }
-        if (version == null) {
-            version = document.getDocumentElement().getAttribute("version");
-        }
-        report.addData(new MeasurementDataTrait(request, version));
     }
 }

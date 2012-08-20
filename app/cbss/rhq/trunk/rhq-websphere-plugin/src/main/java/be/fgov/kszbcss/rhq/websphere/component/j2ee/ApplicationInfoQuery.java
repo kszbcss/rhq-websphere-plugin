@@ -13,6 +13,7 @@ import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 
 import com.ibm.websphere.management.exception.ConnectorException;
+import com.ibm.websphere.management.exception.DocumentNotFoundException;
 
 public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
     private static final long serialVersionUID = 5507520583493264073L;
@@ -47,7 +48,17 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
             }
             moduleInfos.add(factory.create(uri, config.extract(deploymentDescriptorURI)));
         }
-        return new ApplicationInfo(config.extract(baseURI + "/META-INF/application.xml"), moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
+        byte[] deploymentDescriptor;
+        try {
+            deploymentDescriptor = config.extract(baseURI + "/META-INF/application.xml");
+        } catch (JMException ex) {
+            if (ex.getCause() instanceof DocumentNotFoundException) {
+                deploymentDescriptor = null;
+            } else {
+                throw ex;
+            }
+        }
+        return new ApplicationInfo(deploymentDescriptor, moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
     }
 
     @Override
