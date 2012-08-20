@@ -43,6 +43,9 @@ public class DelayedRefreshCache<K,V> {
                     }
                     pendingRequests.put(key, refreshRequest);
                     executorService.submit(refreshRequest);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Total number of pending requests: " + pendingRequests.size());
+                    }
                 } else if (immediate) {
                     refreshRequest.setImmediate();
                 }
@@ -72,11 +75,35 @@ public class DelayedRefreshCache<K,V> {
                     + "; immediate=" + refreshRequest.isImmediate() + ")");
         }
         K key = refreshRequest.getKey();
-        V value = entryFactory.createEntry(key);
-        synchronized (this) {
-            underlyingCache.put(new Element(key, value));
-            pendingRequests.remove(refreshRequest);
+        V value = null;
+        CacheRefreshException exception = null;
+        try {
+            value = entryFactory.createEntry(key);
+        } catch (CacheRefreshException ex) {
+            exception = ex;
+        } catch (Throwable ex) {
+            exception = new CacheRefreshException("Unexpected exception", ex);
         }
-        return value;
+        if (log.isDebugEnabled()) {
+            if (exception == null) {
+                log.debug("Refresh request " + refreshRequest.getId() + " (cache=" + underlyingCache.getName() + ") successfully executed");
+            } else {
+                log.debug("Refresh request " + refreshRequest.getId() + " (cache=" + underlyingCache.getName() + ") failed with exception", exception);
+            }
+        }
+        synchronized (this) {
+            if (exception == null) {
+                underlyingCache.put(new Element(key, value));
+            }
+            pendingRequests.remove(key);
+            if (log.isDebugEnabled()) {
+                log.debug("Total number of pending requests: " + pendingRequests.size());
+            }
+        }
+        if (exception == null) {
+            return value;
+        } else {
+            throw exception;
+        }
     }
 }
