@@ -14,7 +14,7 @@ public class ThreadPoolDiscoveryComponent implements ResourceDiscoveryComponent<
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         ManagedServer server = context.getParentResourceComponent().getServer();
-        for (ThreadPoolConfiguration threadPool : server.queryConfig(new ThreadPoolQuery(server.getNode(), server.getServer()))) {
+        for (ThreadPoolConfiguration threadPool : server.queryConfig(new ThreadPoolQuery(server.getNode(), server.getServer()), true)) {
             String name = threadPool.getName();
             // The "server.startup" thread pool is not interesting, and there is also no MBean available
             if (!name.equals("server.startup")) {

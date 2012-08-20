@@ -24,9 +24,21 @@ public class ConfigQueryService {
         this.dmc = dmc;
     }
     
-    public <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException {
-        // TODO: make immediate a parameter
-        return dmc.query(query, true);
+    /**
+     * 
+     * 
+     * @param <T>
+     * @param query
+     * @param immediate
+     *            <code>true</code> if a stale entry in the query cache should be refreshed
+     *            immediately (in which case the method waits for the completion of the refresh);
+     *            <code>false</code> if the method should return the stale entry and schedule it for
+     *            refresh later
+     * @return
+     * @throws InterruptedException
+     */
+    public <T extends Serializable> T query(ConfigQuery<T> query, boolean immediate) throws InterruptedException {
+        return dmc.query(query, immediate);
     }
     
     public void release() {

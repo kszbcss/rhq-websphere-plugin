@@ -23,7 +23,7 @@ public abstract class SingletonPMIModuleComponent extends WebSphereServiceCompon
     }
 
     @Override
-    protected boolean isConfigured() throws Exception {
+    protected boolean isConfigured(boolean immediate) throws Exception {
         // TODO
         return true;
     }

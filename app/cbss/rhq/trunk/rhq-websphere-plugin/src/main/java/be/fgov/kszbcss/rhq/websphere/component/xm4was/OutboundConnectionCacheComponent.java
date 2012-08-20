@@ -48,7 +48,7 @@ public class OutboundConnectionCacheComponent extends WebSphereServiceComponent<
     }
 
     @Override
-    protected boolean isConfigured() throws Exception {
+    protected boolean isConfigured(boolean immediate) throws Exception {
         // TODO
         return true;
     }

@@ -11,13 +11,12 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-
 public abstract class ModuleDiscoveryComponent implements ResourceDiscoveryComponent<ApplicationComponent> {
     private static final Log log = LogFactory.getLog(ModuleDiscoveryComponent.class);
     
     public final Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<ApplicationComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        ApplicationInfo applicationInfo = context.getParentResourceComponent().getApplicationInfo();
+        ApplicationInfo applicationInfo = context.getParentResourceComponent().getApplicationInfo(true);
         List<ModuleInfo> modules = applicationInfo.getModules(getModuleType());
         if (log.isDebugEnabled()) {
             log.debug("Found " + modules.size() + " module(s) of type " + getModuleType() + " in application " + context.getParentResourceComponent().getApplicationName());

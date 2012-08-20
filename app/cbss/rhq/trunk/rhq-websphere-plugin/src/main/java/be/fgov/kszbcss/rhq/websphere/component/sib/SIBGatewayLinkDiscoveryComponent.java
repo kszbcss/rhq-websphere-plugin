@@ -12,7 +12,7 @@ public class SIBGatewayLinkDiscoveryComponent implements ResourceDiscoveryCompon
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<SIBMessagingEngineComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         SIBMessagingEngineComponent me = context.getParentResourceComponent();
-        SIBMessagingEngineInfo meInfo = me.getInfo();
+        SIBMessagingEngineInfo meInfo = me.getInfo(true);
         if (meInfo == null) {
             throw new InvalidPluginConfigurationException("Messaging engine " + me.getName() + " not found");
         }

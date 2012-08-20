@@ -67,9 +67,9 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         return sibMessagingEngine;
     }
 
-    public SIBMessagingEngineInfo getInfo() throws InterruptedException, JMException, ConnectorException {
+    public SIBMessagingEngineInfo getInfo(boolean immediate) throws InterruptedException, JMException, ConnectorException {
         ManagedServer server = getServer();
-        for (SIBMessagingEngineInfo me : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()))) {
+        for (SIBMessagingEngineInfo me : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()), immediate)) {
             if (me.getName().equals(name)) {
                 return me;
             }
@@ -80,7 +80,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     private synchronized GroupName getGroupName() throws InterruptedException, JMException, ConnectorException {
         if (groupName == null) {
             ManagedServer server = getServer();
-            SIBMessagingEngineInfo info = getInfo();
+            SIBMessagingEngineInfo info = getInfo(false);
             groupName = haManager.createGroupName(GroupName.WAS_CLUSTER + "=" + server.getClusterName()
                     + ",WSAF_SIB_BUS=" + info.getBusName() + ",WSAF_SIB_MESSAGING_ENGINE=" + info.getName() + ",type=WSAF_SIB");
         }
@@ -88,8 +88,8 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     }
     
     @Override
-    protected boolean isConfigured() throws Exception {
-        return getInfo() != null;
+    protected boolean isConfigured(boolean immediate) throws Exception {
+        return getInfo(immediate) != null;
     }
 
     protected AvailabilityType doGetAvailability() {

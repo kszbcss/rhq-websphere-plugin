@@ -26,7 +26,7 @@ public class CacheComponent extends WebSphereServiceComponent<SIBMessagingEngine
     }
 
     @Override
-    protected boolean isConfigured() throws Exception {
+    protected boolean isConfigured(boolean immediate) throws Exception {
         // The SIB messaging engine cache is always configured
         return true;
     }

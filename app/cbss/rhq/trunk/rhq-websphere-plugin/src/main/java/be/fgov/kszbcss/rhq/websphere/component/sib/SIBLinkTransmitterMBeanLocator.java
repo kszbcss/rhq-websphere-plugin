@@ -24,6 +24,6 @@ public class SIBLinkTransmitterMBeanLocator extends DynamicMBeanObjectNamePatter
     protected void applyKeyProperties(ProcessInfo processInfo, AdminClient adminClient, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
         props.put("type", "SIBLinkTransmitter");
         props.put("SIBMessagingEngine", me.getName());
-        props.put("targetUuid", me.getInfo().getTargetUUIDForGatewayLink(name));
+        props.put("targetUuid", me.getInfo(false).getTargetUUIDForGatewayLink(name));
     }
 }

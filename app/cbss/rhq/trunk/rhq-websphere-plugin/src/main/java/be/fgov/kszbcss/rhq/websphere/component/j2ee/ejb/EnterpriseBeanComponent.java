@@ -41,8 +41,8 @@ public abstract class EnterpriseBeanComponent extends J2EEComponent<EJBModuleCom
     }
     
     @Override
-    protected boolean isConfigured() throws Exception {
-        return getModule().getBeanNames(getType()).contains(getBeanName());
+    protected boolean isConfigured(boolean immediate) throws Exception {
+        return getModule().getBeanNames(getType(), immediate).contains(getBeanName());
     }
 
     protected AvailabilityType doGetAvailability() {

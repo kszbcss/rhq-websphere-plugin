@@ -46,13 +46,13 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
         getApplication().unregisterLogEventContext(getModuleName(), componentName);
     }
     
-    public ModuleInfo getModuleInfo() throws InterruptedException {
-        return getApplication().getApplicationInfo().getModule(getModuleName());
+    public ModuleInfo getModuleInfo(boolean immediate) throws InterruptedException {
+        return getApplication().getApplicationInfo(immediate).getModule(getModuleName());
     }
     
     @Override
-    protected boolean isConfigured() throws Exception {
-        return getModuleInfo() != null;
+    protected boolean isConfigured(boolean immediate) throws Exception {
+        return getModuleInfo(immediate) != null;
     }
 
     protected AvailabilityType doGetAvailability() {

@@ -29,7 +29,7 @@ public final class ConnectionFactoryMBeanLocator extends DynamicMBeanObjectNameP
     @Override
     protected void applyKeyProperties(ProcessInfo processInfo, AdminClient adminClient, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
         ManagedServer server = (ManagedServer)processInfo.getServer();
-        ConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), type)).getByJndiName(jndiName);
+        ConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), type), false).getByJndiName(jndiName);
         if (cf == null) {
             throw new JMException("A " + type.getConfigurationObjectType() + " with JNDI name " + jndiName + " doesn't exist in the configuration");
         }

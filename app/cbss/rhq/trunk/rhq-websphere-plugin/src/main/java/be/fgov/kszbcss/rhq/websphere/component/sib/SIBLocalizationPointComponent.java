@@ -29,10 +29,11 @@ public abstract class SIBLocalizationPointComponent extends WebSphereServiceComp
     protected abstract SIBLocalizationPointType getType();
     protected abstract String getPMIModuleName();
 
-    protected boolean isConfigured() throws Exception {
+    @Override
+    protected boolean isConfigured(boolean immediate) throws Exception {
         ManagedServer server = getServer();
         SIBMessagingEngineInfo meInfo = null;
-        for (SIBMessagingEngineInfo info : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()))) {
+        for (SIBMessagingEngineInfo info : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()), immediate)) {
             if (info.getName().equals(getResourceContext().getParentResourceComponent().getName())) {
                 meInfo = info;
             }

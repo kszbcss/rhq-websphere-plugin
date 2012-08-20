@@ -35,7 +35,7 @@ public class DeploymentConfigurationFacetSupport {
     }
 
     public void loadResourceConfiguration(Configuration configuration) throws Exception {
-        ApplicationConfiguration appConfig = application.getConfiguration();
+        ApplicationConfiguration appConfig = application.getConfiguration(true);
         
         // Normally, messaging destination references are declared using a specific type of entry in the
         // deployment descriptor (message-destination-ref). However, lot of people don't
@@ -69,7 +69,7 @@ public class DeploymentConfigurationFacetSupport {
         }
         if (!messagingDestinationRefs.isEmpty()) {
             ManagedServer server = application.getServer();
-            SIBDestinationMap sibDestinationMap = server.queryConfig(new SIBDestinationMapQuery(server.getNode(), server.getServer()));
+            SIBDestinationMap sibDestinationMap = server.queryConfig(new SIBDestinationMapQuery(server.getNode(), server.getServer()), true);
             PropertyList list = new PropertyList("messagingDestinationRefs");
             for (Map.Entry<String,String> entry : messagingDestinationRefs.entrySet()) {
                 PropertyMap map = new PropertyMap("messagingDestinationRef");

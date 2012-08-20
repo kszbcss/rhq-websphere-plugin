@@ -62,12 +62,12 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
     }
 
     @Override
-    protected boolean isConfigured() throws Exception {
+    protected boolean isConfigured(boolean immediate) throws Exception {
         return true;
     }
 
     public DB2MonitorContext getContext() throws Exception {
-        Map<String,Object> dataSourceProperties = dataSourceComponent.getConnectionFactoryInfo().getProperties();
+        Map<String,Object> dataSourceProperties = dataSourceComponent.getConnectionFactoryInfo(false).getProperties();
         if (context == null || !context.getDataSourceProperties().equals(dataSourceProperties)) {
             if (context != null) {
                 context.destroy();

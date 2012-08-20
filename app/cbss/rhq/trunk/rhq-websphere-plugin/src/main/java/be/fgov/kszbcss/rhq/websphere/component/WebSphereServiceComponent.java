@@ -41,11 +41,11 @@ public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>>
      *         <code>false</code> otherwise
      * @throws Exception 
      */
-    protected abstract boolean isConfigured() throws Exception;
+    protected abstract boolean isConfigured(boolean immediate) throws Exception;
 
     public final AvailabilityType getAvailability() {
         try {
-            if (!isConfigured()) {
+            if (!isConfigured(false)) {
                 return AvailabilityType.DOWN;
             }
         } catch (Exception ex) {
@@ -62,7 +62,7 @@ public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>>
             //       Also, the result is not saved in the database.
             OperationResult result = new OperationResult();
             Configuration results = result.getComplexResults();
-            results.put(new PropertySimple("isConfigured", Boolean.valueOf(isConfigured())));
+            results.put(new PropertySimple("isConfigured", Boolean.valueOf(isConfigured(true))));
             return result;
         } else {
             return doInvokeOperation(name, parameters);

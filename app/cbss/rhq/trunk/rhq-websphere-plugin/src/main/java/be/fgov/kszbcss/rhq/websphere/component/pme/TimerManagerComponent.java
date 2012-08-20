@@ -51,9 +51,9 @@ public class TimerManagerComponent extends WebSphereServiceComponent<WebSphereSe
     }
 
     @Override
-    protected boolean isConfigured() throws Exception {
+    protected boolean isConfigured(boolean immediate) throws Exception {
         ManagedServer server = getServer();
-        return server.queryConfig(new TimerManagerMapQuery(server.getNode(), server.getServer())).containsKey(getResourceContext().getResourceKey());
+        return server.queryConfig(new TimerManagerMapQuery(server.getNode(), server.getServer()), immediate).containsKey(getResourceContext().getResourceKey());
     }
 
     protected AvailabilityType doGetAvailability() {

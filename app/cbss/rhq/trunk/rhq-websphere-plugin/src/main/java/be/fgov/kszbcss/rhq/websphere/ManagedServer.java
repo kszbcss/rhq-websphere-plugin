@@ -79,11 +79,11 @@ public class ManagedServer extends WebSphereServer {
         return configQueryService;
     }
 
-    public <T extends Serializable> T queryConfig(ConfigQuery<T> query) throws InterruptedException {
-        return getConfigQueryService().query(query);
+    public <T extends Serializable> T queryConfig(ConfigQuery<T> query, boolean immediate) throws InterruptedException {
+        return getConfigQueryService().query(query, immediate);
     }
 
     public String getClusterName() throws InterruptedException, JMException, ConnectorException {
-        return queryConfig(new ClusterNameQuery(getNode(), getServer()));
+        return queryConfig(new ClusterNameQuery(getNode(), getServer()), false);
     }
 }

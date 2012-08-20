@@ -15,7 +15,7 @@ public class ApplicationSpecVersionMeasurementHandler extends SpecVersionMeasure
 
     @Override
     protected Document getDeploymentDescriptor() throws InterruptedException {
-        return applicationComponent.getApplicationInfo().getDeploymentDescriptor();
+        return applicationComponent.getApplicationInfo(false).getDeploymentDescriptor();
     }
 
     @Override

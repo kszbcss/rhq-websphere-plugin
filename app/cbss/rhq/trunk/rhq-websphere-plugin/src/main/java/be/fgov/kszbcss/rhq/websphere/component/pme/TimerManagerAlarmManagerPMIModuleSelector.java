@@ -17,7 +17,7 @@ public class TimerManagerAlarmManagerPMIModuleSelector implements PMIModuleSelec
     }
 
     public String[] getPath() throws JMException, ConnectorException, InterruptedException {
-        String name = server.queryConfig(new TimerManagerMapQuery(server.getNode(), server.getServer())).get(jndiName);
+        String name = server.queryConfig(new TimerManagerMapQuery(server.getNode(), server.getServer()), false).get(jndiName);
         if (name == null) {
             throw new JMException("No timer manager found for JNDI name " + jndiName);
         }

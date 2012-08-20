@@ -20,7 +20,7 @@ public class ApplicationDiscoveryComponent implements ResourceDiscoveryComponent
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         ManagedServer server = context.getParentResourceComponent().getServer();
-        String[] applicationNames = server.queryConfig(new DeployedApplicationsQuery(server.getNode(), server.getServer()));
+        String[] applicationNames = server.queryConfig(new DeployedApplicationsQuery(server.getNode(), server.getServer()), true);
         if (log.isDebugEnabled()) {
             log.debug("Discovered the following applications on " + context.getParentResourceComponent().getResourceContext().getResourceKey() + ": " + Arrays.asList(applicationNames));
         }

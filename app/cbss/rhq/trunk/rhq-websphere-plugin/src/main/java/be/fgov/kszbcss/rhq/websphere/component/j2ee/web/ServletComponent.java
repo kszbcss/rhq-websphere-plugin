@@ -20,9 +20,9 @@ public class ServletComponent extends J2EEComponent<WebModuleComponent> implemen
     }
 
     @Override
-    protected boolean isConfigured() throws Exception {
+    protected boolean isConfigured(boolean immediate) throws Exception {
         ResourceContext<WebModuleComponent> context = getResourceContext();
-        return context.getParentResourceComponent().getServletNames().contains(context.getResourceKey());
+        return context.getParentResourceComponent().getServletNames(immediate).contains(context.getResourceKey());
     }
 
     protected AvailabilityType doGetAvailability() {

@@ -18,7 +18,7 @@ public class WorkManagerThreadPoolPMIModuleSelector implements PMIModuleSelector
     }
 
     public String[] getPath() throws JMException, ConnectorException, InterruptedException {
-        String name = server.queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer())).get(jndiName);
+        String name = server.queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer()), false).get(jndiName);
         if (name == null) {
             throw new JMException("No work manager found for JNDI name " + jndiName);
         }

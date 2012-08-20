@@ -34,12 +34,12 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         jndiName = getResourceContext().getResourceKey();
-        final ManagedServer server = getServer();
+        ManagedServer server = getServer();
         mbean = server.getMBeanClient(new ConnectionFactoryMBeanLocator(getType(), jndiName));
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException, InterruptedException {
-                ConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getByJndiName(jndiName);
+                ConnectionFactoryInfo cf = getConnectionFactoryInfo(false);
                 return new String[] { getType().getPmiModule(), cf.getProviderName(), cf.getJndiName() };
             }
         };
@@ -58,14 +58,14 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
     public void stop() {
     }
 
-    public ConnectionFactoryInfo getConnectionFactoryInfo() throws JMException, ConnectorException, InterruptedException {
+    public ConnectionFactoryInfo getConnectionFactoryInfo(boolean immediate) throws JMException, ConnectorException, InterruptedException {
         ManagedServer server = getServer();
-        return server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getByJndiName(jndiName);
+        return server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType()), immediate).getByJndiName(jndiName);
     }
     
     @Override
-    protected boolean isConfigured() throws Exception {
-        return getConnectionFactoryInfo() != null;
+    protected boolean isConfigured(boolean immediate) throws Exception {
+        return getConnectionFactoryInfo(immediate) != null;
     }
 
     protected AvailabilityType doGetAvailability() {

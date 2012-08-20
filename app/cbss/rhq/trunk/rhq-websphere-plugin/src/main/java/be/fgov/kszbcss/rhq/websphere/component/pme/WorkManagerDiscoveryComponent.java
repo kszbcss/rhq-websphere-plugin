@@ -15,7 +15,7 @@ public class WorkManagerDiscoveryComponent implements ResourceDiscoveryComponent
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         ManagedServer server = context.getParentResourceComponent().getServer();
-        for (String jndiName : server.queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer())).keySet()) {
+        for (String jndiName : server.queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer()), true).keySet()) {
             result.add(new DiscoveredResourceDetails(context.getResourceType(), jndiName, jndiName, null, "A work manager.", null, null));
         }
         return result;

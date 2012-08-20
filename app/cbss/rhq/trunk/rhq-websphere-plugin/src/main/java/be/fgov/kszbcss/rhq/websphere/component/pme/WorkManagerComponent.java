@@ -48,9 +48,9 @@ public class WorkManagerComponent extends WebSphereServiceComponent<WebSphereSer
     }
 
     @Override
-    protected boolean isConfigured() throws Exception {
+    protected boolean isConfigured(boolean immediate) throws Exception {
         ManagedServer server = getServer();
-        return server.queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer())).containsKey(getResourceContext().getResourceKey());
+        return server.queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer()), immediate).containsKey(getResourceContext().getResourceKey());
     }
 
     protected AvailabilityType doGetAvailability() {
