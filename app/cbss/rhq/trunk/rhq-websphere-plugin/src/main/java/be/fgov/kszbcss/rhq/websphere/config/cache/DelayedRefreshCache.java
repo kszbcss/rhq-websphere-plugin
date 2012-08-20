@@ -42,7 +42,7 @@ public class DelayedRefreshCache<K,V> {
                                 + "; immediate=" + refreshRequest.isImmediate() + ")");
                     }
                     pendingRequests.put(key, refreshRequest);
-                    executorService.submit(refreshRequest);
+                    executorService.execute(refreshRequest);
                     if (log.isDebugEnabled()) {
                         log.debug("Total number of pending requests: " + pendingRequests.size());
                     }
