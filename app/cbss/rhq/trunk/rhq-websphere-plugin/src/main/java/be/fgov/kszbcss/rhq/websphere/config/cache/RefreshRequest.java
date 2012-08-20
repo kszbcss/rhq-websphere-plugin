@@ -3,19 +3,16 @@ package be.fgov.kszbcss.rhq.websphere.config.cache;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.atomic.AtomicInteger;
 
 class RefreshRequest<K,V> implements Runnable, Comparable<RefreshRequest<K,V>> {
-    private static final AtomicInteger currentId = new AtomicInteger();
-    
     private final int id;
     private final long time;
     private final K key;
     private final FutureTask<V> task;
     private volatile boolean immediate;
     
-    RefreshRequest(final DelayedRefreshCache<K,V> cache, K key, boolean immediate) {
-        id = currentId.incrementAndGet();
+    RefreshRequest(final DelayedRefreshCache<K,V> cache, int id, K key, boolean immediate) {
+        this.id = id;
         time = System.currentTimeMillis();
         this.key = key;
         this.immediate = immediate;

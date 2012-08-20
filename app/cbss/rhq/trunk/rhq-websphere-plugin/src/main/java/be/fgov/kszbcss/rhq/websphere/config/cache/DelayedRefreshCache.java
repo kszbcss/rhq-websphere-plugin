@@ -3,6 +3,7 @@ package be.fgov.kszbcss.rhq.websphere.config.cache;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,6 +17,7 @@ public class DelayedRefreshCache<K,V> {
     private final Ehcache underlyingCache;
     private final ExecutorService executorService;
     private final DelayedRefreshCacheEntryFactory<K,V> entryFactory;
+    private final AtomicInteger currentRequestId = new AtomicInteger();
     private final Map<K,RefreshRequest<K,V>> pendingRequests = new HashMap<K,RefreshRequest<K,V>>();
     
     public DelayedRefreshCache(Ehcache underlyingCache, ExecutorService executorService, DelayedRefreshCacheEntryFactory<K,V> entryFactory) {
@@ -33,9 +35,11 @@ public class DelayedRefreshCache<K,V> {
             if (value == null || entryFactory.isStale(key, value)) {
                 refreshRequest = pendingRequests.get(key);
                 if (refreshRequest == null) {
-                    refreshRequest = new RefreshRequest<K,V>(this, key, immediate);
+                    refreshRequest = new RefreshRequest<K,V>(this, currentRequestId.incrementAndGet(), key, immediate);
                     if (log.isDebugEnabled()) {
-                        log.debug("Scheduling refresh request " + refreshRequest.getId() + " (immediate=" + refreshRequest.isImmediate() + ")");
+                        log.debug("Scheduling refresh request " + refreshRequest.getId()
+                                + " (cache=" + underlyingCache.getName()
+                                + "; immediate=" + refreshRequest.isImmediate() + ")");
                     }
                     pendingRequests.put(key, refreshRequest);
                     executorService.submit(refreshRequest);
@@ -49,7 +53,8 @@ public class DelayedRefreshCache<K,V> {
         }
         if (value == null || immediate) {
             if (log.isDebugEnabled()) {
-                log.debug("Waiting for completion of refresh request " + refreshRequest.getId());
+                log.debug("Waiting for completion of refresh request " + refreshRequest.getId()
+                        + " (cache=" + underlyingCache.getName() + ")");
             }
             return refreshRequest.getValue();
         } else {
@@ -61,7 +66,10 @@ public class DelayedRefreshCache<K,V> {
     V execute(RefreshRequest<K,V> refreshRequest) throws CacheRefreshException {
         if (log.isDebugEnabled()) {
             long delay = System.currentTimeMillis() - refreshRequest.getTime();
-            log.debug("Executing refresh request " + refreshRequest.getId() + " (delay=" + delay + "; immediate=" + refreshRequest.isImmediate() + ")");
+            log.debug("Executing refresh request " + refreshRequest.getId()
+                    + " (cache=" + underlyingCache.getName()
+                    + "; delay=" + delay
+                    + "; immediate=" + refreshRequest.isImmediate() + ")");
         }
         K key = refreshRequest.getKey();
         V value = entryFactory.createEntry(key);

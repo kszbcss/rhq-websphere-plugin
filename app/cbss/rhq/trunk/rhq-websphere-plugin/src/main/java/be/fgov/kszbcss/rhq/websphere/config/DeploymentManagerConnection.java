@@ -54,10 +54,9 @@ class DeploymentManagerConnection implements Runnable {
                 configRepository,
                 dm.getMBeanClient("WebSphere:type=AppManagement,*").getProxy(AppManagement.class));
         cacheManager.addCache(cell);
-        // TODO: set a thread factory to give meaningful names to threads
-        queryExecutorService = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS, new MutablePriorityQueue<Runnable>());
+        queryExecutorService = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS, new MutablePriorityQueue<Runnable>(), new NamedThreadFactory(cell + "-query"));
         queryCache = new DelayedRefreshCache<ConfigQuery<?>,ConfigQueryResult>(cacheManager.getEhcache(cell), queryExecutorService, new ConfigQueryResultFactory(this));
-        epochPollExecutorService = Executors.newScheduledThreadPool(1);
+        epochPollExecutorService = Executors.newScheduledThreadPool(1, new NamedThreadFactory(cell + "-epoch-poll"));
         future = epochPollExecutorService.scheduleWithFixedDelay(this, 0, 30, TimeUnit.SECONDS);
     }
     
