@@ -1,0 +1,16 @@
+#summary How to monitor the health of WebSphere instances by watching the HAManager and DCS logs
+
+To support the high availability features such as automatic failover of cluster singletons and routing of IIOP requests, each !WebSphere instance monitors the availability of each other !WebSphere instance in the same core group by exchanging periodic heartbeats. When an instance detects that another instance fails to respond to heartbeats, it will issue the following log message:
+
+  DCSV1112W: DCS Stack !DefaultCoreGroup at Member cell1\dmgr\dmgr: Member cell1\node1\nodeagent failed to respond to periodic heartbeats. Member will be removed from view. Configured Timeout is 180000 milliseconds. DCS logical channel is View|Ptp.
+
+In addition to that, the high availability manager also checks that it receives adequate CPU time. If that's not the case, then this is usually an indication that the server is overloaded or that the JVM is spending too much time in garbage collection. When this occurs, the following messages are logged:
+
+  DCSV0004W: DCS Stack !DefaultCoreGroup at Member cell1\node1\server1: Did not receive adequate CPU time slice. Last known CPU usage time at 09:12:13:535 CEST. Inactivity duration was 23 seconds.
+
+  HMGR0152W: CPU Starvation detected. Current thread scheduling delay is 5 seconds.
+
+Any occurrence of one of these three messages is an indication that the health of some !WebSphere instance is degrading. It is therefore useful to set up alerts that report these messages to an operator. It is possible to do that with the !WebSphere plug-in for RHQ. The following prerequisites must be met:
+
+  * The !WebSphere Server resources in RHQ must be configured with log monitoring enabled, i.e. the "Logging Provider" must not be set to "None".
+  * The trace specification (log level) of the !WebSphere instances must be configured such that the DCSV1112W, DCSV0004W and HMGR0152W warnings appear in `SystemOut.log`.
