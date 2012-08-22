@@ -13,4 +13,10 @@ In addition to that, the high availability manager also checks that it receives 
 Any occurrence of one of these three messages is an indication that the health of some !WebSphere instance is degrading. It is therefore useful to set up alerts that report these messages to an operator. It is possible to do that with the !WebSphere plug-in for RHQ. The following prerequisites must be met:
 
   * The !WebSphere Server resources in RHQ must be configured with log monitoring enabled, i.e. the "Logging Provider" must not be set to "None".
-  * The trace specification (log level) of the !WebSphere instances must be configured such that the DCSV1112W, DCSV0004W and HMGR0152W warnings appear in `SystemOut.log`.
+  * The trace specification (log level) of the !WebSphere instances must be configured such that the DCSV1112W, DCSV0004W and HMGR0152W warnings appear in `SystemOut.log`. This is the case with the default !WebSphere configuration (`*=info`).
+
+You can then define an alert template for resource type "!WebSphere Server" with the following condition:
+
+  Event Severity `WARN`: and matches expression (optional): `^(DCSV1112W|DCSV0004W|HMGR0152W): .*`
+
+TODO: in RHQ, the regex field is limited to 30 characters although in the database it is VARCHAR(256)
