@@ -18,6 +18,7 @@ import be.fgov.kszbcss.rhq.websphere.config.cache.CacheRefreshException;
 import be.fgov.kszbcss.rhq.websphere.config.cache.DelayedRefreshCache;
 import be.fgov.kszbcss.rhq.websphere.config.cache.MutablePriorityQueue;
 import be.fgov.kszbcss.rhq.websphere.proxy.AppManagement;
+import be.fgov.kszbcss.rhq.websphere.proxy.ConfigRepository;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
 
 import com.ibm.websphere.management.repository.ConfigEpoch;

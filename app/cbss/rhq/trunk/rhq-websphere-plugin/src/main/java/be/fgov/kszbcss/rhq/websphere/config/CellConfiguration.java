@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientProxy;
 import be.fgov.kszbcss.rhq.websphere.proxy.AppManagement;
+import be.fgov.kszbcss.rhq.websphere.proxy.ConfigRepository;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
 
 import com.ibm.websphere.management.Session;
