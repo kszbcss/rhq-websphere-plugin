@@ -9,7 +9,7 @@ import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 
 public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>> implements WebSphereComponent<T>, OperationFacet {
     private ResourceContext<T> context;
@@ -29,7 +29,7 @@ public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>>
         return context.getParentResourceComponent().getEmsConnection();
     }
 
-    public final ManagedServer getServer() {
+    public final ApplicationServer getServer() {
         return context.getParentResourceComponent().getServer();
     }
     

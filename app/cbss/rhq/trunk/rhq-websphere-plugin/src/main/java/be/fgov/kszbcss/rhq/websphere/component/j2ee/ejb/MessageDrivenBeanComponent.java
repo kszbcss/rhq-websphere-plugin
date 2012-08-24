@@ -12,7 +12,7 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.ModuleComponent;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.SIBDestination;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.SIBDestinationMap;
@@ -70,7 +70,7 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
     @Override
     public void loadResourceConfiguration(Configuration configuration) throws Exception {
         super.loadResourceConfiguration(configuration);
-        ManagedServer server = getServer();
+        ApplicationServer server = getServer();
         List<Map<String,String>> data = getModule().getApplication().getConfiguration(true).getData("BindJndiForEJBMessageBinding", getModuleName(), getBeanName());
         if (data == null || data.size() != 1) {
             throw new Exception("No message listener binding found");

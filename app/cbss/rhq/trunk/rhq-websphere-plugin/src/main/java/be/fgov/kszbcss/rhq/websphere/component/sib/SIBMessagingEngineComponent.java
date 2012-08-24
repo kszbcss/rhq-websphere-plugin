@@ -14,7 +14,7 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
@@ -68,7 +68,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     }
 
     public SIBMessagingEngineInfo getInfo(boolean immediate) throws InterruptedException, JMException, ConnectorException {
-        ManagedServer server = getServer();
+        ApplicationServer server = getServer();
         for (SIBMessagingEngineInfo me : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()), immediate)) {
             if (me.getName().equals(name)) {
                 return me;
@@ -79,7 +79,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     
     private synchronized GroupName getGroupName() throws InterruptedException, JMException, ConnectorException {
         if (groupName == null) {
-            ManagedServer server = getServer();
+            ApplicationServer server = getServer();
             SIBMessagingEngineInfo info = getInfo(false);
             groupName = haManager.createGroupName(GroupName.WAS_CLUSTER + "=" + server.getClusterName()
                     + ",WSAF_SIB_BUS=" + info.getBusName() + ",WSAF_SIB_MESSAGING_ENGINE=" + info.getName() + ",type=WSAF_SIB");
@@ -131,7 +131,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         } else if (state.equals("Joined")) {
             log.debug("Messaging engine is in state Joined; check the state in the HAManager");
             try {
-                ManagedServer server = getServer();
+                ApplicationServer server = getServer();
                 String nodeName = server.getNode();
                 String serverName = server.getServer();
                 long startTime = System.currentTimeMillis();
@@ -189,11 +189,11 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     @Override
     protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("enable")) {
-            ManagedServer server = getServer();
+            ApplicationServer server = getServer();
             haManager.enableMember(getGroupName(), server.getNode(), server.getServer());
             return null;
         } else if (name.equals("disable")) {
-            ManagedServer server = getServer();
+            ApplicationServer server = getServer();
             haManager.disableMember(getGroupName(), server.getNode(), server.getServer());
             return null;
         } else {

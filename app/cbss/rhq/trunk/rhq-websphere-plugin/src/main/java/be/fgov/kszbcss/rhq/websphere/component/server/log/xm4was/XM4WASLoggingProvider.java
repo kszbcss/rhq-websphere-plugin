@@ -6,7 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rhq.core.pluginapi.event.EventContext;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.EventPublisher;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
@@ -17,7 +17,7 @@ public class XM4WASLoggingProvider implements LoggingProvider {
     private Timer timer;
     private LogEventDispatcher dispatcher;
     
-    public void start(ManagedServer server, EventContext defaultEventContext, EventPublisher eventPublisher, String state) {
+    public void start(ApplicationServer server, EventContext defaultEventContext, EventPublisher eventPublisher, String state) {
         timer = new Timer();
         dispatcher = new LogEventDispatcher(
                 server.getMBeanClient("WebSphere:*,type=XM4WAS.LoggingService").getProxy(LoggingService.class),

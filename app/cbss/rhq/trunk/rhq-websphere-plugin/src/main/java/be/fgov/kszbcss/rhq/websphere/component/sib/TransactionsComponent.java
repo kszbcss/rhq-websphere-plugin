@@ -14,7 +14,7 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.InDoubtTransactionsMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.proxy.SIBMessagingEngine;
@@ -26,7 +26,7 @@ public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagin
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
-        ManagedServer server = getServer();
+        ApplicationServer server = getServer();
         measurementFacetSupport = new MeasurementFacetSupport(this);
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(server.getServerMBean(),
                 "SIB Service", "SIB Messaging Engines", getResourceContext().getParentResourceComponent().getName(),

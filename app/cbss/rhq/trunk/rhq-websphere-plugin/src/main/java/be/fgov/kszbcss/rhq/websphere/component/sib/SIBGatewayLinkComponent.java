@@ -12,7 +12,7 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.proxy.SIBGatewayLink;
@@ -32,7 +32,7 @@ public class SIBGatewayLinkComponent extends WebSphereServiceComponent<SIBMessag
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         SIBMessagingEngineComponent me = getResourceContext().getParentResourceComponent();
-        ManagedServer server = getServer();
+        ApplicationServer server = getServer();
         String name = getResourceContext().getResourceKey();
         gatewayLink = server.getMBeanClient(new SIBGatewayLinkMBeanLocator(me, name)).getProxy(SIBGatewayLink.class);
         MBeanClient linkTransmitter = server.getMBeanClient(new SIBLinkTransmitterMBeanLocator(me, name));

@@ -4,14 +4,14 @@ import javax.management.JMException;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIModuleSelector;
 
 public class TimerManagerAlarmManagerPMIModuleSelector implements PMIModuleSelector {
-    private final ManagedServer server;
+    private final ApplicationServer server;
     private String jndiName;
 
-    public TimerManagerAlarmManagerPMIModuleSelector(ManagedServer server, String jndiName) {
+    public TimerManagerAlarmManagerPMIModuleSelector(ApplicationServer server, String jndiName) {
         this.server = server;
         this.jndiName = jndiName;
     }

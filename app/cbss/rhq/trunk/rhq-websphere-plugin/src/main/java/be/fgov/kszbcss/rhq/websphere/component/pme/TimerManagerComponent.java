@@ -12,7 +12,7 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.ThreadPoolPMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
@@ -28,7 +28,7 @@ public class TimerManagerComponent extends WebSphereServiceComponent<WebSphereSe
     protected void start() throws InvalidPluginConfigurationException, Exception {
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        ManagedServer server = getServer();
+        ApplicationServer server = getServer();
         String jndiName = context.getResourceKey();
         measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(server.getServerMBean(),
                 new TimerManagerThreadPoolPMIModuleSelector(server, jndiName)));
@@ -52,7 +52,7 @@ public class TimerManagerComponent extends WebSphereServiceComponent<WebSphereSe
 
     @Override
     protected boolean isConfigured(boolean immediate) throws Exception {
-        ManagedServer server = getServer();
+        ApplicationServer server = getServer();
         return server.queryConfig(new TimerManagerMapQuery(server.getNode(), server.getServer()), immediate).containsKey(getResourceContext().getResourceKey());
     }
 

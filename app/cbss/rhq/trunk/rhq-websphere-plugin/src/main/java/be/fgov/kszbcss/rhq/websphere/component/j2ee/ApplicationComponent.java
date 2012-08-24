@@ -14,7 +14,7 @@ import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
@@ -31,7 +31,7 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     
     @Override
     protected void start() {
-        ManagedServer server = getServer();
+        ApplicationServer server = getServer();
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
         pattern = Utils.createObjectName("WebSphere:type=Application,name=" + context.getResourceKey() + ",*");
         mbean = server.getMBeanClient(pattern);
@@ -72,7 +72,7 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     
     @Override
     protected boolean isConfigured(boolean immediate) throws Exception {
-        ManagedServer server = getServer();
+        ApplicationServer server = getServer();
         return Arrays.asList(server.queryConfig(new DeployedApplicationsQuery(server.getNode(), server.getServer()), immediate)).contains(getApplicationName());
     }
 

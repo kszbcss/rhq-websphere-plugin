@@ -12,7 +12,7 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.ThreadPoolPMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.support.configuration.ConfigurationFacetSupport;
@@ -50,7 +50,7 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
 
     @Override
     protected boolean isConfigured(boolean immediate) throws Exception {
-        ManagedServer server = getServer();
+        ApplicationServer server = getServer();
         for (ThreadPoolConfiguration threadPool : server.queryConfig(new ThreadPoolQuery(server.getNode(), server.getServer()), immediate)) {
             if (threadPool.getName().equals(getResourceContext().getResourceKey())) {
                 return true;

@@ -19,7 +19,7 @@ import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
 
-public class ManagedServer extends WebSphereServer {
+public class ManagedServer extends ApplicationServer {
     private static final Log log = LogFactory.getLog(ManagedServer.class);
     
     private final String cell;

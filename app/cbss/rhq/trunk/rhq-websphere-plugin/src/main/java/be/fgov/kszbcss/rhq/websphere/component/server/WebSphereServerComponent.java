@@ -41,6 +41,7 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereComponent;
@@ -77,7 +78,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     private String serverName;
     private ResourceContext<ResourceComponent<?>> resourceContext;
     private File stateDir;
-    private ManagedServer server;
+    private ApplicationServer server;
     private EmsConnection connection;
     private MeasurementFacetSupport measurementFacetSupport;
     private String loggingProviderName;
@@ -129,7 +130,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         return resourceContext;
     }
 
-    public ManagedServer getServer() {
+    public ApplicationServer getServer() {
         return server;
     }
 

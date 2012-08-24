@@ -11,7 +11,7 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 
 public class ApplicationDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
@@ -19,7 +19,7 @@ public class ApplicationDiscoveryComponent implements ResourceDiscoveryComponent
     
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        ManagedServer server = context.getParentResourceComponent().getServer();
+        ApplicationServer server = context.getParentResourceComponent().getServer();
         String[] applicationNames = server.queryConfig(new DeployedApplicationsQuery(server.getNode(), server.getServer()), true);
         if (log.isDebugEnabled()) {
             log.debug("Discovered the following applications on " + context.getParentResourceComponent().getResourceContext().getResourceKey() + ": " + Arrays.asList(applicationNames));

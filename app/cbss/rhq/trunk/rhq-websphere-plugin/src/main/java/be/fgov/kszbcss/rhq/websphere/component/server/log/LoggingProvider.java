@@ -2,7 +2,7 @@ package be.fgov.kszbcss.rhq.websphere.component.server.log;
 
 import org.rhq.core.pluginapi.event.EventContext;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 
 /**
@@ -25,7 +25,7 @@ public interface LoggingProvider {
      * @param state
      *            the persisted state of the logging provider as returned by {@link #stop()}
      */
-    void start(ManagedServer server, EventContext defaultEventContext, EventPublisher eventPublisher, String state);
+    void start(ApplicationServer server, EventContext defaultEventContext, EventPublisher eventPublisher, String state);
     
     /**
      * Register an {@link EventContext} for a given J2EE application component. Implementations that
@@ -54,7 +54,7 @@ public interface LoggingProvider {
      * Stop the logging provider.
      * 
      * @return A string value that will be passed to
-     *         {@link #start(ManagedServer, EventContext, EventPublisher, String)} the next time the
+     *         {@link #start(ApplicationServer, EventContext, EventPublisher, String)} the next time the
      *         logging provider is started. This may be used to persist the sequence number of the
      *         last log event. The implementation may return <code>null</code>.
      */

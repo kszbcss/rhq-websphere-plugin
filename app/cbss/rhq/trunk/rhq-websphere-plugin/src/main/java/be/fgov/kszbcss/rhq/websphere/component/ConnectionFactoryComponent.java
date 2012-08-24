@@ -15,7 +15,7 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.stat.WSRangeStatistic;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
@@ -34,7 +34,7 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         jndiName = getResourceContext().getResourceKey();
-        ManagedServer server = getServer();
+        ApplicationServer server = getServer();
         mbean = server.getMBeanClient(new ConnectionFactoryMBeanLocator(getType(), jndiName));
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
@@ -59,7 +59,7 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
     }
 
     public ConnectionFactoryInfo getConnectionFactoryInfo(boolean immediate) throws JMException, ConnectorException, InterruptedException {
-        ManagedServer server = getServer();
+        ApplicationServer server = getServer();
         return server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType()), immediate).getByJndiName(jndiName);
     }
     

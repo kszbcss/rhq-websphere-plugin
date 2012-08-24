@@ -4,14 +4,14 @@ import javax.management.NotificationFilterSupport;
 
 import org.rhq.core.pluginapi.event.EventContext;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.EventPublisher;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
 
 public class RasLoggingProvider implements LoggingProvider {
-    public void start(ManagedServer server, EventContext defaultEventContext, EventPublisher eventPublisher, String state) {
+    public void start(ApplicationServer server, EventContext defaultEventContext, EventPublisher eventPublisher, String state) {
         NotificationFilterSupport filter = new NotificationFilterSupport();
         // TODO: use constants from NotificationConstants here
         filter.enableType("websphere.ras.audit");

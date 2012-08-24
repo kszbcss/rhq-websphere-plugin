@@ -4,7 +4,7 @@ import java.util.Map;
 
 import javax.management.JMException;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.mbean.DynamicMBeanObjectNamePatternLocator;
 import be.fgov.kszbcss.rhq.websphere.mbean.ProcessInfo;
 
@@ -28,7 +28,7 @@ public final class ConnectionFactoryMBeanLocator extends DynamicMBeanObjectNameP
 
     @Override
     protected void applyKeyProperties(ProcessInfo processInfo, AdminClient adminClient, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
-        ManagedServer server = (ManagedServer)processInfo.getServer();
+        ApplicationServer server = (ApplicationServer)processInfo.getServer();
         ConnectionFactoryInfo cf = server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), type), false).getByJndiName(jndiName);
         if (cf == null) {
             throw new JMException("A " + type.getConfigurationObjectType() + " with JNDI name " + jndiName + " doesn't exist in the configuration");

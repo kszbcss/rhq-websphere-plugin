@@ -14,7 +14,7 @@ import org.rhq.core.domain.configuration.PropertyList;
 import org.rhq.core.domain.configuration.PropertyMap;
 import org.rhq.core.domain.configuration.PropertySimple;
 
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 
 /**
  * Support class to collect the deployment configuration for a WAR module or an EJB.
@@ -68,7 +68,7 @@ public class DeploymentConfigurationFacetSupport {
             log.debug("Messaging destination bindings: " + messagingDestinationRefs);
         }
         if (!messagingDestinationRefs.isEmpty()) {
-            ManagedServer server = application.getServer();
+            ApplicationServer server = application.getServer();
             SIBDestinationMap sibDestinationMap = server.queryConfig(new SIBDestinationMapQuery(server.getNode(), server.getServer()), true);
             PropertyList list = new PropertyList("messagingDestinationRefs");
             for (Map.Entry<String,String> entry : messagingDestinationRefs.entrySet()) {
