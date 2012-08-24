@@ -19,4 +19,8 @@ You can then define an alert template for resource type "!WebSphere Server" with
 
   Event Severity `WARN`: and matches expression (optional): `^(DCSV1112W|DCSV0004W|HMGR0152W): .*`
 
-TODO: in RHQ, the regex field is limited to 30 characters although in the database it is VARCHAR(256)
+TODO:
+  * in RHQ, the regex field is limited to 30 characters although in the database it is VARCHAR(256)
+
+NOTES:
+  * The WebSphere code that generates the HMGR0152W warning is triggered every 30 seconds.
