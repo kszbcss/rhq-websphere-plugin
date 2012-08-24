@@ -15,12 +15,14 @@ Any occurrence of one of these three messages is an indication that the health o
   * The !WebSphere Server resources in RHQ must be configured with log monitoring enabled, i.e. the "Logging Provider" must not be set to "None".
   * The trace specification (log level) of the !WebSphere instances must be configured such that the DCSV1112W, DCSV0004W and HMGR0152W warnings appear in `SystemOut.log`. This is the case with the default !WebSphere configuration (`*=info`).
 
-You can then define an alert template for resource type "!WebSphere Server" with the following condition:
+The !WebSphere code that emits the HMGR0152W warnings is triggered every 30 seconds, and one may occasionally see this warning even on healthy systems (especially virtualized systems). On the other hand, the DCS warnings are less prone to false positives. It is therefore recommended to define two distinct alerts and to use different damping rules to improve the signal-to-noise ratio.
 
-  Event Severity `WARN`: and matches expression (optional): `^(DCSV1112W|DCSV0004W|HMGR0152W): .*`
+These alerts can be conveniently set up by defining alert templates for resource type "!WebSphere Server". The first alert would be defined as follows:
 
-TODO:
-  * in RHQ, the regex field is limited to 30 characters although in the database it is VARCHAR(256)
+  * If Condition: Event Severity `WARN`: and matches expression (optional): `^DCSV(1112|0004)W: .*`
+  * Dampening Rule: Each time condition set is true
 
-NOTES:
-  * The WebSphere code that generates the HMGR0152W warning is triggered every 30 seconds.
+The second alert would be defined as follows:
+
+  * If Condition: Event Severity `WARN`: and matches expression (optional): `^HMGR0152W: .*`
+  * Dampening Rule: Once every `2` times condition set is true within a time period of `20` minutes
