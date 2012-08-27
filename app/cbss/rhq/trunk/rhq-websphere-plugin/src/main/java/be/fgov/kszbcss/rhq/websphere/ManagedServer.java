@@ -18,11 +18,13 @@ import be.fgov.kszbcss.rhq.websphere.component.server.ClusterNameQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
+import be.fgov.kszbcss.rhq.websphere.connector.notification.NotificationListenerRegistration;
 
 public class ManagedServer extends ApplicationServer {
     private static final Log log = LogFactory.getLog(ManagedServer.class);
     
     private final StateChangeEventDispatcher stateEventDispatcher = new StateChangeEventDispatcher();
+    private NotificationListenerRegistration stateEventListenerRegistration;
     private NodeAgent nodeAgent;
     private ConfigQueryService configQueryService;
     
@@ -40,7 +42,7 @@ public class ManagedServer extends ApplicationServer {
         filter.enableType("j2ee.state.stopped");
         filter.enableType("j2ee.state.failed");
         try {
-            addNotificationListener(new ObjectName("WebSphere:*"), stateEventDispatcher, filter, null, true);
+            stateEventListenerRegistration = addNotificationListener(new ObjectName("WebSphere:*"), stateEventDispatcher, filter, null, true);
         } catch (MalformedObjectNameException ex) {
             log.error(ex);
         }
@@ -48,6 +50,7 @@ public class ManagedServer extends ApplicationServer {
     
     @Override
     public void destroy() {
+        stateEventListenerRegistration.unregister();
         if (configQueryService != null) {
             configQueryService.release();
             configQueryService = null;

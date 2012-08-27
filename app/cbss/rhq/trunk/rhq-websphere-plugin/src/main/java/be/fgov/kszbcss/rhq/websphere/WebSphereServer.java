@@ -1,17 +1,13 @@
 package be.fgov.kszbcss.rhq.websphere;
 
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
-import javax.management.ListenerNotFoundException;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
@@ -25,6 +21,8 @@ import be.fgov.kszbcss.rhq.websphere.connector.FailFastAdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.LazyAdminClientInvocationHandler;
 import be.fgov.kszbcss.rhq.websphere.connector.SecureAdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.StatsCollectingAdminClientProvider;
+import be.fgov.kszbcss.rhq.websphere.connector.notification.NotificationListenerManager;
+import be.fgov.kszbcss.rhq.websphere.connector.notification.NotificationListenerRegistration;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientFactory;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanLocator;
@@ -45,57 +43,25 @@ import com.ibm.websphere.pmi.stat.WSStats;
  * be created successfully even if the server is unavailable.
  */
 public abstract class WebSphereServer {
-    private static class NotificationListenerRegistration {
-        private final ObjectName name;
-        private final NotificationListener listener;
-        private final NotificationFilter filter;
-        private final Object handback;
-        private final boolean extended;
-        private boolean isRegistered;
-        
-        NotificationListenerRegistration(ObjectName name, NotificationListener listener, NotificationFilter filter, Object handback, boolean extended) {
-            this.name = name;
-            this.listener = listener;
-            this.filter = filter;
-            this.handback = handback;
-            this.extended = extended;
-        }
-        
-        synchronized void doRegister(AdminClient adminClient) throws InstanceNotFoundException, ConnectorException {
-            if (!isRegistered) {
-                if (extended) {
-                    adminClient.addNotificationListenerExtended(name, listener, filter, handback);
-                } else {
-                    adminClient.addNotificationListener(name, listener, filter, handback);
-                }
-                isRegistered = true;
-            }
-        }
-        
-        synchronized void doUnregister(AdminClient adminClient) throws InstanceNotFoundException, ListenerNotFoundException, ConnectorException {
-            if (isRegistered) {
-                if (extended) {
-                    adminClient.removeNotificationListenerExtended(name, listener);
-                } else {
-                    adminClient.removeNotificationListener(name, listener);
-                }
-                isRegistered = false;
-            }
-        }
-    }
-    
     private static final Log log = LogFactory.getLog(WebSphereServer.class);
     
     private final ProcessLocator processLocator;
     private final MBeanClientFactory mbeanClientFactory;
-    private final List<NotificationListenerRegistration> listeners = new ArrayList<NotificationListenerRegistration>();
     private final MBeanClient serverMBean;
-    private AdminClient adminClient;
+    private final AdminClient adminClient;
+    private final NotificationListenerManager notificationListenerManager;
     private final Perf perf;
     private PmiModuleConfig[] pmiModuleConfigs;
     
     public WebSphereServer(ProcessLocator processLocator) {
         this.processLocator = processLocator;
+        AdminClientProvider provider = new FailFastAdminClientProvider(new SecureAdminClientProvider(
+                new StatsCollectingAdminClientProvider(processLocator, AdminClientStatsCollector.INSTANCE)));
+        adminClient = (AdminClient)Proxy.newProxyInstance(WebSphereServer.class.getClassLoader(),
+                new Class<?>[] { AdminClient.class },
+                new LazyAdminClientInvocationHandler(provider));
+        // TODO: we should check here that we are connecting to the right server
+        notificationListenerManager = new NotificationListenerManager(adminClient);
         mbeanClientFactory = new MBeanClientFactory(this);
         serverMBean = getMBeanClient(new MBeanLocator() {
             public Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
@@ -113,15 +79,6 @@ public abstract class WebSphereServer {
     }
     
     public void destroy() {
-        // TODO: synchronization???
-        for (NotificationListenerRegistration registration : listeners) {
-            try {
-                // TODO: skip the call to getAdminClient if the listener is actually not registered
-                registration.doUnregister(getAdminClient());
-            } catch (Exception ex) {
-                log.error("Failed to unregister listener", ex);
-            }
-        }
     }
     
     public MBeanClient getMBeanClient(MBeanLocator locator) {
@@ -140,37 +97,12 @@ public abstract class WebSphereServer {
         return serverMBean;
     }
 
-    public synchronized AdminClient getAdminClient() throws ConnectorException {
-        if (adminClient == null) {
-            AdminClientProvider provider = new FailFastAdminClientProvider(new SecureAdminClientProvider(
-                    new StatsCollectingAdminClientProvider(processLocator, AdminClientStatsCollector.INSTANCE)));
-            
-            adminClient = (AdminClient)Proxy.newProxyInstance(WebSphereServer.class.getClassLoader(),
-                    new Class<?>[] { AdminClient.class },
-                    new LazyAdminClientInvocationHandler(provider));
-            
-            for (NotificationListenerRegistration registration : listeners) {
-                try {
-                    registration.doRegister(adminClient);
-                } catch (Exception ex) {
-                    log.error("(Deferred) listener registration failed", ex); 
-                }
-            }
-            
-            // TODO: we should check here that we are connecting to the right server
-        }
+    public AdminClient getAdminClient() {
         return adminClient;
     }
     
-    public void addNotificationListener(ObjectName name, NotificationListener listener, NotificationFilter filter, Object handback, boolean extended) {
-        NotificationListenerRegistration registration = new NotificationListenerRegistration(name, listener, filter, handback, extended);
-        try {
-            registration.doRegister(getAdminClient());
-        } catch (Exception ex) {
-            log.info("Listener registration failed; will try later");
-        }
-        // TODO: probably we need synchronization here
-        listeners.add(registration);
+    public NotificationListenerRegistration addNotificationListener(ObjectName name, NotificationListener listener, NotificationFilter filter, Object handback, boolean extended) {
+        return notificationListenerManager.addNotificationListener(name, listener, filter, handback, extended);
     }
     
     public WSStats getWSStats(MBeanStatDescriptor descriptor) throws JMException, ConnectorException {

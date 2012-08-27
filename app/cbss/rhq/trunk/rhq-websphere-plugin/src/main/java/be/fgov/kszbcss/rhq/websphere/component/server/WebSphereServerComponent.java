@@ -21,7 +21,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mc4j.ems.connection.EmsConnection;
-import org.mc4j.ems.connection.EmsException;
 import org.mc4j.ems.connection.settings.ConnectionSettings;
 import org.mc4j.ems.connection.support.ConnectionProvider;
 import org.rhq.core.domain.configuration.Configuration;
@@ -51,6 +50,7 @@ import be.fgov.kszbcss.rhq.websphere.component.server.log.none.NoneLoggingProvid
 import be.fgov.kszbcss.rhq.websphere.component.server.log.ras.RasLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.xm4was.XM4WASLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
+import be.fgov.kszbcss.rhq.websphere.connector.notification.NotificationListenerRegistration;
 import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
 import be.fgov.kszbcss.rhq.websphere.proxy.Server;
 import be.fgov.kszbcss.rhq.websphere.proxy.TraceService;
@@ -83,6 +83,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     private MeasurementFacetSupport measurementFacetSupport;
     private String loggingProviderName;
     private LoggingProvider loggingProvider;
+    private NotificationListenerRegistration threadPoolNotificationListenerRegistration;
     
     public void start(ResourceContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
@@ -120,7 +121,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         NotificationFilterSupport filter = new NotificationFilterSupport();
         filter.enableType(NotificationConstants.TYPE_THREAD_MONITOR_THREAD_HUNG);
         filter.enableType(NotificationConstants.TYPE_THREAD_MONITOR_THREAD_CLEAR);
-        server.addNotificationListener(new ObjectName("WebSphere:*"), listener, filter, null, true);
+        threadPoolNotificationListenerRegistration = server.addNotificationListener(new ObjectName("WebSphere:*"), listener, filter, null, true);
 
         log.debug("Starting logging provider");
         loggingProvider.start(server, context.getEventContext(), EventPublisherImpl.INSTANCE, loadLoggingState());
@@ -136,35 +137,24 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
 
     public synchronized EmsConnection getEmsConnection() {
         if (connection == null) {
-            try {
-                Configuration pluginConfig = resourceContext.getPluginConfiguration();
-                ConnectionSettings connectionSettings = new ConnectionSettings();
-                connectionSettings.setServerUrl(pluginConfig.getSimpleValue("host", null) + ":" + pluginConfig.getSimpleValue("port", null));
-                ConnectionProvider connectionProvider = new WebsphereConnectionProvider(server.getAdminClient());
-                // The connection settings are not required to establish the connection, but they
-                // will still be used in logging:
-                connectionProvider.initialize(connectionSettings);
-                connection = connectionProvider.connect();
-                
-                // If this is not present, then EmbeddedJMXServerDiscoveryComponent will fail to
-                // discover the platform MXBeans.
-                connection.loadSynchronous(false);
-                
-            } catch (ConnectorException ex) {
-                throw new EmsException(ex);
-            }
+            Configuration pluginConfig = resourceContext.getPluginConfiguration();
+            ConnectionSettings connectionSettings = new ConnectionSettings();
+            connectionSettings.setServerUrl(pluginConfig.getSimpleValue("host", null) + ":" + pluginConfig.getSimpleValue("port", null));
+            ConnectionProvider connectionProvider = new WebsphereConnectionProvider(server.getAdminClient());
+            // The connection settings are not required to establish the connection, but they
+            // will still be used in logging:
+            connectionProvider.initialize(connectionSettings);
+            connection = connectionProvider.connect();
+            
+            // If this is not present, then EmbeddedJMXServerDiscoveryComponent will fail to
+            // discover the platform MXBeans.
+            connection.loadSynchronous(false);
         }
         return connection;
     }
     
     public AvailabilityType getAvailability() {
-        AdminClient adminClient;
-        try {
-            adminClient = server.getAdminClient();
-        } catch (ConnectorException ex) {
-            log.debug("Unable to connect to server => server DOWN", ex);
-            return AvailabilityType.DOWN;
-        }
+        AdminClient adminClient = server.getAdminClient();
         ObjectName serverMBean;
         try {
             serverMBean = adminClient.getServerMBean();
@@ -243,6 +233,7 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     }
     
     public void stop() {
+        threadPoolNotificationListenerRegistration.unregister();
         persistLoggingState(loggingProvider.stop());
         server.destroy();
     }

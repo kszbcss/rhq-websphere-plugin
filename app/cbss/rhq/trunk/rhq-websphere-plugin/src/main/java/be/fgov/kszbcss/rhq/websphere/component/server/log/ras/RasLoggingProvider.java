@@ -9,8 +9,11 @@ import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.EventPublisher;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
+import be.fgov.kszbcss.rhq.websphere.connector.notification.NotificationListenerRegistration;
 
 public class RasLoggingProvider implements LoggingProvider {
+    private NotificationListenerRegistration registration;
+    
     public void start(ApplicationServer server, EventContext defaultEventContext, EventPublisher eventPublisher, String state) {
         NotificationFilterSupport filter = new NotificationFilterSupport();
         // TODO: use constants from NotificationConstants here
@@ -18,7 +21,7 @@ public class RasLoggingProvider implements LoggingProvider {
         filter.enableType("websphere.ras.warning");
         filter.enableType("websphere.ras.error");
         filter.enableType("websphere.ras.fatal");
-        server.addNotificationListener(Utils.createObjectName("WebSphere:type=RasLoggingService,*"), new RasLoggingNotificationListener(defaultEventContext, eventPublisher), filter, null, true);
+        registration = server.addNotificationListener(Utils.createObjectName("WebSphere:type=RasLoggingService,*"), new RasLoggingNotificationListener(defaultEventContext, eventPublisher), filter, null, true);
     }
 
     public void registerEventContext(J2EEComponentKey key, EventContext context) {
@@ -29,7 +32,7 @@ public class RasLoggingProvider implements LoggingProvider {
     }
 
     public String stop() {
-        // Nothing to do here: the notification listener is automatically removed
+        registration.unregister();
         return null;
     }
 }
