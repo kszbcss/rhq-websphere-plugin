@@ -41,6 +41,12 @@ import com.ibm.websphere.pmi.stat.WSStats;
 import com.ibm.websphere.security.WSSecurityException;
 import com.ibm.websphere.security.auth.WSSubject;
 
+/**
+ * Represents a WebSphere process (application server, node agent or deployment manager) and
+ * provides access to administrative actions on that process. The class manages a JMX connection to
+ * the process. Note that this connection is created lazily, so that an instance of this class can
+ * be created successfully even if the server is unavailable.
+ */
 public abstract class WebSphereServer {
     private static class NotificationListenerRegistration {
         private final ObjectName name;

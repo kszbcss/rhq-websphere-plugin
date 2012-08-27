@@ -11,6 +11,10 @@ import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 
+/**
+ * Represents a WebSphere application server. This can be a managed (federated) or unmanaged
+ * (stand-alone) server.
+ */
 public abstract class ApplicationServer extends WebSphereServer {
     public ApplicationServer(ProcessLocator processLocator) {
         super(processLocator);
