@@ -16,7 +16,6 @@ import javax.management.ListenerNotFoundException;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
-import javax.security.auth.Subject;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,7 +25,7 @@ import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsWrapper;
 import be.fgov.kszbcss.rhq.websphere.connector.FailFastAdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.LazyAdminClientInvocationHandler;
-import be.fgov.kszbcss.rhq.websphere.connector.SecureAdminClient;
+import be.fgov.kszbcss.rhq.websphere.connector.SecureAdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientFactory;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanLocator;
@@ -40,8 +39,6 @@ import com.ibm.websphere.pmi.PmiModuleConfig;
 import com.ibm.websphere.pmi.stat.MBeanLevelSpec;
 import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
 import com.ibm.websphere.pmi.stat.WSStats;
-import com.ibm.websphere.security.WSSecurityException;
-import com.ibm.websphere.security.auth.WSSubject;
 
 /**
  * Represents a WebSphere process (application server, node agent or deployment manager) and
@@ -165,28 +162,13 @@ public abstract class WebSphereServer {
                 log.debug("Creating AdminClient with properties: " + properties);
             }
             
-            AdminClientProvider provider = new FailFastAdminClientProvider(new AdminClientProvider() {
+            AdminClientProvider provider = new FailFastAdminClientProvider(new SecureAdminClientProvider(new AdminClientProvider() {
                 public AdminClient createAdminClient() throws ConnectorException {
                     AdminClient adminClient = AdminClientFactory.createAdminClient(properties);
                     
-                    adminClient = new AdminClientStatsWrapper(adminClient, AdminClientStatsCollector.INSTANCE);
-                    
-                    try {
-                        Subject subject = WSSubject.getRunAsSubject();
-                        if (log.isDebugEnabled()) {
-                            log.debug("Subject = " + subject);
-                        }
-                        if (subject != null) {
-                            WSSubject.setRunAsSubject(null);
-                            adminClient = new SecureAdminClient(adminClient, subject);
-                        }
-                    } catch (WSSecurityException ex) {
-                        throw new ConnectorException(ex);
-                    }
-                    
-                    return adminClient;
+                    return new AdminClientStatsWrapper(adminClient, AdminClientStatsCollector.INSTANCE);
                 }
-            });
+            }));
             
             adminClient = (AdminClient)Proxy.newProxyInstance(WebSphereServer.class.getClassLoader(),
                     new Class<?>[] { AdminClient.class },
