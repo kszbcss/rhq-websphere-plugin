@@ -4,6 +4,8 @@ import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
 
+import com.ibm.websphere.management.exception.ConnectorException;
+
 public class ModuleSpecVersionMeasurementHandler extends SpecVersionMeasurementHandler {
     private static final Pattern publicIdPatterns[] = {
         Pattern.compile("-//Sun Microsystems, Inc\\.//DTD Enterprise JavaBeans ([0-9]\\.[0-9])//EN"),
@@ -17,7 +19,7 @@ public class ModuleSpecVersionMeasurementHandler extends SpecVersionMeasurementH
     }
 
     @Override
-    protected Document getDeploymentDescriptor() throws InterruptedException {
+    protected Document getDeploymentDescriptor() throws InterruptedException, ConnectorException {
         return moduleComponent.getModuleInfo(false).getDeploymentDescriptor();
     }
 

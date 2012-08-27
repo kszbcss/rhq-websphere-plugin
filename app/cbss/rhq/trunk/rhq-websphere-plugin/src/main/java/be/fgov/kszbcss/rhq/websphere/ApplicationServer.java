@@ -16,30 +16,11 @@ import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
  * (stand-alone) server.
  */
 public abstract class ApplicationServer extends WebSphereServer {
-    private final String cell;
-    private final String node;
-    private final String server;
-    
-    public ApplicationServer(String cell, String node, String server, ProcessLocator processLocator) {
-        super(processLocator);
-        this.cell = cell;
-        this.node = node;
-        this.server = server;
+    public ApplicationServer(String cell, String node, String server, String processType, ProcessLocator processLocator) {
+        super(cell, node, server, processType, processLocator);
     }
 
-    public String getCell() {
-        return cell;
-    }
-
-    public String getNode() {
-        return node;
-    }
-
-    public String getServer() {
-        return server;
-    }
-
-    public abstract <T extends Serializable> T queryConfig(ConfigQuery<T> query, boolean immediate) throws InterruptedException;
+    public abstract <T extends Serializable> T queryConfig(ConfigQuery<T> query, boolean immediate) throws InterruptedException, ConnectorException;
 
     public abstract String getClusterName() throws InterruptedException, JMException, ConnectorException;
     

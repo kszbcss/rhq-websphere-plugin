@@ -5,6 +5,8 @@ import java.util.Set;
 
 import org.w3c.dom.Element;
 
+import com.ibm.websphere.management.exception.ConnectorException;
+
 import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.ModuleComponent;
 
@@ -14,7 +16,7 @@ public class EJBModuleComponent extends ModuleComponent {
         return "EJBModule";
     }
     
-    public Set<String> getBeanNames(EnterpriseBeanType type, boolean immediate) throws InterruptedException {
+    public Set<String> getBeanNames(EnterpriseBeanType type, boolean immediate) throws InterruptedException, ConnectorException {
         Set<String> names = new HashSet<String>();
         Element beans = Utils.getFirstElement(getModuleInfo(immediate).getDeploymentDescriptor().getDocumentElement(), "enterprise-beans");
         if (beans != null) {

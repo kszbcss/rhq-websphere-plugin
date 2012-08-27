@@ -14,6 +14,8 @@ import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
+import com.ibm.websphere.management.exception.ConnectorException;
+
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
@@ -46,11 +48,11 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
         return getResourceContext().getResourceKey();
     }
     
-    public ApplicationInfo getApplicationInfo(boolean immediate) throws InterruptedException {
+    public ApplicationInfo getApplicationInfo(boolean immediate) throws InterruptedException, ConnectorException {
         return getServer().queryConfig(new ApplicationInfoQuery(getApplicationName()), immediate);
     }
     
-    public ApplicationConfiguration getConfiguration(boolean immediate) throws InterruptedException {
+    public ApplicationConfiguration getConfiguration(boolean immediate) throws InterruptedException, ConnectorException {
         return getServer().queryConfig(new ApplicationConfigurationQuery(getApplicationName()), immediate);
     }
     

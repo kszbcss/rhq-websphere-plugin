@@ -15,7 +15,6 @@ import javax.management.ObjectName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.rhq.websphere.connector.AdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.rhq.websphere.connector.FailFastAdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.LazyAdminClientInvocationHandler;
@@ -46,6 +45,7 @@ public abstract class WebSphereServer {
     private static final Log log = LogFactory.getLog(WebSphereServer.class);
     
     private final ProcessLocator processLocator;
+    private final ProcessIdentityValidator processIdentityValidator;
     private final MBeanClientFactory mbeanClientFactory;
     private final MBeanClient serverMBean;
     private final AdminClient adminClient;
@@ -53,14 +53,21 @@ public abstract class WebSphereServer {
     private final Perf perf;
     private PmiModuleConfig[] pmiModuleConfigs;
     
-    public WebSphereServer(ProcessLocator processLocator) {
+    public WebSphereServer(String cell, String node, String server, String processType, ProcessLocator processLocator) {
         this.processLocator = processLocator;
-        AdminClientProvider provider = new FailFastAdminClientProvider(new SecureAdminClientProvider(
-                new StatsCollectingAdminClientProvider(processLocator, AdminClientStatsCollector.INSTANCE)));
+        
+        // Notes:
+        //  * The stats collection wrapper is applied before security because the security wrapper may rearrange
+        //    some invocations, but we want the statistics to be as accurate as possible.
+        //  * Process identity validation is handles after security because the ProcessIdentityValidator may
+        //    prematurely create the AdminClient on a different thread.
+        //  * The fail-fast feature is added last.
+        processIdentityValidator = new ProcessIdentityValidator(new SecureAdminClientProvider(
+                new StatsCollectingAdminClientProvider(processLocator, AdminClientStatsCollector.INSTANCE)), cell, node, server, processType);
         adminClient = (AdminClient)Proxy.newProxyInstance(WebSphereServer.class.getClassLoader(),
                 new Class<?>[] { AdminClient.class },
-                new LazyAdminClientInvocationHandler(provider));
-        // TODO: we should check here that we are connecting to the right server
+                new LazyAdminClientInvocationHandler(new FailFastAdminClientProvider(processIdentityValidator)));
+        
         notificationListenerManager = new NotificationListenerManager(adminClient);
         mbeanClientFactory = new MBeanClientFactory(this);
         serverMBean = getMBeanClient(new MBeanLocator() {
@@ -79,6 +86,22 @@ public abstract class WebSphereServer {
     }
     
     public void destroy() {
+    }
+    
+    public String getCell() throws ConnectorException {
+        return processIdentityValidator.getCell();
+    }
+
+    public String getNode() throws ConnectorException {
+        return processIdentityValidator.getNode();
+    }
+
+    public String getServer() throws ConnectorException {
+        return processIdentityValidator.getServer();
+    }
+
+    public String getProcessType() throws ConnectorException {
+        return processIdentityValidator.getProcessType();
     }
     
     public MBeanClient getMBeanClient(MBeanLocator locator) {

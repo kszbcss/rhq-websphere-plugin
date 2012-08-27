@@ -9,6 +9,8 @@ import org.rhq.core.pluginapi.event.EventContext;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
+import com.ibm.websphere.management.exception.ConnectorException;
+
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
@@ -46,7 +48,7 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
         getApplication().unregisterLogEventContext(getModuleName(), componentName);
     }
     
-    public ModuleInfo getModuleInfo(boolean immediate) throws InterruptedException {
+    public ModuleInfo getModuleInfo(boolean immediate) throws InterruptedException, ConnectorException {
         return getApplication().getApplicationInfo(immediate).getModule(getModuleName());
     }
     

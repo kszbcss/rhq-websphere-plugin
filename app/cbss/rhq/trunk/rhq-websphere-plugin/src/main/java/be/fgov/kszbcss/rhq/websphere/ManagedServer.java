@@ -29,7 +29,7 @@ public class ManagedServer extends ApplicationServer {
     private ConfigQueryService configQueryService;
     
     public ManagedServer(String cell, String node, String server, Configuration config) {
-        super(cell, node, server, new ConfigurationBasedProcessLocator(config));
+        super(cell, node, server, "ManagedProcess", new ConfigurationBasedProcessLocator(config));
     }
 
     @Override
@@ -66,21 +66,21 @@ public class ManagedServer extends ApplicationServer {
         stateEventDispatcher.unregisterEventContext(objectNamePattern);
     }
 
-    public synchronized NodeAgent getNodeAgent() {
+    public synchronized NodeAgent getNodeAgent() throws ConnectorException {
         if (nodeAgent == null) {
-            nodeAgent = new NodeAgent(new ParentProcessLocator(this));
+            nodeAgent = new NodeAgent(getCell(), getNode(), new ParentProcessLocator(this));
         }
         return nodeAgent;
     }
     
-    private synchronized ConfigQueryService getConfigQueryService() {
+    private synchronized ConfigQueryService getConfigQueryService() throws ConnectorException {
         if (configQueryService == null) {
             configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryService(getCell(), getNodeAgent().getDeploymentManager());
         }
         return configQueryService;
     }
 
-    public <T extends Serializable> T queryConfig(ConfigQuery<T> query, boolean immediate) throws InterruptedException {
+    public <T extends Serializable> T queryConfig(ConfigQuery<T> query, boolean immediate) throws InterruptedException, ConnectorException {
         return getConfigQueryService().query(query, immediate);
     }
 
