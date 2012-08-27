@@ -8,7 +8,8 @@ import javax.management.ObjectName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.ibm.websphere.management.AdminClient;
+import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public abstract class MBeanObjectNamePatternLocator implements MBeanLocator {
@@ -20,20 +21,20 @@ public abstract class MBeanObjectNamePatternLocator implements MBeanLocator {
         this.recursive = recursive;
     }
     
-    protected abstract ObjectName getPattern(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException, InterruptedException;
+    protected abstract ObjectName getPattern(WebSphereServer server) throws JMException, ConnectorException, InterruptedException;
     
-    public final Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException, InterruptedException {
-        ObjectName pattern = getPattern(processInfo, adminClient);
+    public final Set<ObjectName> queryNames(WebSphereServer server) throws JMException, ConnectorException, InterruptedException {
+        ObjectName pattern = getPattern(server);
         ObjectName actualPattern;
-        if (recursive || processInfo.getProcessType().equals("ManagedProcess")) {
+        if (recursive || server.getProcessType().equals("ManagedProcess")) {
             actualPattern = pattern;
         } else {
-            actualPattern = new ObjectName(pattern + ",cell=" + processInfo.getCell() + ",node=" + processInfo.getNode() + ",process=" + processInfo.getProcess());
+            actualPattern = new ObjectName(pattern + ",cell=" + server.getCell() + ",node=" + server.getNode() + ",process=" + server.getServer());
         }
         if (log.isDebugEnabled()) {
             log.debug("Query names for pattern " + actualPattern);
         }
-        return adminClient.queryNames(actualPattern, null);
+        return server.getAdminClient().queryNames(actualPattern, null);
     }
 
     

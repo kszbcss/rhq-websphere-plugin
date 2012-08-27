@@ -25,7 +25,6 @@ import be.fgov.kszbcss.rhq.websphere.connector.notification.NotificationListener
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientFactory;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanLocator;
-import be.fgov.kszbcss.rhq.websphere.mbean.ProcessInfo;
 import be.fgov.kszbcss.rhq.websphere.proxy.Perf;
 
 import com.ibm.websphere.management.AdminClient;
@@ -71,8 +70,8 @@ public abstract class WebSphereServer {
         notificationListenerManager = new NotificationListenerManager(adminClient);
         mbeanClientFactory = new MBeanClientFactory(this);
         serverMBean = getMBeanClient(new MBeanLocator() {
-            public Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
-                return Collections.singleton(adminClient.getServerMBean());
+            public Set<ObjectName> queryNames(WebSphereServer server) throws JMException, ConnectorException {
+                return Collections.singleton(server.getAdminClient().getServerMBean());
             }
         });
         perf = getMBeanClient("WebSphere:type=Perf,*").getProxy(Perf.class);

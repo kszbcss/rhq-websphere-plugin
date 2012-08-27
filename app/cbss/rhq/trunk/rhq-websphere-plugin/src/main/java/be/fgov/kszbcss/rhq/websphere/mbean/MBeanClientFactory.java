@@ -14,11 +14,11 @@ import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 public class MBeanClientFactory {
     private static final Log log = LogFactory.getLog(MBeanClientFactory.class);
     
-    private final ProcessInfo processInfo;
+    private final WebSphereServer server;
     private final Map<MBeanLocator,MBeanClient> cache = new HashMap<MBeanLocator,MBeanClient>();
     
     public MBeanClientFactory(WebSphereServer server) {
-        processInfo = new ProcessInfo(server);
+        this.server = server;
     }
     
     /**
@@ -38,7 +38,7 @@ public class MBeanClientFactory {
                 if (log.isDebugEnabled()) {
                     log.debug("Creating new MBeanClient for locator: " + locator);
                 }
-                client = new MBeanClient(processInfo, locator);
+                client = new MBeanClient(server, locator);
                 cache.put(locator, client);
             }
             return client;

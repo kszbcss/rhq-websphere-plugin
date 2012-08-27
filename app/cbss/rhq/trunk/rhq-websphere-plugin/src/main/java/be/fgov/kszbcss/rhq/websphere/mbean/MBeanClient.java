@@ -14,6 +14,8 @@ import javax.management.ObjectName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -29,13 +31,13 @@ public class MBeanClient {
         public T execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException;
     }
     
-    private final ProcessInfo processInfo;
+    private final WebSphereServer server;
     private final MBeanLocator locator;
     private final Map<Class<?>,Object> proxies = new HashMap<Class<?>,Object>();
     private ObjectName cachedObjectName;
     
-    MBeanClient(ProcessInfo processInfo, MBeanLocator locator) {
-        this.processInfo = processInfo;
+    MBeanClient(WebSphereServer server, MBeanLocator locator) {
+        this.server = server;
         this.locator = locator;
     }
     
@@ -64,7 +66,7 @@ public class MBeanClient {
         if (log.isDebugEnabled()) {
             log.debug("Attempting to resolve " + locator);
         }
-        Set<ObjectName> objectNames = locator.queryNames(processInfo, processInfo.getAdminClient());
+        Set<ObjectName> objectNames = locator.queryNames(server);
         if (log.isDebugEnabled()) {
             log.debug("Result: " + objectNames);
         }
@@ -73,7 +75,7 @@ public class MBeanClient {
             return objectNames.iterator().next();
         } else {
             throw new InstanceNotFoundException((size == 0 ? "No MBean" : "Mutiple MBeans") + " found for locator " + locator
-                    + " (process=" + processInfo.getProcess() + ", node=" + processInfo.getNode() + ", cell=" + processInfo.getCell() + ")");
+                    + " (process=" + server.getServer() + ", node=" + server.getNode() + ", cell=" + server.getCell() + ")");
         }
     }
     
@@ -108,7 +110,7 @@ public class MBeanClient {
     }
     
     private <T> T execute(Action<T> action) throws JMException, ConnectorException, InterruptedException {
-        AdminClient adminClient = processInfo.getAdminClient();
+        AdminClient adminClient = server.getAdminClient();
         ObjectName cachedObjectName;
         synchronized (this) {
             cachedObjectName = this.cachedObjectName;

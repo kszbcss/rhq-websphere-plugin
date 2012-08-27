@@ -3,7 +3,8 @@ package be.fgov.kszbcss.rhq.websphere.mbean;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
-import com.ibm.websphere.management.AdminClient;
+import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+
 import com.ibm.websphere.management.exception.ConnectorException;
 
 /**
@@ -23,7 +24,7 @@ public class StaticMBeanObjectNamePatternLocator extends MBeanObjectNamePatternL
     }
     
     @Override
-    protected ObjectName getPattern(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException {
+    protected ObjectName getPattern(WebSphereServer server) throws JMException, ConnectorException {
         return pattern;
     }
 

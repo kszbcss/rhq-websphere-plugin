@@ -6,7 +6,8 @@ import java.util.Map;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
-import com.ibm.websphere.management.AdminClient;
+import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+
 import com.ibm.websphere.management.exception.ConnectorException;
 
 /**
@@ -23,11 +24,11 @@ public abstract class DynamicMBeanObjectNamePatternLocator extends MBeanObjectNa
     }
 
     @Override
-    protected final ObjectName getPattern(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException, InterruptedException {
+    protected final ObjectName getPattern(WebSphereServer server) throws JMException, ConnectorException, InterruptedException {
         Hashtable<String,String> props = new Hashtable<String,String>();
-        applyKeyProperties(processInfo, adminClient, props);
+        applyKeyProperties(server, props);
         return new ObjectName(new ObjectName(domain, props).toString() + ",*");
     }
     
-    protected abstract void applyKeyProperties(ProcessInfo processInfo, AdminClient adminClient, Map<String,String> props) throws JMException, ConnectorException, InterruptedException;
+    protected abstract void applyKeyProperties(WebSphereServer server, Map<String,String> props) throws JMException, ConnectorException, InterruptedException;
 }

@@ -5,7 +5,8 @@ import java.util.Set;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
-import com.ibm.websphere.management.AdminClient;
+import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+
 import com.ibm.websphere.management.exception.ConnectorException;
 
 /**
@@ -14,5 +15,5 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * {@link Object#hashCode()}.
  */
 public interface MBeanLocator {
-    Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException, InterruptedException;
+    Set<ObjectName> queryNames(WebSphereServer server) throws JMException, ConnectorException, InterruptedException;
 }

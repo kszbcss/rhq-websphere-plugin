@@ -6,7 +6,8 @@ import java.util.Set;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
-import com.ibm.websphere.management.AdminClient;
+import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+
 import com.ibm.websphere.management.exception.ConnectorException;
 
 /**
@@ -29,10 +30,10 @@ public class MBeanAttributeMatcherLocator implements MBeanLocator {
         this(new StaticMBeanObjectNamePatternLocator(pattern), attributeName, attributeValue);
     }
 
-    public Set<ObjectName> queryNames(ProcessInfo processInfo, AdminClient adminClient) throws JMException, ConnectorException, InterruptedException {
+    public Set<ObjectName> queryNames(WebSphereServer server) throws JMException, ConnectorException, InterruptedException {
         Set<ObjectName> result = new HashSet<ObjectName>();
-        for (ObjectName objectName : parent.queryNames(processInfo, adminClient)) {
-            if (adminClient.getAttribute(objectName, attributeName).equals(attributeValue)) {
+        for (ObjectName objectName : parent.queryNames(server)) {
+            if (server.getAdminClient().getAttribute(objectName, attributeName).equals(attributeValue)) {
                 result.add(objectName);
             }
         }
