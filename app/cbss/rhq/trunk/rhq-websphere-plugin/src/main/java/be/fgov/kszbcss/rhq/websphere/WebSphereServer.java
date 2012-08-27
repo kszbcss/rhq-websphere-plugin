@@ -112,18 +112,6 @@ public abstract class WebSphereServer {
         return processLocator;
     }
 
-    public String getCell() throws JMException, ConnectorException, InterruptedException {
-        return serverMBean.getObjectName(false).getKeyProperty("cell");
-    }
-
-    public String getNode() throws JMException, ConnectorException, InterruptedException {
-        return serverMBean.getObjectName(false).getKeyProperty("node");
-    }
-
-    public String getServer() throws JMException, ConnectorException, InterruptedException {
-        return serverMBean.getObjectName(false).getKeyProperty("process");
-    }
-
     public void init() {
     }
     

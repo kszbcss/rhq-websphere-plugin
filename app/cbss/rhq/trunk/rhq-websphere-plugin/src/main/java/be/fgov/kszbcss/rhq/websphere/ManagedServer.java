@@ -22,14 +22,12 @@ import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
 public class ManagedServer extends ApplicationServer {
     private static final Log log = LogFactory.getLog(ManagedServer.class);
     
-    private final String cell;
     private final StateChangeEventDispatcher stateEventDispatcher = new StateChangeEventDispatcher();
     private NodeAgent nodeAgent;
     private ConfigQueryService configQueryService;
     
     public ManagedServer(String cell, String node, String server, Configuration config) {
-        super(/*cell, node, server*/ new ConfigurationBasedProcessLocator(config)); // TODO: use this info to check we are connecting to the right server
-        this.cell = cell;
+        super(cell, node, server, new ConfigurationBasedProcessLocator(config));
     }
 
     @Override
@@ -74,7 +72,7 @@ public class ManagedServer extends ApplicationServer {
     
     private synchronized ConfigQueryService getConfigQueryService() {
         if (configQueryService == null) {
-            configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryService(cell, getNodeAgent().getDeploymentManager());
+            configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryService(getCell(), getNodeAgent().getDeploymentManager());
         }
         return configQueryService;
     }
