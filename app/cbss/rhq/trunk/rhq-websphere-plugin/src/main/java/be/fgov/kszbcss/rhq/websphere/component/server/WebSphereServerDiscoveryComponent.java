@@ -12,7 +12,8 @@ import org.rhq.core.pluginapi.inventory.ManualAddFacet;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-import be.fgov.kszbcss.rhq.websphere.ConnectionHelper;
+import be.fgov.kszbcss.rhq.websphere.ConfigurationBasedProcessLocator;
+import be.fgov.kszbcss.rhq.websphere.connector.SecureAdminClientProvider;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -25,7 +26,7 @@ public class WebSphereServerDiscoveryComponent implements ResourceDiscoveryCompo
 
     public DiscoveredResourceDetails discoverResource(Configuration pluginConfiguration, ResourceDiscoveryContext discoveryContext) throws InvalidPluginConfigurationException {
         try {
-            AdminClient adminClient = ConnectionHelper.createAdminClient(pluginConfiguration);
+            AdminClient adminClient = new SecureAdminClientProvider(new ConfigurationBasedProcessLocator(pluginConfiguration)).createAdminClient();
             ObjectName serverBeanName = adminClient.getServerMBean();
             String cell = serverBeanName.getKeyProperty("cell");
             String node = serverBeanName.getKeyProperty("node");

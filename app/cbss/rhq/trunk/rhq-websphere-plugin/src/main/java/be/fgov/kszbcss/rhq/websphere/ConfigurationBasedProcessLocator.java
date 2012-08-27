@@ -10,7 +10,7 @@ import com.ibm.websphere.management.AdminClient;
  * {@link ProcessLocator} implementation that builds the admin client
  * configuration from a plugin configuration.
  */
-public class ConfigurationBasedProcessLocator implements ProcessLocator {
+public class ConfigurationBasedProcessLocator extends ProcessLocator {
     private final Configuration config;
 
     public ConfigurationBasedProcessLocator(Configuration config) {

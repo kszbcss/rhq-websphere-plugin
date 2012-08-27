@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -22,10 +21,10 @@ import org.apache.commons.logging.LogFactory;
 
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
-import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsWrapper;
 import be.fgov.kszbcss.rhq.websphere.connector.FailFastAdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.LazyAdminClientInvocationHandler;
 import be.fgov.kszbcss.rhq.websphere.connector.SecureAdminClientProvider;
+import be.fgov.kszbcss.rhq.websphere.connector.StatsCollectingAdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientFactory;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanLocator;
@@ -144,31 +143,8 @@ public abstract class WebSphereServer {
 
     public synchronized AdminClient getAdminClient() throws ConnectorException {
         if (adminClient == null) {
-            final Properties properties = new Properties();
-            
-            try {
-                processLocator.getAdminClientProperties(properties);
-            } catch (JMException ex) {
-                throw new ConnectorException(ex);
-            }
-            
-            // From the IBM site: "When you use the createAdminClient method within application code that
-            // runs on an application server, such as within servlets and JavaServer Pages (JSP) files,
-            // you must set the CACHE_DISABLED property to true." Since we use multiple threads and access
-            // multiple servers, we assume that this also applies to us.
-            properties.setProperty(AdminClient.CACHE_DISABLED, "true");
-            
-            if (log.isDebugEnabled()) {
-                log.debug("Creating AdminClient with properties: " + properties);
-            }
-            
-            AdminClientProvider provider = new FailFastAdminClientProvider(new SecureAdminClientProvider(new AdminClientProvider() {
-                public AdminClient createAdminClient() throws ConnectorException {
-                    AdminClient adminClient = AdminClientFactory.createAdminClient(properties);
-                    
-                    return new AdminClientStatsWrapper(adminClient, AdminClientStatsCollector.INSTANCE);
-                }
-            }));
+            AdminClientProvider provider = new FailFastAdminClientProvider(new SecureAdminClientProvider(
+                    new StatsCollectingAdminClientProvider(processLocator, AdminClientStatsCollector.INSTANCE)));
             
             adminClient = (AdminClient)Proxy.newProxyInstance(WebSphereServer.class.getClassLoader(),
                     new Class<?>[] { AdminClient.class },

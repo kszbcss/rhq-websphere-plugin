@@ -12,10 +12,10 @@ import javax.management.ReflectionException;
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class AdminClientStatsWrapper extends AdminClientWrapper {
+public class StatsCollectingAdminClient extends AdminClientWrapper {
     private final AdminClientStatsCollector collector;
     
-    public AdminClientStatsWrapper(AdminClient target, AdminClientStatsCollector collector) {
+    public StatsCollectingAdminClient(AdminClient target, AdminClientStatsCollector collector) {
         super(target);
         this.collector = collector;
     }

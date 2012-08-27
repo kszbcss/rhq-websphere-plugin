@@ -10,7 +10,7 @@ import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.ws.management.discovery.ServerInfo;
 
-public class ParentProcessLocator implements ProcessLocator {
+public class ParentProcessLocator extends ProcessLocator {
     private WebSphereServer server;
 
     public ParentProcessLocator(WebSphereServer server) {
