@@ -1,5 +1,6 @@
 package be.fgov.kszbcss.rhq.websphere;
 
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,7 +24,8 @@ import org.apache.commons.logging.LogFactory;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsWrapper;
-import be.fgov.kszbcss.rhq.websphere.connector.AdminClientUtils;
+import be.fgov.kszbcss.rhq.websphere.connector.FailFastAdminClientProvider;
+import be.fgov.kszbcss.rhq.websphere.connector.LazyAdminClientInvocationHandler;
 import be.fgov.kszbcss.rhq.websphere.connector.SecureAdminClient;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientFactory;
@@ -163,7 +165,7 @@ public abstract class WebSphereServer {
                 log.debug("Creating AdminClient with properties: " + properties);
             }
             
-            adminClient = AdminClientUtils.createFailFastAdminClient(new AdminClientProvider() {
+            AdminClientProvider provider = new FailFastAdminClientProvider(new AdminClientProvider() {
                 public AdminClient createAdminClient() throws ConnectorException {
                     AdminClient adminClient = AdminClientFactory.createAdminClient(properties);
                     
@@ -185,6 +187,10 @@ public abstract class WebSphereServer {
                     return adminClient;
                 }
             });
+            
+            adminClient = (AdminClient)Proxy.newProxyInstance(WebSphereServer.class.getClassLoader(),
+                    new Class<?>[] { AdminClient.class },
+                    new LazyAdminClientInvocationHandler(provider));
             
             for (NotificationListenerRegistration registration : listeners) {
                 try {

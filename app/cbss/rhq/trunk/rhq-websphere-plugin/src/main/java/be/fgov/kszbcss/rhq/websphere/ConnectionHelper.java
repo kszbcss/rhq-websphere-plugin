@@ -10,7 +10,6 @@ import org.rhq.core.domain.configuration.Configuration;
 
 
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientProvider;
-import be.fgov.kszbcss.rhq.websphere.connector.AdminClientUtils;
 import be.fgov.kszbcss.rhq.websphere.connector.SecureAdminClient;
 
 import com.ibm.websphere.management.AdminClient;
@@ -22,6 +21,7 @@ import com.ibm.websphere.security.auth.WSSubject;
 public class ConnectionHelper {
     private static final Log log = LogFactory.getLog(ConnectionHelper.class);
     
+    // TODO: we probably don't need this code as a separate method; merge it into WebSphereServerDiscoveryComponent
     public static AdminClient createAdminClient(Configuration config) throws ConnectorException {
         final Properties properties = new Properties();
         
@@ -31,7 +31,7 @@ public class ConnectionHelper {
             log.debug("Creating AdminClient with properties: " + properties);
         }
         
-        return AdminClientUtils.createFailFastAdminClient(new AdminClientProvider() {
+        return new AdminClientProvider() {
             public AdminClient createAdminClient() throws ConnectorException {
                 AdminClient adminClient = AdminClientFactory.createAdminClient(properties);
                 try {
@@ -48,6 +48,6 @@ public class ConnectionHelper {
                 }
                 return adminClient;
             }
-        });
+        }.createAdminClient();
     }
 }
