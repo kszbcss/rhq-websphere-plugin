@@ -32,7 +32,6 @@ import be.fgov.kszbcss.rhq.websphere.mbean.ProcessInfo;
 import be.fgov.kszbcss.rhq.websphere.proxy.Perf;
 
 import com.ibm.websphere.management.AdminClient;
-import com.ibm.websphere.management.AdminClientFactory;
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.PmiModuleConfig;
 import com.ibm.websphere.pmi.stat.MBeanLevelSpec;
