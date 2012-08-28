@@ -95,7 +95,7 @@ public class ConfigQueryServiceFactory {
             Map.Entry<String,DeploymentManagerConnection> entry = it.next();
             if (entry.getValue() == dmc) {
                 it.remove();
-                break;
+                return;
             }
         }
         throw new IllegalArgumentException("Unknown connection");
