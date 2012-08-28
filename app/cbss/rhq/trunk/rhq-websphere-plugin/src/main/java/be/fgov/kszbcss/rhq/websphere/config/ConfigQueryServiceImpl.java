@@ -44,7 +44,7 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable {
         this.cacheName = cacheName;
         this.cell = cell;
         configRepository = server.getMBeanClient("WebSphere:type=ConfigRepository,*").getProxy(ConfigRepository.class);
-        config = new CellConfiguration(
+        config = new CellConfiguration(cell,
                 server.getMBeanClient("WebSphere:type=ConfigService,*").getProxy(ConfigService.class),
                 configRepository,
                 server.getMBeanClient("WebSphere:type=AppManagement,*").getProxy(AppManagement.class));

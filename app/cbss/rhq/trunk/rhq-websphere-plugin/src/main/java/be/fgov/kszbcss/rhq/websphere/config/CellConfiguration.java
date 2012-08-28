@@ -40,6 +40,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 public class CellConfiguration {
     private static final Log log = LogFactory.getLog(CellConfiguration.class);
     
+    private final String cell;
     private final ConfigService configService;
     private final ConfigRepository configRepository;
     private final AppManagement appManagement;
@@ -48,13 +49,18 @@ public class CellConfiguration {
     private boolean destroyed;
     private Session session;
     
-    CellConfiguration(ConfigService configService, ConfigRepository configRepository, AppManagement appManagement) {
+    CellConfiguration(String cell, ConfigService configService, ConfigRepository configRepository, AppManagement appManagement) {
+        this.cell = cell;
         this.configService = configService;
         this.configRepository = configRepository;
         this.appManagement = appManagement;
         root = new RootPath(this);
     }
     
+    public String getCell() {
+        return cell;
+    }
+
     /**
      * Get the WebSphere version. The returned value is actually the version number of the deployment
      * manager (which may differ from the version number of the application servers).
@@ -104,8 +110,7 @@ public class CellConfiguration {
     }
     
     public Path cell() {
-        // TODO: we may want to insert the cell name here
-        return path("Cell");
+        return path("Cell", cell);
     }
     
     public Path node(String nodeName) {
