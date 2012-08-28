@@ -3,8 +3,6 @@ package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 import java.util.Arrays;
 import java.util.Set;
 
-import javax.management.ObjectName;
-
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
@@ -17,7 +15,6 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
-import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
@@ -26,7 +23,6 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandle
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
 public class ApplicationComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet {
-    private ObjectName pattern;
     private MBeanClient mbean;
     private MeasurementFacetSupport measurementFacetSupport;
     private ApplicationManager applicationManager;
@@ -35,9 +31,7 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     protected void start() {
         ApplicationServer server = getServer();
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
-        pattern = Utils.createObjectName("WebSphere:type=Application,name=" + context.getResourceKey() + ",*");
-        mbean = server.getMBeanClient(pattern);
-        server.registerStateChangeEventContext(pattern, context.getEventContext());
+        mbean = server.getMBeanClient("WebSphere:type=Application,name=" + context.getResourceKey() + ",*");
         measurementFacetSupport = new MeasurementFacetSupport(this);
         measurementFacetSupport.addHandler("specVersion", new ApplicationSpecVersionMeasurementHandler(this));
         measurementFacetSupport.setDefaultHandler(new JMXAttributeGroupHandler(mbean));
@@ -101,6 +95,5 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     }
 
     public void stop() {
-        getResourceContext().getParentResourceComponent().getServer().unregisterStateChangeEventContext(pattern);
     }
 }

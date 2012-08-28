@@ -516,8 +516,6 @@
                     displayType="summary" defaultOn="true"
                     description="The version of the J2EE specification used by the application, as defined in the deployment descriptor."/>
             
-            <event name="StateChange" description="State change events"/>
-            
             <service name="Application Class Loader"
                      discovery="be.fgov.kszbcss.rhq.websphere.component.xm4was.ModuleClassLoaderStatsDiscoveryComponent"
                      class="be.fgov.kszbcss.rhq.websphere.component.xm4was.ApplicationClassLoaderStatsComponent"

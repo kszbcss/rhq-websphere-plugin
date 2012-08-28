@@ -3,14 +3,11 @@ package be.fgov.kszbcss.rhq.websphere;
 import java.io.Serializable;
 
 import javax.management.JMException;
-import javax.management.ObjectName;
-
-import org.rhq.core.pluginapi.event.EventContext;
-
-import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
+
+import com.ibm.websphere.management.exception.ConnectorException;
 
 /**
  * Represents a WebSphere application server. This can be a managed (federated) or unmanaged
@@ -44,8 +41,4 @@ public abstract class ApplicationServer extends WebSphereServer {
     }
 
     public abstract String getClusterName() throws InterruptedException, JMException, ConnectorException;
-    
-    public abstract void registerStateChangeEventContext(ObjectName objectNamePattern, EventContext context);
-
-    public abstract void unregisterStateChangeEventContext(ObjectName objectNamePattern);
 }
