@@ -14,7 +14,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rhq.core.pluginapi.plugin.PluginContext;
 
+import com.ibm.websphere.management.exception.ConnectorException;
+
 import be.fgov.kszbcss.rhq.websphere.DeploymentManager;
+import be.fgov.kszbcss.rhq.websphere.UnmanagedServer;
 
 public class ConfigQueryServiceFactory {
     private static final Log log = LogFactory.getLog(ConfigQueryServiceFactory.class);
@@ -70,7 +73,8 @@ public class ConfigQueryServiceFactory {
         instance = null;
     }
 
-    public synchronized ConfigQueryService getConfigQueryService(String cell, DeploymentManager deploymentManager) {
+    public synchronized ConfigQueryService getConfigQueryService(DeploymentManager deploymentManager) throws ConnectorException {
+        String cell = deploymentManager.getCell();
         DeploymentManagerConnection dmc = dmcMap.get(cell);
         if (dmc == null) {
             dmc = new DeploymentManagerConnection(this, cacheManager, deploymentManager, cell);
@@ -78,6 +82,12 @@ public class ConfigQueryServiceFactory {
         }
         dmc.incrementRefCount();
         return new ConfigQueryServiceHandle(dmc);
+    }
+    
+    public ConfigQueryService getConfigQueryService(UnmanagedServer server) throws ConnectorException {
+        // We use cell+node+server as cache name because for a stand-alone server it is more likely that the cell name is not unique
+        String cell = server.getCell();
+        return new ConfigQueryServiceImpl(cacheManager, cell + "_" + server.getNode() + "_" + server.getServer(), server, cell);
     }
     
     synchronized void removeDeploymentManagerConnection(DeploymentManagerConnection dmc) {

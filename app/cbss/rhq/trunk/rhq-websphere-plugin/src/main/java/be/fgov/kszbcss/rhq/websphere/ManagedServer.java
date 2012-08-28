@@ -26,7 +26,7 @@ public class ManagedServer extends ApplicationServer {
     
     @Override
     protected ConfigQueryService createConfigQueryService() throws ConnectorException {
-        return ConfigQueryServiceFactory.getInstance().getConfigQueryService(getCell(), getNodeAgent().getDeploymentManager());
+        return ConfigQueryServiceFactory.getInstance().getConfigQueryService(getNodeAgent().getDeploymentManager());
     }
 
     public String getClusterName() throws InterruptedException, JMException, ConnectorException {

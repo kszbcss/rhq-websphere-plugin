@@ -21,7 +21,7 @@ class DeploymentManagerConnection {
     
     DeploymentManagerConnection(ConfigQueryServiceFactory factory, CacheManager cacheManager, DeploymentManager dm, String cell) {
         this.factory = factory;
-        configQueryService = new ConfigQueryServiceImpl(cacheManager, dm, cell);
+        configQueryService = new ConfigQueryServiceImpl(cacheManager, cell, dm, cell);
     }
     
     ConfigQueryServiceImpl getConfigQueryService() {

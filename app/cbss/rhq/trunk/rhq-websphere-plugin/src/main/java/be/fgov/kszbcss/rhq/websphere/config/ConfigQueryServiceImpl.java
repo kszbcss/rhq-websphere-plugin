@@ -27,6 +27,7 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable {
     private static final Log log = LogFactory.getLog(ConfigQueryServiceImpl.class);
     
     private final CacheManager cacheManager;
+    private final String cacheName;
     private final ConfigRepository configRepository;
     private final CellConfiguration config;
     private final ScheduledFuture<?> future;
@@ -38,18 +39,19 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable {
     private boolean polled;
     private boolean waitForConnection = true;
 
-    public ConfigQueryServiceImpl(CacheManager cacheManager, WebSphereServer server, String cell) {
+    public ConfigQueryServiceImpl(CacheManager cacheManager, String cacheName, WebSphereServer server, String cell) {
         this.cacheManager = cacheManager;
+        this.cacheName = cacheName;
         this.cell = cell;
         configRepository = server.getMBeanClient("WebSphere:type=ConfigRepository,*").getProxy(ConfigRepository.class);
         config = new CellConfiguration(
                 server.getMBeanClient("WebSphere:type=ConfigService,*").getProxy(ConfigService.class),
                 configRepository,
                 server.getMBeanClient("WebSphere:type=AppManagement,*").getProxy(AppManagement.class));
-        cacheManager.addCache(cell);
-        queryExecutorService = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS, new MutablePriorityQueue<Runnable>(), new NamedThreadFactory(cell + "-query"));
-        queryCache = new DelayedRefreshCache<ConfigQuery<?>,ConfigQueryResult>(cacheManager.getEhcache(cell), queryExecutorService, new ConfigQueryResultFactory(this));
-        epochPollExecutorService = Executors.newScheduledThreadPool(1, new NamedThreadFactory(cell + "-epoch-poll"));
+        cacheManager.addCache(cacheName);
+        queryExecutorService = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS, new MutablePriorityQueue<Runnable>(), new NamedThreadFactory(cacheName + "-query"));
+        queryCache = new DelayedRefreshCache<ConfigQuery<?>,ConfigQueryResult>(cacheManager.getEhcache(cacheName), queryExecutorService, new ConfigQueryResultFactory(this));
+        epochPollExecutorService = Executors.newScheduledThreadPool(1, new NamedThreadFactory(cacheName + "-epoch-poll"));
         future = epochPollExecutorService.scheduleWithFixedDelay(this, 0, 30, TimeUnit.SECONDS);
     }
 
@@ -142,6 +144,6 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable {
         future.cancel(false);
         epochPollExecutorService.shutdownNow();
         queryExecutorService.shutdownNow();
-        cacheManager.removeCache(cell);
+        cacheManager.removeCache(cacheName);
     }
 }

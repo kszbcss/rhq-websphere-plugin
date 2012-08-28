@@ -42,6 +42,7 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.UnmanagedServer;
 import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
@@ -88,13 +89,15 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     public void start(ResourceContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
         
+        Configuration pluginConfiguration = context.getPluginConfiguration();
+        
         String[] parts = context.getResourceKey().split("/");
         cell = parts[0];
         node = parts[1];
         serverName = parts[2];
         stateDir = new File(new File(new File(new File(getResourceContext().getDataDirectory(), "state"), cell), node), serverName);
         
-        loggingProviderName = context.getPluginConfiguration().getSimpleValue("loggingProvider", "none");
+        loggingProviderName = pluginConfiguration.getSimpleValue("loggingProvider", "none");
         Class<? extends LoggingProvider> loggingProviderClass = loggingProviderClasses.get(loggingProviderName);
         if (loggingProviderClass == null) {
             throw new InvalidPluginConfigurationException("Unknown logging provider '" + loggingProviderName + "'");
@@ -104,7 +107,12 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         }
         loggingProvider = loggingProviderClass.newInstance();
         
-        server = new ManagedServer(cell, node, serverName, context.getPluginConfiguration());
+        PropertySimple unmanaged = pluginConfiguration.getSimple("unmanaged");
+        if (unmanaged != null && unmanaged.getBooleanValue()) {
+            server = new UnmanagedServer(cell, node, serverName, pluginConfiguration);
+        } else {
+            server = new ManagedServer(cell, node, serverName, pluginConfiguration);
+        }
         server.init();
         
         measurementFacetSupport = new MeasurementFacetSupport(this);

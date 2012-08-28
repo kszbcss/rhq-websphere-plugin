@@ -140,6 +140,9 @@
                 <c:simple-property name="childJmxServerName" displayName="WebSphere JVM Name" default="JVM"
                                    readOnly="true" required="false"
                                    description="The name of the WebSphere JVM resource."/>
+                <c:simple-property name="unmanaged" type="boolean" default="false"
+                                   readOnly="true" required="true"
+                                   description="Is the server an unmanaged process (i.e. a stand-alone server)?"/>
             </c:group>
         </plugin-configuration>
         
