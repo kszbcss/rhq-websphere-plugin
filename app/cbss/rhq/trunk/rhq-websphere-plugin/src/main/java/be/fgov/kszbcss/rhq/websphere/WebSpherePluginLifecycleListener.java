@@ -46,7 +46,7 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
         // TODO: for the moment, use a dummy trust manager
         sslConfig.setProperty("com.ibm.ssl.trustManager", "Dummy|" + CustomProvider.NAME);
         
-        SSLConfigManager configManager = SSLConfigManager.getInstance();
+        configManager = SSLConfigManager.getInstance();
         configManager.addSSLConfigToMap(SSL_CONFIG_ALIAS, sslConfig);
     }
 
