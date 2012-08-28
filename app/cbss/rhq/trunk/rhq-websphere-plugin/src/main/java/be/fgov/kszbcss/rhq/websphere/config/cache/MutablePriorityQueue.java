@@ -143,7 +143,15 @@ public class MutablePriorityQueue<E> extends AbstractQueue<E> implements Blockin
     }
 
     public int drainTo(Collection<? super E> c) {
-        throw new UnsupportedOperationException();
+        lock.lock();
+        try {
+            int n = elements.size();
+            c.addAll(elements);
+            elements.clear();
+            return n;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public int drainTo(Collection<? super E> c, int maxElements) {
