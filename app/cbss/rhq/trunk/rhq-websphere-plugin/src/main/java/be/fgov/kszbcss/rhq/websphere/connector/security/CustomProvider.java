@@ -1,4 +1,5 @@
 package be.fgov.kszbcss.rhq.websphere.connector.security;
+
 import java.security.Provider;
 
 public class CustomProvider extends Provider {
