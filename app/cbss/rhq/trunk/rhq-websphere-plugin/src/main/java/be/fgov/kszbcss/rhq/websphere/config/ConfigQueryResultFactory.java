@@ -11,14 +11,14 @@ import com.ibm.websphere.management.repository.ConfigEpoch;
 class ConfigQueryResultFactory implements DelayedRefreshCacheEntryFactory<ConfigQuery<?>,ConfigQueryResult> {
     private static final Log log = LogFactory.getLog(ConfigQueryResultFactory.class);
     
-    private final DeploymentManagerConnection dmc;
+    private final ConfigQueryServiceImpl configQueryServiceImpl;
     
-    public ConfigQueryResultFactory(DeploymentManagerConnection dmc) {
-        this.dmc = dmc;
+    public ConfigQueryResultFactory(ConfigQueryServiceImpl configQueryServiceImpl) {
+        this.configQueryServiceImpl = configQueryServiceImpl;
     }
 
     public ConfigQueryResult createEntry(ConfigQuery<?> key) throws CacheRefreshException {
-        ConfigEpoch epoch = dmc.getEpoch();
+        ConfigEpoch epoch = configQueryServiceImpl.getEpoch();
         if (epoch == null) {
             throw new CacheRefreshException("Deployment manager is unavailable");
         } else {
@@ -28,7 +28,7 @@ class ConfigQueryResultFactory implements DelayedRefreshCacheEntryFactory<Config
             ConfigQueryResult result = new ConfigQueryResult();
             result.epoch = epoch;
             try {
-                result.object = key.execute(dmc.getCellConfiguration());
+                result.object = key.execute(configQueryServiceImpl.getCellConfiguration());
             } catch (Exception ex) {
                 // TODO: review this
                 throw new CacheRefreshException(ex);
@@ -38,7 +38,7 @@ class ConfigQueryResultFactory implements DelayedRefreshCacheEntryFactory<Config
     }
 
     public boolean isStale(ConfigQuery<?> key, ConfigQueryResult value) {
-        ConfigEpoch epoch = dmc.getEpoch();
+        ConfigEpoch epoch = configQueryServiceImpl.getEpoch();
         if (epoch == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Deployment manager is unavailable; returning potentially stale object for query: " + key);

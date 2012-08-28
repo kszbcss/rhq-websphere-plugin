@@ -77,7 +77,7 @@ public class ConfigQueryServiceFactory {
             dmcMap.put(cell, dmc);
         }
         dmc.incrementRefCount();
-        return new ConfigQueryService(dmc);
+        return new ConfigQueryServiceHandle(dmc);
     }
     
     synchronized void removeDeploymentManagerConnection(DeploymentManagerConnection dmc) {

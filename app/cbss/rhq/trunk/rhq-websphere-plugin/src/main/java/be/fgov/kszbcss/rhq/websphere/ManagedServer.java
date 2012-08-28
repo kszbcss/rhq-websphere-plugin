@@ -1,7 +1,5 @@
 package be.fgov.kszbcss.rhq.websphere;
 
-import java.io.Serializable;
-
 import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotificationFilterSupport;
@@ -15,7 +13,6 @@ import org.rhq.core.pluginapi.event.EventContext;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.component.server.ClusterNameQuery;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
 import be.fgov.kszbcss.rhq.websphere.connector.notification.NotificationListenerRegistration;
@@ -26,7 +23,6 @@ public class ManagedServer extends ApplicationServer {
     private final StateChangeEventDispatcher stateEventDispatcher = new StateChangeEventDispatcher();
     private NotificationListenerRegistration stateEventListenerRegistration;
     private NodeAgent nodeAgent;
-    private ConfigQueryService configQueryService;
     
     public ManagedServer(String cell, String node, String server, Configuration config) {
         super(cell, node, server, "ManagedProcess", new ConfigurationBasedProcessLocator(config));
@@ -51,10 +47,6 @@ public class ManagedServer extends ApplicationServer {
     @Override
     public void destroy() {
         stateEventListenerRegistration.unregister();
-        if (configQueryService != null) {
-            configQueryService.release();
-            configQueryService = null;
-        }
         super.destroy();
     }
 
@@ -73,15 +65,9 @@ public class ManagedServer extends ApplicationServer {
         return nodeAgent;
     }
     
-    private synchronized ConfigQueryService getConfigQueryService() throws ConnectorException {
-        if (configQueryService == null) {
-            configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryService(getCell(), getNodeAgent().getDeploymentManager());
-        }
-        return configQueryService;
-    }
-
-    public <T extends Serializable> T queryConfig(ConfigQuery<T> query, boolean immediate) throws InterruptedException, ConnectorException {
-        return getConfigQueryService().query(query, immediate);
+    @Override
+    protected ConfigQueryService createConfigQueryService() throws ConnectorException {
+        return ConfigQueryServiceFactory.getInstance().getConfigQueryService(getCell(), getNodeAgent().getDeploymentManager());
     }
 
     public String getClusterName() throws InterruptedException, JMException, ConnectorException {

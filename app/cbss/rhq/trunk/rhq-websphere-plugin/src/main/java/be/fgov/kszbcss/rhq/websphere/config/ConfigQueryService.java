@@ -2,9 +2,6 @@ package be.fgov.kszbcss.rhq.websphere.config;
 
 import java.io.Serializable;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 // TODO: Javadoc is no longer accurate
 /**
  * Supports sending queries for configuration data to a deployment manager. There is a single
@@ -15,15 +12,7 @@ import org.apache.commons.logging.LogFactory;
  * cells (i.e. the cache key contains the cell name). This makes sure that cache entries eventually
  * disappear when all servers for a given cell are removed from the inventory.
  */
-public class ConfigQueryService {
-    private static final Log log = LogFactory.getLog(ConfigQueryService.class);
-    
-    private DeploymentManagerConnection dmc;
-    
-    ConfigQueryService(DeploymentManagerConnection dmc) {
-        this.dmc = dmc;
-    }
-    
+public interface ConfigQueryService {
     /**
      * 
      * 
@@ -37,15 +26,7 @@ public class ConfigQueryService {
      * @return
      * @throws InterruptedException
      */
-    public <T extends Serializable> T query(ConfigQuery<T> query, boolean immediate) throws InterruptedException {
-        return dmc.query(query, immediate);
-    }
+    <T extends Serializable> T query(ConfigQuery<T> query, boolean immediate) throws InterruptedException;
     
-    public void release() {
-        if (log.isDebugEnabled()) {
-            log.debug("Releasing one instance of ConfigQueryService for cell " + dmc.getCell());
-        }
-        dmc.decrementRefCount();
-        dmc = null;
-    }
+    void release();
 }
