@@ -18,6 +18,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.DeploymentManager;
 import be.fgov.kszbcss.rhq.websphere.UnmanagedServer;
+import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 
 public class ConfigQueryServiceFactory {
     private static final Log log = LogFactory.getLog(ConfigQueryServiceFactory.class);
@@ -88,6 +89,23 @@ public class ConfigQueryServiceFactory {
         // We use cell+node+server as cache name because for a stand-alone server it is more likely that the cell name is not unique
         String cell = server.getCell();
         return new ConfigQueryServiceImpl(cacheManager, cell + "_" + server.getNode() + "_" + server.getServer(), server, cell);
+    }
+    
+    public ConfigQueryService getConfigQueryServiceWithoutCaching(WebSphereServer server) throws ConnectorException {
+        String cell = server.getCell();
+        Configuration config = new Configuration();
+        config.setUpdateCheck(false);
+        CacheConfiguration cacheConfig = new CacheConfiguration("non-persistent", 100);
+        cacheConfig.setTimeToIdleSeconds(7*24*3600);
+        config.setDefaultCacheConfiguration(cacheConfig);
+        final CacheManager nonPersistentCacheManager = CacheManager.create(config);
+        return new ConfigQueryServiceImpl(nonPersistentCacheManager, cell + "-non-persistent", server, cell) {
+            @Override
+            public void release() {
+                super.release();
+                nonPersistentCacheManager.shutdown();
+            }
+        };
     }
     
     synchronized void removeDeploymentManagerConnection(DeploymentManagerConnection dmc) {

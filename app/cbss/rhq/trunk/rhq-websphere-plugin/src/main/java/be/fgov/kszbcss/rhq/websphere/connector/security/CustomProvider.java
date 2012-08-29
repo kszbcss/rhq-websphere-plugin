@@ -7,6 +7,6 @@ public class CustomProvider extends Provider {
     
     public CustomProvider() {
         super(NAME, 0.0, "Custom security provider for the RHQ WebSphere plugin");
-        setProperty("TrustManagerFactory.Dummy", DummyTrustManagerFactory.class.getName());
+        setProperty("TrustManagerFactory.Delegating", DelegatingTrustManagerFactory.class.getName());
     }
 }

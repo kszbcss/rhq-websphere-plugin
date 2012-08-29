@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -47,7 +46,6 @@ import be.fgov.kszbcss.rhq.cert.util.CertContentConstants;
 import be.fgov.kszbcss.rhq.cert.util.CertContentUtils;
 import be.fgov.kszbcss.rhq.websphere.ConfigurationBasedProcessLocator;
 import be.fgov.kszbcss.rhq.websphere.DeploymentManager;
-import be.fgov.kszbcss.rhq.websphere.component.j2ee.SIBDestination;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStats;
@@ -179,18 +177,25 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
 
     public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("retrieveCellCertificate")) {
-            DeploymentManager dm = new DeploymentManager(null, new ConfigurationBasedProcessLocator(parameters));
-            final String cell = dm.getCell();
-            ConfigQueryService configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryService(dm);
+            TrustStoreManager trustStoreManager = TrustStoreManager.getInstance();
+            log.warn("Temporarily disabling certificate check");
+            trustStoreManager.setCertificateCheckEnabled(false);
             try {
-                final X509Certificate cert = configQueryService.query(CellRootCertificateQuery.INSTANCE, true);
-                TrustStoreManager.getInstance().execute(new TrustStoreAction() {
-                    public void execute(KeyStore truststore) throws Exception {
-                        truststore.setCertificateEntry("cell:" + cell, cert);
-                    }
-                }, false);
+                DeploymentManager dm = new DeploymentManager(null, new ConfigurationBasedProcessLocator(parameters));
+                final String cell = dm.getCell();
+                ConfigQueryService configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryServiceWithoutCaching(dm);
+                try {
+                    final X509Certificate cert = configQueryService.query(CellRootCertificateQuery.INSTANCE, true);
+                    TrustStoreManager.getInstance().execute(new TrustStoreAction() {
+                        public void execute(KeyStore truststore) throws Exception {
+                            truststore.setCertificateEntry("cell:" + cell, cert);
+                        }
+                    }, false);
+                } finally {
+                    configQueryService.release();
+                }
             } finally {
-                configQueryService.release();
+                trustStoreManager.setCertificateCheckEnabled(true);
             }
             return null;
         } else if (name.equals("listCertificates")) {

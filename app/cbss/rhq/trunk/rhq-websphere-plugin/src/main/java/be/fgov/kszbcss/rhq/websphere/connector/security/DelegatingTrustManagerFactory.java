@@ -11,8 +11,8 @@ import javax.net.ssl.TrustManagerFactorySpi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class DummyTrustManagerFactory extends TrustManagerFactorySpi {
-    private static final Log log = LogFactory.getLog(DummyTrustManagerFactory.class);
+public class DelegatingTrustManagerFactory extends TrustManagerFactorySpi {
+    private static final Log log = LogFactory.getLog(DelegatingTrustManagerFactory.class);
     
     @Override
     protected void engineInit(KeyStore truststore) throws KeyStoreException {
@@ -27,6 +27,6 @@ public class DummyTrustManagerFactory extends TrustManagerFactorySpi {
     @Override
     protected TrustManager[] engineGetTrustManagers() {
         log.debug("engineGetTrustManagers() called");
-        return new TrustManager[] { new DummyTrustManager() };
+        return new TrustManager[] { new DelegatingTrustManager() };
     }
 }

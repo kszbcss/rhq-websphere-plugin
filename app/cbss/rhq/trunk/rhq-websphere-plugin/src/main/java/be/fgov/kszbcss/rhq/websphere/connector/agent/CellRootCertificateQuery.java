@@ -30,7 +30,12 @@ public class CellRootCertificateQuery implements ConfigQuery<X509Certificate> {
                 try {
                     KeyStore ks = KeyStore.getInstance((String)keyStoreConfig.getAttribute("type"), (String)keyStoreConfig.getAttribute("provider"));
                     ks.load(new ByteArrayInputStream(cellDefaultTrustStore), ((String)keyStoreConfig.getAttribute("password")).toCharArray());
-                    return (X509Certificate)ks.getCertificate("root");
+                    X509Certificate cert = (X509Certificate)ks.getCertificate("root");
+                    if (cert == null) {
+                        // TODO: use proper exception here
+                        throw new JMException("Root certificate not found in CellDefaultTrustStore");
+                    }
+                    return cert;
                 } catch (Exception ex) {
                     // TODO: use proper exception here
                     throw new JMException("Failed to extract certificate: " + ex.getMessage());
