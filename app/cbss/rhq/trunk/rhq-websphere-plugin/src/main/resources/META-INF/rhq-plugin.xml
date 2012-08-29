@@ -797,6 +797,25 @@
                 &login-configuration;
             </parameters>
         </operation>
+        <operation name="listCertificates" description="List the certificates in the trust store.">
+            <results>
+                <c:list-property name="certificates"
+                                 displayName="Certificates"
+                                 description="The certificates in the trust store.">
+                    <c:map-property name="certificate">
+                        <c:simple-property name="alias"
+                                           displayName="Alias"
+                                           description="The alias of the certificate in the trust store."/>
+                        <c:simple-property name="subject"
+                                           displayName="Subject DN"
+                                           description="The DN of the subject the certificate was issued to."/>
+                        <c:simple-property name="fingerprint"
+                                           displayName="Fingerprint"
+                                           description="The fingerprint (SHA digest) of the certificate."/>
+                    </c:map-property>
+                </c:list-property>
+            </results>
+        </operation>
         
         <metric property="LogEventsPublished" displayName="Log Events Published"
                 category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"

@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.security.MessageDigest;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -11,11 +12,15 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.configuration.Configuration;
+import org.rhq.core.domain.configuration.PropertyList;
+import org.rhq.core.domain.configuration.PropertyMap;
+import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.content.PackageDetailsKey;
 import org.rhq.core.domain.content.PackageType;
 import org.rhq.core.domain.content.transfer.ContentResponseResult;
@@ -42,6 +47,7 @@ import be.fgov.kszbcss.rhq.cert.util.CertContentConstants;
 import be.fgov.kszbcss.rhq.cert.util.CertContentUtils;
 import be.fgov.kszbcss.rhq.websphere.ConfigurationBasedProcessLocator;
 import be.fgov.kszbcss.rhq.websphere.DeploymentManager;
+import be.fgov.kszbcss.rhq.websphere.component.j2ee.SIBDestination;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStats;
@@ -172,20 +178,60 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
     }
 
     public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
-        DeploymentManager dm = new DeploymentManager(null, new ConfigurationBasedProcessLocator(parameters));
-        final String cell = dm.getCell();
-        ConfigQueryService configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryService(dm);
-        try {
-            final X509Certificate cert = configQueryService.query(CellRootCertificateQuery.INSTANCE, true);
+        if (name.equals("retrieveCellCertificate")) {
+            DeploymentManager dm = new DeploymentManager(null, new ConfigurationBasedProcessLocator(parameters));
+            final String cell = dm.getCell();
+            ConfigQueryService configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryService(dm);
+            try {
+                final X509Certificate cert = configQueryService.query(CellRootCertificateQuery.INSTANCE, true);
+                TrustStoreManager.getInstance().execute(new TrustStoreAction() {
+                    public void execute(KeyStore truststore) throws Exception {
+                        truststore.setCertificateEntry("cell:" + cell, cert);
+                    }
+                }, false);
+            } finally {
+                configQueryService.release();
+            }
+            return null;
+        } else if (name.equals("listCertificates")) {
+            final PropertyList certificates = new PropertyList("certificates");
             TrustStoreManager.getInstance().execute(new TrustStoreAction() {
                 public void execute(KeyStore truststore) throws Exception {
-                    truststore.setCertificateEntry("cell:" + cell, cert);
+                    for (Enumeration<String> aliases = truststore.aliases(); aliases.hasMoreElements(); ) {
+                        String alias = aliases.nextElement();
+                        X509Certificate cert = (X509Certificate)truststore.getCertificate(alias);
+                        PropertyMap map = new PropertyMap("certificate");
+                        map.put(new PropertySimple("alias", alias));
+                        map.put(new PropertySimple("subject", cert.getSubjectDN().toString()));
+                        MessageDigest md = MessageDigest.getInstance("SHA-1");
+                        md.update(cert.getEncoded());
+                        byte[] digest = md.digest();
+                        StringBuilder fingerprint = new StringBuilder();
+                        for (int i = 0; i < digest.length; i++) {
+                            if (i > 0) {
+                                fingerprint.append(':');
+                            }
+                            fingerprint.append(getHexDigit(((int)digest[i] & 0xf0) >> 4));
+                            fingerprint.append(getHexDigit((int)digest[i] & 0x0f));
+                        }
+                        map.put(new PropertySimple("fingerprint", fingerprint.toString()));
+                        certificates.add(map);
+                    }
                 }
-            }, false);
-        } finally {
-            configQueryService.release();
+            }, true);
+            if (log.isDebugEnabled()) {
+                log.debug("certificates=" + certificates);
+            }
+            OperationResult result = new OperationResult();
+            result.getComplexResults().put(certificates);
+            return result;
+        } else {
+            return null;
         }
-        return null;
+    }
+    
+    static char getHexDigit(int nibble) {
+        return (char)(nibble < 10 ? '0' + nibble : 'A' + nibble - 10);
     }
 
     public void stop() {
