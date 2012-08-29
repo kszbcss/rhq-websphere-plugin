@@ -8,22 +8,25 @@ import javax.net.ssl.ManagerFactoryParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactorySpi;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class DummyTrustManagerFactory extends TrustManagerFactorySpi {
+    private static final Log log = LogFactory.getLog(DummyTrustManagerFactory.class);
+    
     @Override
-    protected void engineInit(KeyStore arg0) throws KeyStoreException {
-        // TODO Auto-generated method stub
-        
+    protected void engineInit(KeyStore truststore) throws KeyStoreException {
+        log.debug("engineInit(KeyStore) called");
     }
 
     @Override
-    protected void engineInit(ManagerFactoryParameters arg0)
-            throws InvalidAlgorithmParameterException {
-        // TODO Auto-generated method stub
-        
+    protected void engineInit(ManagerFactoryParameters params) throws InvalidAlgorithmParameterException {
+        log.debug("engineInit(ManagerFactoryParameters) called");
     }
 
     @Override
     protected TrustManager[] engineGetTrustManagers() {
+        log.debug("engineGetTrustManagers() called");
         return new TrustManager[] { new DummyTrustManager() };
     }
 }
