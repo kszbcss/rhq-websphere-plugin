@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE plugin [
+<!ENTITY login-configuration '
+    <c:simple-property name="host" default="localhost"/>
+    <c:simple-property name="port" default="9100" type="integer"/>
+    <c:simple-property name="protocol" default="RMI">
+        <c:property-options>
+            <c:option value="RMI" name="RMI"/>
+            <c:option value="SOAP" name="SOAP"/>
+        </c:property-options>
+    </c:simple-property>
+    <c:simple-property name="principal" required="false"
+                       description="The name of the principal (i.e. user) to authenticate."/>
+    <c:simple-property name="credentials" type="password" required="false"
+                       description="The credentials (i.e. password) that should be used to authenticate the principal."/>
+'>
 <!-- Resource configuration shared by session beans, MDBs and WAR modules -->
 <!ENTITY logevent-configuration '
     <c:simple-property name="suppressLogEvents"
@@ -115,18 +129,7 @@
         
         <plugin-configuration>
             <c:group name="connection" displayName="Connection Info">
-                <c:simple-property name="host" default="localhost"/>
-                <c:simple-property name="port" default="9100" type="integer"/>
-                <c:simple-property name="protocol" default="RMI">
-                    <c:property-options>
-                        <c:option value="RMI" name="RMI"/>
-                        <c:option value="SOAP" name="SOAP"/>
-                    </c:property-options>
-                </c:simple-property>
-                <c:simple-property name="principal" required="false"
-                                   description="The name of the principal (i.e. user) to authenticate."/>
-                <c:simple-property name="credentials" type="password" required="false"
-                                   description="The credentials (i.e. password) that should be used to authenticate the principal."/>
+                &login-configuration;
                 <c:simple-property name="loggingProvider" default="none"
                                    description="Specifies how log events are collected from the server. 'RasLoggingService' is supported out of the box by WebSphere. 'XM4WAS LoggingService' requires deployment of the XM4WAS plugins to WebSphere, but adds support for stack traces and correlating events with application components. In addition, it uses polling instead of JMX notifications.">
                     <c:property-options>
@@ -788,6 +791,12 @@
         <runs-inside>
             <parent-resource-type name="RHQ Agent" plugin="RHQAgent"/>
         </runs-inside>
+        
+        <operation name="retrieveCellCertificate" description="Retrive a cell root certificate from a deployment manager and add it to the trust store.">
+            <parameters>
+                &login-configuration;
+            </parameters>
+        </operation>
         
         <metric property="LogEventsPublished" displayName="Log Events Published"
                 category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"

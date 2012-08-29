@@ -2,11 +2,7 @@ package be.fgov.kszbcss.rhq.websphere.connector.agent;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
@@ -19,6 +15,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.content.PackageDetailsKey;
 import org.rhq.core.domain.content.PackageType;
 import org.rhq.core.domain.content.transfer.ContentResponseResult;
@@ -38,24 +35,29 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
+import org.rhq.core.pluginapi.operation.OperationFacet;
+import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.cert.util.CertContentConstants;
 import be.fgov.kszbcss.rhq.cert.util.CertContentUtils;
+import be.fgov.kszbcss.rhq.websphere.ConfigurationBasedProcessLocator;
+import be.fgov.kszbcss.rhq.websphere.DeploymentManager;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStats;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsData;
+import be.fgov.kszbcss.rhq.websphere.connector.security.TrustStoreAction;
 import be.fgov.kszbcss.rhq.websphere.connector.security.TrustStoreManager;
 
-public class ConnectorSubsystemComponent implements ResourceComponent<ResourceComponent<?>>, MeasurementFacet, ContentFacet {
+public class ConnectorSubsystemComponent implements ResourceComponent<ResourceComponent<?>>, MeasurementFacet, ContentFacet, OperationFacet {
     private static final Log log = LogFactory.getLog(ConnectorSubsystemComponent.class);
     
     private ResourceContext<ResourceComponent<?>> resourceContext;
-    private File truststoreFile;
     
     public void start(ResourceContext<ResourceComponent<?>> context)
             throws InvalidPluginConfigurationException, Exception {
         resourceContext = context;
-        truststoreFile = TrustStoreManager.getInstance().getTruststoreFile();
     }
 
     public AvailabilityType getAvailability() {
@@ -90,67 +92,42 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
         }
     }
 
-    public DeployPackagesResponse deployPackages(Set<ResourcePackageDetails> packages, ContentServices contentServices) {
-        DeployPackagesResponse response = new DeployPackagesResponse();
+    public DeployPackagesResponse deployPackages(final Set<ResourcePackageDetails> packages, final ContentServices contentServices) {
+        final DeployPackagesResponse response = new DeployPackagesResponse();
         response.setOverallRequestResult(ContentResponseResult.SUCCESS);
         try {
-            KeyStore truststore = KeyStore.getInstance("JKS");
-            if (truststoreFile.exists()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Loading existing trust store from " + truststoreFile);
-                }
-                InputStream in = new FileInputStream(truststoreFile);
-                try {
-                    truststore.load(in, new char[0]);
-                } finally {
-                    in.close();
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("Trust store has " + truststore.size() + " existing entries");
-                }
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("Trust store " + truststoreFile + " doesn't exist yet; will create a new one");
-                }
-                truststore.load(null);
-            }
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            for (ResourcePackageDetails pkg : packages) {
-                baos.reset();
-                DeployIndividualPackageResponse packageResponse = new DeployIndividualPackageResponse(pkg.getKey());
-                packageResponse.setResult(ContentResponseResult.SUCCESS);
-                try {
-                    long size = contentServices.downloadPackageBits(resourceContext.getContentContext(), pkg.getKey(), baos, true);
-                    if (log.isDebugEnabled()) {
-                        log.debug("Downloaded package content; size = " + size);
-                    }
-                    Collection<? extends Certificate> certs = cf.generateCertificates(new ByteArrayInputStream(baos.toByteArray()));
-                    for (Certificate cert : certs) {
-                        String alias = pkg.getFileName() + "#" + pkg.getVersion();
-                        if (log.isDebugEnabled()) {
-                            log.debug("Adding certificate for " + ((X509Certificate)cert).getSubjectDN() + " with alias " + alias);
+            TrustStoreManager.getInstance().execute(new TrustStoreAction() {
+                public void execute(KeyStore truststore) throws Exception {
+                    CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    for (ResourcePackageDetails pkg : packages) {
+                        baos.reset();
+                        DeployIndividualPackageResponse packageResponse = new DeployIndividualPackageResponse(pkg.getKey());
+                        packageResponse.setResult(ContentResponseResult.SUCCESS);
+                        try {
+                            long size = contentServices.downloadPackageBits(resourceContext.getContentContext(), pkg.getKey(), baos, true);
+                            if (log.isDebugEnabled()) {
+                                log.debug("Downloaded package content; size = " + size);
+                            }
+                            Collection<? extends Certificate> certs = cf.generateCertificates(new ByteArrayInputStream(baos.toByteArray()));
+                            for (Certificate cert : certs) {
+                                String alias = pkg.getFileName() + "#" + pkg.getVersion();
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Adding certificate for " + ((X509Certificate)cert).getSubjectDN() + " with alias " + alias);
+                                }
+                                truststore.setCertificateEntry(alias, cert);
+                            }
+                        } catch (Exception ex) {
+                            log.error("Failed to add certificate from " + pkg.getFileName(), ex);
+                            packageResponse.setResult(ContentResponseResult.FAILURE);
+                            packageResponse.setErrorMessage(ex.getMessage());
+                            response.setOverallRequestResult(ContentResponseResult.FAILURE);
+                            response.setOverallRequestErrorMessage("Deployment of at least one certificate failed");
                         }
-                        truststore.setCertificateEntry(alias, cert);
+                        response.addPackageResponse(packageResponse);
                     }
-                } catch (Exception ex) {
-                    log.error("Failed to add certificate from " + pkg.getFileName(), ex);
-                    packageResponse.setResult(ContentResponseResult.FAILURE);
-                    packageResponse.setErrorMessage(ex.getMessage());
-                    response.setOverallRequestResult(ContentResponseResult.FAILURE);
-                    response.setOverallRequestErrorMessage("Deployment of at least one certificate failed");
                 }
-                response.addPackageResponse(packageResponse);
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("Writing trust store with " + truststore.size() + " entries to " + truststoreFile);
-            }
-            OutputStream out = new FileOutputStream(truststoreFile);
-            try {
-                truststore.store(out, new char[0]);
-            } finally {
-                out.close();
-            }
+            }, false);
         } catch (Exception ex) {
             response.setOverallRequestResult(ContentResponseResult.FAILURE);
             response.setOverallRequestErrorMessage(ex.getMessage());
@@ -159,33 +136,21 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
     }
 
     public Set<ResourcePackageDetails> discoverDeployedPackages(PackageType packageType) {
-        Set<ResourcePackageDetails> result = new HashSet<ResourcePackageDetails>();
-        if (truststoreFile.exists()) {
-            try {
-                KeyStore truststore = KeyStore.getInstance("JKS");
-                InputStream in = new FileInputStream(truststoreFile);
-                try {
-                    truststore.load(in, new char[0]);
-                } finally {
-                    in.close();
+        final Set<ResourcePackageDetails> result = new HashSet<ResourcePackageDetails>();
+        try {
+            TrustStoreManager.getInstance().execute(new TrustStoreAction() {
+                public void execute(KeyStore truststore) throws Exception {
+                    for (Enumeration<String> aliases = truststore.aliases(); aliases.hasMoreElements(); ) {
+                        X509Certificate cert = (X509Certificate)truststore.getCertificate(aliases.nextElement());
+                        result.add(new ResourcePackageDetails(new PackageDetailsKey(CertContentUtils.getPackageName(cert),
+                                CertContentUtils.getVersion(cert), CertContentConstants.PACKAGE_TYPE_NAME,
+                                CertContentConstants.ARCHITECTURE_NAME)));
+                    }
                 }
-                if (log.isDebugEnabled()) {
-                    log.debug("Loaded trust store " + truststoreFile + " with " + truststore.size() + " entries; building package list");
-                }
-                for (Enumeration<String> aliases = truststore.aliases(); aliases.hasMoreElements(); ) {
-                    X509Certificate cert = (X509Certificate)truststore.getCertificate(aliases.nextElement());
-                    result.add(new ResourcePackageDetails(new PackageDetailsKey(CertContentUtils.getPackageName(cert),
-                            CertContentUtils.getVersion(cert), CertContentConstants.PACKAGE_TYPE_NAME,
-                            CertContentConstants.ARCHITECTURE_NAME)));
-                }
-            } catch (Exception ex) {
-                // Just continue and return an empty result
-                log.error("Failed to read trust store " + truststoreFile, ex);
-            }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Trust store " + truststoreFile + " doesn't exist; returning empty result");
-            }
+            }, true);
+        } catch (Exception ex) {
+            // Just continue and return an empty result
+            log.error("Failed to read trust store", ex);
         }
         return result;
     }
@@ -203,6 +168,23 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
 
     public InputStream retrievePackageBits(ResourcePackageDetails arg0) {
         // TODO Auto-generated method stub
+        return null;
+    }
+
+    public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+        DeploymentManager dm = new DeploymentManager(null, new ConfigurationBasedProcessLocator(parameters));
+        final String cell = dm.getCell();
+        ConfigQueryService configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryService(dm);
+        try {
+            final X509Certificate cert = configQueryService.query(CellRootCertificateQuery.INSTANCE, true);
+            TrustStoreManager.getInstance().execute(new TrustStoreAction() {
+                public void execute(KeyStore truststore) throws Exception {
+                    truststore.setCertificateEntry("cell:" + cell, cert);
+                }
+            }, false);
+        } finally {
+            configQueryService.release();
+        }
         return null;
     }
 
