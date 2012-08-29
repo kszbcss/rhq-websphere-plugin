@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
@@ -109,6 +110,14 @@ public class TrustStoreManager {
         } finally {
             lock.unlock();
         }
+    }
+    
+    public void addCertificate(final String alias, final X509Certificate cert) throws Exception {
+        execute(new TrustStoreAction() {
+            public void execute(KeyStore truststore) throws Exception {
+                truststore.setCertificateEntry(alias, cert);
+            }
+        }, false);
     }
     
     public void execute(TrustStoreAction action, boolean readOnly) throws Exception {

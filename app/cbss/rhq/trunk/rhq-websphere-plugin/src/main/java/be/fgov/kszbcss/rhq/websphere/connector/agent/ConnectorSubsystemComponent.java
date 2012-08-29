@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -13,6 +14,11 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -51,6 +57,7 @@ import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStats;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsData;
+import be.fgov.kszbcss.rhq.websphere.connector.security.PromiscuousTrustManager;
 import be.fgov.kszbcss.rhq.websphere.connector.security.TrustStoreAction;
 import be.fgov.kszbcss.rhq.websphere.connector.security.TrustStoreManager;
 
@@ -182,20 +189,29 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
             trustStoreManager.setCertificateCheckEnabled(false);
             try {
                 DeploymentManager dm = new DeploymentManager(null, new ConfigurationBasedProcessLocator(parameters));
-                final String cell = dm.getCell();
+                String cell = dm.getCell();
                 ConfigQueryService configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryServiceWithoutCaching(dm);
                 try {
-                    final X509Certificate cert = configQueryService.query(CellRootCertificateQuery.INSTANCE, true);
-                    TrustStoreManager.getInstance().execute(new TrustStoreAction() {
-                        public void execute(KeyStore truststore) throws Exception {
-                            truststore.setCertificateEntry("cell:" + cell, cert);
-                        }
-                    }, false);
+                    X509Certificate cert = configQueryService.query(CellRootCertificateQuery.INSTANCE, true);
+                    TrustStoreManager.getInstance().addCertificate("cell:" + cell, cert);
                 } finally {
                     configQueryService.release();
                 }
             } finally {
                 trustStoreManager.setCertificateCheckEnabled(true);
+            }
+            return null;
+        } else if (name.equals("retrieveCertificateFromPort")) {
+            SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(new KeyManager[0],
+                    new TrustManager[] { new PromiscuousTrustManager(parameters.getSimple("alias").getStringValue())},
+                    new SecureRandom());
+            SSLSocket socket = (SSLSocket)sslContext.getSocketFactory().createSocket(
+                    parameters.getSimple("host").getStringValue(), parameters.getSimple("port").getIntegerValue());
+            try {
+                socket.startHandshake();
+            } finally {
+                socket.close();
             }
             return null;
         } else if (name.equals("listCertificates")) {

@@ -12,7 +12,7 @@ public class DelegatingTrustManager implements X509TrustManager {
     private static final Log log = LogFactory.getLog(DelegatingTrustManager.class);
     
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        TrustStoreManager.getInstance().getTrustManager().checkClientTrusted(chain, authType);
+        throw new UnsupportedOperationException();
     }
 
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {

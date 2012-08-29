@@ -797,6 +797,13 @@
                 &login-configuration;
             </parameters>
         </operation>
+        <operation name="retrieveCertificateFromPort" description="Retrive ertificate from a given SSL port.">
+            <parameters>
+                <c:simple-property name="alias"/>
+                <c:simple-property name="host"/>
+                <c:simple-property name="port" type="integer"/>
+            </parameters>
+        </operation>
         <operation name="listCertificates" description="List the certificates in the trust store.">
             <results>
                 <c:list-property name="certificates"
