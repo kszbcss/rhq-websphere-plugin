@@ -57,7 +57,6 @@ import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStats;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsData;
-import be.fgov.kszbcss.rhq.websphere.connector.security.PromiscuousTrustManager;
 import be.fgov.kszbcss.rhq.websphere.connector.security.TrustStoreAction;
 import be.fgov.kszbcss.rhq.websphere.connector.security.TrustStoreManager;
 
@@ -184,27 +183,20 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
 
     public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("retrieveCellCertificate")) {
-            TrustStoreManager trustStoreManager = TrustStoreManager.getInstance();
-            log.warn("Temporarily disabling certificate check");
-            trustStoreManager.setCertificateCheckEnabled(false);
+            DeploymentManager dm = new DeploymentManager(null, new ConfigurationBasedProcessLocator(parameters));
+            String cell = dm.getCell();
+            ConfigQueryService configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryServiceWithoutCaching(dm);
             try {
-                DeploymentManager dm = new DeploymentManager(null, new ConfigurationBasedProcessLocator(parameters));
-                String cell = dm.getCell();
-                ConfigQueryService configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryServiceWithoutCaching(dm);
-                try {
-                    X509Certificate cert = configQueryService.query(CellRootCertificateQuery.INSTANCE, true);
-                    TrustStoreManager.getInstance().addCertificate("cell:" + cell, cert);
-                } finally {
-                    configQueryService.release();
-                }
+                X509Certificate cert = configQueryService.query(CellRootCertificateQuery.INSTANCE, true);
+                TrustStoreManager.getInstance().addCertificate("cell:" + cell, cert);
             } finally {
-                trustStoreManager.setCertificateCheckEnabled(true);
+                configQueryService.release();
             }
             return null;
         } else if (name.equals("retrieveCertificateFromPort")) {
             SSLContext sslContext = SSLContext.getInstance("SSL");
             sslContext.init(new KeyManager[0],
-                    new TrustManager[] { new PromiscuousTrustManager(parameters.getSimple("alias").getStringValue())},
+                    new TrustManager[] { new AutoImportTrustManager(parameters.getSimple("alias").getStringValue())},
                     new SecureRandom());
             SSLSocket socket = (SSLSocket)sslContext.getSocketFactory().createSocket(
                     parameters.getSimple("host").getStringValue(), parameters.getSimple("port").getIntegerValue());

@@ -31,7 +31,6 @@ public class TrustStoreManager {
     private final ReadWriteLock truststoreLock = new ReentrantReadWriteLock();
     private final File truststoreFile;
     private final AtomicReference<X509TrustManager> trustManager = new AtomicReference<X509TrustManager>();
-    private volatile boolean certificateCheckEnabled = true;
     
     private TrustStoreManager(File truststoreFile) throws Exception {
         this.truststoreFile = truststoreFile;
@@ -53,14 +52,6 @@ public class TrustStoreManager {
 
     public synchronized static void destroy() {
         instance = null;
-    }
-
-    public boolean isCertificateCheckEnabled() {
-        return certificateCheckEnabled;
-    }
-
-    public void setCertificateCheckEnabled(boolean certificateCheckEnabled) {
-        this.certificateCheckEnabled = certificateCheckEnabled;
     }
 
     X509TrustManager getTrustManager() {

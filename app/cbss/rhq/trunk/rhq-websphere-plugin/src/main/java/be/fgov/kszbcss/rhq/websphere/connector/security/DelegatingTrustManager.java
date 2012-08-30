@@ -16,17 +16,12 @@ public class DelegatingTrustManager implements X509TrustManager {
     }
 
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        TrustStoreManager trustStoreManager = TrustStoreManager.getInstance();
-        if (trustStoreManager.isCertificateCheckEnabled()) {
-            try {
-                trustStoreManager.getTrustManager().checkServerTrusted(chain, authType);
-                log.info("Accepted server certificate for " + chain[0].getSubjectDN());
-            } catch (CertificateException ex) {
-                log.error("Rejected server certificate for " + chain[0].getSubjectDN() + ": " + ex.getMessage());
-                throw ex;
-            }
-        } else {
-            log.warn("Skipping certificate check for " + chain[0].getSubjectDN());
+        try {
+            TrustStoreManager.getInstance().getTrustManager().checkServerTrusted(chain, authType);
+            log.info("Accepted server certificate for " + chain[0].getSubjectDN());
+        } catch (CertificateException ex) {
+            log.error("Rejected server certificate for " + chain[0].getSubjectDN() + ": " + ex.getMessage());
+            throw ex;
         }
     }
 
