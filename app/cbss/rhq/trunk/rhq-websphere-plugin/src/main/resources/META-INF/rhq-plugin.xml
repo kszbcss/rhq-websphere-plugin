@@ -792,12 +792,12 @@
             <parent-resource-type name="RHQ Agent" plugin="RHQAgent"/>
         </runs-inside>
         
-        <operation name="retrieveCellCertificate" description="Retrive a cell root certificate from a deployment manager and add it to the trust store.">
+        <operation name="retrieveCellCertificate" description="Retrieve a cell root certificate from a deployment manager and add it to the trust store.">
             <parameters>
                 &login-configuration;
             </parameters>
         </operation>
-        <operation name="retrieveCertificateFromPort" description="Retrive ertificate from a given SSL port.">
+        <operation name="retrieveCertificateFromPort" description="Retrieve ertificate from a given SSL port.">
             <parameters>
                 <c:simple-property name="alias"/>
                 <c:simple-property name="host"/>
