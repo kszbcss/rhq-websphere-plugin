@@ -16,8 +16,6 @@
         <ems.version>1.2.11</ems.version>
     </properties>
     <modules>
-        <module>rhq-cert-common</module>
-        <module>rhq-cert-plugin</module>
         <module>rhq-websphere-plugin</module>
         <module>manual</module>
         <module>websphere-apis</module>

@@ -11,11 +11,6 @@
     <description>RHQ plugin for managing WebSphere Application Server</description>
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>rhq-cert-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.rhq</groupId>
             <artifactId>rhq-core-domain</artifactId>
             <version>${rhq.version}</version>
