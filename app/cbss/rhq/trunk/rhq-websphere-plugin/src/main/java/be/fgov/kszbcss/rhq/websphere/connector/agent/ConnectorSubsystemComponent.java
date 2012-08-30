@@ -238,6 +238,14 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
             OperationResult result = new OperationResult();
             result.getComplexResults().put(certificates);
             return result;
+        } else if (name.equals("removeCertificate")) {
+            final String alias = parameters.getSimple("alias").getStringValue();
+            TrustStoreManager.getInstance().execute(new TrustStoreAction() {
+                public void execute(KeyStore truststore) throws Exception {
+                    truststore.deleteEntry(alias);
+                }
+            }, false);
+            return null;
         } else {
             return null;
         }

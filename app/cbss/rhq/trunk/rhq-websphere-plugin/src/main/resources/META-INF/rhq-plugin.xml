@@ -823,6 +823,11 @@
                 </c:list-property>
             </results>
         </operation>
+        <operation name="removeCertificate" description="Remove the certificate with the given alias from the trust store.">
+            <parameters>
+                <c:simple-property name="alias"/>
+            </parameters>
+        </operation>
         
         <metric property="LogEventsPublished" displayName="Log Events Published"
                 category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
