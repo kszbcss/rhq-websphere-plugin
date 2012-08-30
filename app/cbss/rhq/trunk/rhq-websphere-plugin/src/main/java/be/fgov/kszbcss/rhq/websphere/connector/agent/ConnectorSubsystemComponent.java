@@ -14,6 +14,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -210,8 +211,12 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
             final PropertyList certificates = new PropertyList("certificates");
             TrustStoreManager.getInstance().execute(new TrustStoreAction() {
                 public void execute(KeyStore truststore) throws Exception {
-                    for (Enumeration<String> aliases = truststore.aliases(); aliases.hasMoreElements(); ) {
-                        String alias = aliases.nextElement();
+                    // Sort the aliases for convenience
+                    Set<String> aliases = new TreeSet<String>();
+                    for (Enumeration<String> e = truststore.aliases(); e.hasMoreElements(); ) {
+                        aliases.add(e.nextElement());
+                    }
+                    for (String alias : aliases) {
                         X509Certificate cert = (X509Certificate)truststore.getCertificate(alias);
                         PropertyMap map = new PropertyMap("certificate");
                         map.put(new PropertySimple("alias", alias));
