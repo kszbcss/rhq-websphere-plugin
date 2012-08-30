@@ -828,6 +828,12 @@
                 <c:simple-property name="alias"/>
             </parameters>
         </operation>
+        <operation name="renameCertificate" description="Rename a certificate alias.">
+            <parameters>
+                <c:simple-property name="oldAlias"/>
+                <c:simple-property name="newAlias"/>
+            </parameters>
+        </operation>
         
         <metric property="LogEventsPublished" displayName="Log Events Published"
                 category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"

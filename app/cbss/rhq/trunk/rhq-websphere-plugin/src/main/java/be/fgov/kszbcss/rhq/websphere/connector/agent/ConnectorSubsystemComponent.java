@@ -3,6 +3,7 @@ package be.fgov.kszbcss.rhq.websphere.connector.agent;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.Set;
@@ -146,6 +147,17 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
             TrustStoreManager.getInstance().execute(new TrustStoreAction() {
                 public void execute(KeyStore truststore) throws Exception {
                     truststore.deleteEntry(alias);
+                }
+            }, false);
+            return null;
+        } else if (name.equals("renameCertificate")) {
+            final String oldAlias = parameters.getSimple("oldAlias").getStringValue();
+            final String newAlias = parameters.getSimple("newAlias").getStringValue();
+            TrustStoreManager.getInstance().execute(new TrustStoreAction() {
+                public void execute(KeyStore truststore) throws Exception {
+                    Certificate cert = truststore.getCertificate(oldAlias);
+                    truststore.setCertificateEntry(newAlias, cert);
+                    truststore.deleteEntry(oldAlias);
                 }
             }, false);
             return null;
