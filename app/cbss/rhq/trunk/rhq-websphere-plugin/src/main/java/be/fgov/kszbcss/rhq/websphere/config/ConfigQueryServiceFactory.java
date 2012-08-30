@@ -44,7 +44,7 @@ public class ConfigQueryServiceFactory {
         // This ensures persistence between agent/plugin restarts
         cacheConfig.setDiskPersistent(true);
         config.setDefaultCacheConfiguration(cacheConfig);
-        cacheManager = CacheManager.create(config);
+        cacheManager = new CacheManager(config);
     }
     
     private void doDestroy() {
@@ -98,7 +98,7 @@ public class ConfigQueryServiceFactory {
         CacheConfiguration cacheConfig = new CacheConfiguration("non-persistent", 100);
         cacheConfig.setTimeToIdleSeconds(7*24*3600);
         config.setDefaultCacheConfiguration(cacheConfig);
-        final CacheManager nonPersistentCacheManager = CacheManager.create(config);
+        final CacheManager nonPersistentCacheManager = new CacheManager(config);
         return new ConfigQueryServiceImpl(nonPersistentCacheManager, cell + "-non-persistent", server, cell) {
             @Override
             public void release() {
