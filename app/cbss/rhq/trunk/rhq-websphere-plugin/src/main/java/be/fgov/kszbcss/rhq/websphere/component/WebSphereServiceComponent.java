@@ -1,5 +1,7 @@
 package be.fgov.kszbcss.rhq.websphere.component;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.mc4j.ems.connection.EmsConnection;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.configuration.PropertySimple;
@@ -12,6 +14,8 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 
 public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>> implements WebSphereComponent<T>, OperationFacet {
+    private static final Log log = LogFactory.getLog(WebSphereServiceComponent.class);
+    
     private ResourceContext<T> context;
 
     public final void start(ResourceContext<T> context) throws InvalidPluginConfigurationException, Exception {
@@ -46,9 +50,13 @@ public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>>
     public final AvailabilityType getAvailability() {
         try {
             if (!isConfigured(false)) {
+                log.debug("isConfigured=false => availability == DOWN");
                 return AvailabilityType.DOWN;
+            } else {
+                log.debug("isConfigured=true; continue with checking the runtime state");
             }
         } catch (Exception ex) {
+            log.debug("Caught exception thrown by isConfigured => availability == DOWN", ex);
             return AvailabilityType.DOWN;
         }
         return doGetAvailability();

@@ -74,14 +74,10 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
         }
         try {
             mbean.getObjectName(true);
-            if (log.isDebugEnabled()) {
-                log.debug("MBean found => availability == UP");
-            }
+            log.debug("MBean found => availability == UP");
             return AvailabilityType.UP;
         } catch (Exception ex) {
-            if (log.isDebugEnabled()) {
-                log.debug("MBean not found => availability == DOWN", ex);
-            }
+            log.debug("MBean not found => availability == DOWN", ex);
             return AvailabilityType.DOWN;
         }
     }
