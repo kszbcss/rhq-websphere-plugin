@@ -1,0 +1,847 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE plugin [
+<!ENTITY login-configuration '
+    <c:simple-property name="host" default="localhost"/>
+    <c:simple-property name="port" default="9100" type="integer"/>
+    <c:simple-property name="protocol" default="RMI">
+        <c:property-options>
+            <c:option value="RMI" name="RMI"/>
+            <c:option value="SOAP" name="SOAP"/>
+        </c:property-options>
+    </c:simple-property>
+    <c:simple-property name="principal" required="false"
+                       description="The name of the principal (i.e. user) to authenticate."/>
+    <c:simple-property name="credentials" type="password" required="false"
+                       description="The credentials (i.e. password) that should be used to authenticate the principal."/>
+'>
+<!-- Resource configuration shared by session beans, MDBs and WAR modules -->
+<!ENTITY logevent-configuration '
+    <c:simple-property name="suppressLogEvents"
+                       displayName="Suppress Log Events"
+                       type="boolean"
+                       description="Suppresses all log events from this component. Useful for components that generate too much events."
+                       required="true"
+                       default="false"/>
+'>
+<!ENTITY deployment-configuration '
+    <c:group name="bindings" displayName="Bindings">
+        <c:list-property name="messagingDestinationRefs"
+                         displayName="Messaging Destinations"
+                         description="Messaging Destination References"
+                         required="false" readOnly="true">
+            <c:map-property name="messagingDestinationRef">
+                <c:simple-property name="name"
+                                   displayName="Name"
+                                   description="Name of the entry in the java:comp/env namespace"
+                                   required="true"/>
+                <c:simple-property name="bindingName"
+                                   displayName="Binding Name"
+                                   description="The JNDI name of the resource the entry is bound to"
+                                   required="true"/>
+                <c:simple-property name="busName"
+                                   displayName="Bus Name"
+                                   description="The name of the SIBus where the destination is located"
+                                   required="false"/>
+                <c:simple-property name="destinationName"
+                                   displayName="Destination Name"
+                                   description="The name of the SIBus destination"
+                                   required="false"/>
+            </c:map-property>
+        </c:list-property>
+    </c:group>
+'>
+<!ENTITY isConfigured-operation '
+    <operation name="checkConfiguration" description="Determines if the resource is still configured in the WebSphere configuration. Useful to determine if a resource should be uninventoried automatically.">
+        <results>
+            <c:simple-property name="isConfigured" displayName="Is Configured" type="boolean"/>
+        </results>
+    </operation>
+'>
+<!ENTITY threadpool-metrics '
+    <metric property="stats.PoolSize" displayName="Pool size"
+            category="utilization" displayType="summary" defaultInterval="600000"
+            description="The average number of threads in a pool."/>
+    <metric property="stats.PercentMaxed" displayName="&#37; Maxed"
+            category="utilization" units="percentage" defaultInterval="600000"
+            description="The average percent of the time that all threads are in use."/>
+    <metric property="stats.ConcurrentHungThreadCount" displayName="Hung Thread Count"
+            category="performance" displayType="summary" defaultInterval="600000"
+            description="The number of concurrently stopped threads."/>
+    <metric property="stats.CreateCount" displayName="Threads created"
+            category="utilization" defaultInterval="600000" measurementType="trendsup"
+            description="The total number of threads that are created."/>
+    <metric property="stats.DestroyCount" displayName="Threads destroyed"
+            category="utilization" defaultInterval="600000" measurementType="trendsup"
+            description="The total number of threads that are destroyed."/>
+    <!-- Since ActiveCount may fluctuate rapidly and only gives a snapshot value,
+         we use a lower default interval, but don t enable the metric by default -->
+    <metric property="stats.ActiveCount" displayName="Active Threads"
+            category="utilization" defaultInterval="60000"
+            description="The number of concurrently active threads."/>
+    <metric property="stats.DeclaredThreadHungCount" displayName="Threads Declared Hung"
+            category="performance" defaultInterval="600000" measurementType="trendsup"
+            description="The number of threads that are declared stopped."/>
+    <metric property="stats.ClearedThreadHangCount" displayName="Hung Threads Cleared"
+            category="performance" defaultInterval="600000" measurementType="trendsup"
+            description="The number of thread stops that cleared."/>
+'>
+<!ENTITY threadpool-configuration '
+    <resource-configuration>
+        <c:simple-property name="minimumSize" displayName="Minimum Size" type="integer"
+                           description="Minimum size of the thread pool."/>
+        <c:simple-property name="maximumSize" displayName="Maximum Size" type="integer"
+                           description="Maximum size of the thread pool."/>
+        <c:simple-property name="inactivityTimeout" displayName="Inactivity Timeout" type="long"
+                           description="The number of milliseconds to keep threads alive waiting for a new request (-1 = infinite, 0 = immediate)."/>
+        <c:simple-property name="growable" displayName="Growable" type="boolean"
+                           description="Allow the thread pool to grow past the maximum size."/>
+    </resource-configuration>
+'>
+<!ENTITY class-loader-stats-metrics '
+    <metric property="stats.CreateCount" displayName="Create Count"
+            category="utilization" defaultInterval="600000" defaultOn="false"
+            description="The number of application and module class loaders created."/>
+    <metric property="stats.StopCount" displayName="Stop Count"
+            category="utilization" defaultInterval="600000" defaultOn="false"
+            description="The number of class loaders for modules that have been stopped."/>
+    <metric property="stats.DestroyedCount" displayName="Destroyed Count"
+            category="utilization" defaultInterval="600000" defaultOn="false"
+            description="The number of application and module class loaders that have been destroyed (garbage collected)."/>
+    <metric property="stats.LeakedCount" displayName="Leaked Count" defaultOn="true"
+            category="utilization" displayType="summary" defaultInterval="600000"
+            description="The number of leaked class loaders."/>
+'>
+]>
+<plugin name="WebSphere"
+        displayName="WebSphere Application Server"
+        package="be.fgov.kszbcss.rhq.websphere"
+        pluginLifecycleListener="WebSpherePluginLifecycleListener"
+        description="Supports management and monitoring of WebSphere Application Server"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+    <depends plugin="JMX"/>
+    <server name="WebSphere Server"
+            discovery="be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerDiscoveryComponent"
+            class="be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent"
+            description="WebSphere Application Server"
+            supportsManualAdd="true">
+        
+        <plugin-configuration>
+            <c:group name="connection" displayName="Connection Info">
+                &login-configuration;
+                <c:simple-property name="loggingProvider" default="none"
+                                   description="Specifies how log events are collected from the server. 'RasLoggingService' is supported out of the box by WebSphere. 'XM4WAS LoggingService' requires deployment of the XM4WAS plugins to WebSphere, but adds support for stack traces and correlating events with application components. In addition, it uses polling instead of JMX notifications.">
+                    <c:property-options>
+                        <c:option value="none" name="None"/>
+                        <c:option value="ras" name="RasLoggingService"/>
+                        <c:option value="xm4was" name="XM4WAS LoggingService"/>
+                    </c:property-options>
+                </c:simple-property>
+            </c:group>
+            <c:group name="advanced" displayName="Advanced" hiddenByDefault="true">
+                <c:simple-property name="childJmxServerName" displayName="WebSphere JVM Name" default="JVM"
+                                   readOnly="true" required="false"
+                                   description="The name of the WebSphere JVM resource."/>
+                <c:simple-property name="unmanaged" type="boolean" default="false"
+                                   readOnly="true" required="true"
+                                   description="Is the server an unmanaged process (i.e. a stand-alone server)?"/>
+            </c:group>
+        </plugin-configuration>
+        
+        <operation name="restart" description="Restart the server process."/>
+        <operation name="pauseAllMessageEndpoints" description="Pause all J2C message endpoints on this server."/>
+        <operation name="resumeAllMessageEndpoints" description="Resume all J2C message endpoints on this server."/>
+        <operation name="appendTraceString" description="Add the specified trace string to the trace state already active in the process runtime, without first clearing the current state.">
+            <parameters>
+               <c:simple-property name="traceString" required="true"/>
+            </parameters>
+        </operation>
+        
+        <metric property="pid" displayName="PID" dataType="trait"
+                displayType="summary" defaultOn="true"
+                description="The process ID of the WebSphere JVM."/>
+        
+        <event name="LogEvent" description="Logging message"/>
+        
+        <resource-configuration>
+            <c:simple-property name="clusterName" displayName="Cluster Name" type="string" required="false" readOnly="true"
+                               description="The name of the cluster the application server is a member of."/>
+        </resource-configuration>
+        
+        <server name="WebSphere JVM"
+                description="JVM of the WebSphere Application Server"
+                sourcePlugin="JMX"
+                sourceType="JMX Server"
+                discovery="org.rhq.plugins.jmx.EmbeddedJMXServerDiscoveryComponent"
+                class="org.rhq.plugins.jmx.JMXServerComponent"
+                singleton="true"/>
+
+        <service name="Transaction Service"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.server.TransactionServiceDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.server.TransactionServiceComponent"
+                 description="Transaction Service"
+                 singleton="true">
+            <metric property="stats.GlobalBegunCount" displayName="Global Transactions Begun"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of global transactions begun on a server."/>
+            <metric property="stats.GlobalInvolvedCount" displayName="Global Transactions Involved"
+                    category="utilization" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of global transactions that are involved on a server (that is, begun and imported)."/>
+            <metric property="stats.LocalBegunCount" displayName="Local Transactions Begun"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of local transactions begun on the server."/>
+            <metric property="stats.ActiveCount" displayName="Active Global Transactions"
+                    category="utilization" displayType="summary" defaultInterval="120000"
+                    description="The number of concurrently active global transactions."/>
+            <metric property="stats.LocalActiveCount" displayName="Active Local Transactions"
+                    category="utilization" displayType="summary" defaultInterval="120000"
+                    description="The number of concurrently active local transactions."/>
+            <metric property="stats.GlobalTranTime" displayName="Global Transaction Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of global transactions."/>
+            <metric property="stats.LocalTranTime" displayName="Local Transaction Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of local transactions."/>
+            <metric property="stats.GlobalBeforeCompletionTime" displayName="Global Before Completion Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of before_completion for global transactions."/>
+            <metric property="stats.GlobalPrepareTime" displayName="Global Prepare Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of prepare for global transactions."/>
+            <metric property="stats.GlobalCommitTime" displayName="Global Commit Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of commit for global transactions."/>
+            <metric property="stats.LocalBeforeCompletionTime" displayName="Local Before Completion Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of before_completion for local transactions."/>
+            <metric property="stats.LocalCommitTime" displayName="Local Commit Time"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="The average duration of commit for local transactions."/>
+            <metric property="stats.OptimizationCount" displayName="Global Transaction Optimized"
+                    category="utilization" defaultInterval="600000" measurementType="trendsup"
+                    description="The total number of global transactions that are converted to single phase for optimization."/>
+            <metric property="stats.CommittedCount" displayName="Global Transactions Committed"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of global transactions that are committed."/>
+            <metric property="stats.LocalCommittedCount" displayName="Local Transactions Committed"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of local transactions that are committed."/>
+            <metric property="stats.RolledbackCount" displayName="Global Transactions Rolled Back"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of global transactions that are rolled back."/>
+            <metric property="stats.LocalRolledbackCount" displayName="Local Transactions Rolled Back"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of local transactions that rolled back."/>
+            <metric property="stats.GlobalTimeoutCount" displayName="Global Transactions Timed Out"
+                    category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of global transactions that timed out."/>
+            <metric property="stats.LocalTimeoutCount" displayName="Local Transactions Timed Out"
+                    category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of local transactions that timed out."/>
+            <metric property="IndoubtTransactions" displayName="In-doubt Transactions"
+                    category="utilization" displayType="summary" defaultInterval="600000"
+                    description="The number of transactions that require manual review."/>
+        </service>
+        
+        <service name="UNIX Process"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.xm4was.UnixProcessDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.xm4was.UnixProcessComponent"
+                 description="UNIX Process Statistics"
+                 singleton="true">
+            <metric property="stats.FileDescriptors" displayName="File Descriptors"
+                    category="utilization" displayType="summary" defaultInterval="120000"
+                    description="The number of file descriptors used by the process."/>
+            <metric property="stats.VmSize" units="bytes" displayName="Virtual Size"
+                    category="utilization" displayType="summary" defaultInterval="600000"
+                    description="Virtual memory size of the process."/>
+            <metric property="stats.VmRSS" units="bytes" displayName="Resident Set Size"
+                    category="utilization" displayType="summary" defaultInterval="600000"
+                    description="The number of bytes the process has in real memory."/>
+        </service>
+        
+        <service name="Class Loader Stats"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.xm4was.ClassLoaderStatsDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.xm4was.ClassLoaderStatsComponent"
+                 description="Class Loader Statistics"
+                 singleton="true">
+            &class-loader-stats-metrics;
+        </service>
+        
+        <service name="Thread Pool"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.server.ThreadPoolDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.server.ThreadPoolComponent"
+                 description="WebSphere Thread Pool">
+            
+            &isConfigured-operation;
+            &threadpool-metrics;
+            &threadpool-configuration;
+        </service>
+        
+        <service name="Work Manager"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.pme.WorkManagerDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.pme.WorkManagerComponent"
+                 description="WebSphere Work Manager">
+            
+            &isConfigured-operation;
+            &threadpool-metrics;
+            &threadpool-configuration;
+        </service>
+        
+        <service name="Timer Manager"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.pme.TimerManagerDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.pme.TimerManagerComponent"
+                 description="WebSphere Timer Manager">
+            
+            &isConfigured-operation;
+            
+            &threadpool-metrics;
+            <metric property="alarm-stats.AlarmsCreatedCount" displayName="Alarms Created"
+                    category="utilization" defaultInterval="600000" measurementType="trendsup"
+                    description="Total number of alarms created."/>
+            <metric property="alarm-stats.AlarmsCancelledCount" displayName="Alarms Cancelled"
+                    category="utilization" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of alarms cancelled by the application."/>
+            <metric property="alarm-stats.AlarmsFiredCount" displayName="Alarms Fired"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="Number of alarms fired."/>
+            <metric property="alarm-stats.AlarmLatencyDuration" displayName="Latency"
+                    category="performance" units="milliseconds" defaultInterval="600000"
+                    description="Latency of alarms fired in milliseconds."/>
+            <metric property="alarm-stats.AlarmsPendingSize" displayName="Alarms Pending"
+                    category="utilization" defaultInterval="600000"
+                    description="Number of alarms waiting to fire."/>
+            
+            &threadpool-configuration;
+        </service>
+        
+        <service name="DynaCache"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.server.DynaCacheDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.server.DynaCacheComponent"
+                 description="WebSphere Dynamic Cache">
+    
+            &isConfigured-operation;
+            <operation name="clearCache" description="Clear the cache."/>
+            
+            <metric property="CacheHits" displayName="Cache Hits"
+                    category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of cache hits."/>
+            <metric property="CacheMisses" displayName="Cache Misses"
+                    category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of cache misses."/>
+            <metric property="MemoryCacheEntries" displayName="Memory Cache Entries"
+                    category="utilization" displayType="summary" defaultInterval="600000"
+                    description="The number of in-memory cache entries."/>
+        </service>
+        <service name="Datasource"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceComponent"
+                 description="Datasource">
+            &isConfigured-operation;
+            
+            <metric property="stats.PoolSize" displayName="Pool size"
+                    category="utilization" displayType="summary" defaultInterval="600000"
+                    description="The size of the connection pool."/>
+            <metric property="stats.UseTime" displayName="Avg. Use Time"
+                    category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                    description="The average time in milliseconds that a connection is used"/>
+            <metric property="stats.WaitTime" displayName="Avg. Wait Time"
+                    category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                    description="The average waiting time in milliseconds until a connection is granted"/>
+            <metric property="stats.PercentUsed" displayName="% Used"
+                    category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
+                    description="Average percent of the pool that is in use. The value is based on the total number of configured connections in the ConnectionPool, not the current number of connections."/>
+            <metric property="stats.PercentMaxed" displayName="% Maxed"
+                    category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
+                    description="The average percent of the time that all connections are in use."/>
+            <metric property="stats.AllocateCount" displayName="Allocated Connections"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The total number of connections that are allocated."/>
+            <metric property="stats.PrepStmtCacheDiscardCount" displayName="Disc. Prep. Stmt."
+                    category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of statements that are discarded because the cache is full."/>
+            
+            <resource-configuration>
+                <c:simple-property name="loginTimeout" displayName="Login Timeout" type="integer" readOnly="true"
+                                   description="Login timeout."/>
+                <c:simple-property name="statementCacheSize" displayName="Statement Cache Size" type="integer" readOnly="true"
+                                   description="The size of the prepared statement cache."/>
+                <c:simple-property name="jtaEnabled" displayName="JTA Enabled" type="boolean" readOnly="true"
+                                   description="Indicates whether JTA is enabled for this data source."/>
+                <c:simple-property name="testConnection" displayName="Test Connection" type="boolean"
+                                   description="Specifies to test pooled connections from the free pool."/>
+                <c:simple-property name="testConnectionInterval" displayName="Test Connection Interval" type="integer"
+                                   description="Specifies the retry interval for the connection pool that is down."/>
+                <c:simple-property name="stuckTimerTime" displayName="Stuck Timer Frequence" type="integer"
+                                   description="Frequency of stuck time thread."/>
+                <c:simple-property name="stuckTime" displayName="Stuck Time" type="integer"
+                                   description="Connection stuck time."/>
+                <c:simple-property name="stuckThreshold" displayName="Stuck Threshold" type="integer"
+                                   description="Number of connections threshold."/>
+                <c:simple-property name="surgeThreshhold" displayName="Surge Threshold" type="integer"
+                                   description="Connection creation will be restricted when this number is exceeded by the amount of surge time."/>
+                <c:simple-property name="surgeCreationInterval" displayName="Surge Creation Interval" type="integer"
+                                   description="A connection will be created every surge time seconds while in surge threshold mode."/>
+                <c:simple-property name="connectionTimeout" displayName="Connection Timeout" type="integer"
+                                   description="Interval, in seconds after which a connection request times out and a ConnectionWaitTimeoutException is thrown."/>
+                <c:simple-property name="minConnections" displayName="Minimum Size" type="integer"
+                                   description="The minimum number of managed connection that should be maintained for all cases except if agedTimeout is set."/>
+                <c:simple-property name="maxConnections" displayName="Maximum Size" type="integer"
+                                   description="The maximun number of managed connections that can be created in this connection pool."/>
+                <c:simple-property name="purgePolicy" displayName="Purge Policy" type="string"
+                                   description="Specifies how to purge the connections when a connection error occurs (EntirePool or FailingConnectionOnly)."/>
+                <c:simple-property name="reapTime" displayName="Reap Time" type="integer"
+                                   description="Interval in seconds between runs of the connection pool maintenance thread."/>
+                <c:simple-property name="unusedTimeout" displayName="Unused Timeout" type="integer"
+                                   description="Interval in seconds after which an unused connection is discarded by the connection pool maintenance thread."/>
+                <c:simple-property name="agedTimeout" displayName="Aged Timeout" type="integer"
+                                   description="Interval in seconds after which an unused aged connection is discarded by the connection pool maintenance thread."/>
+            </resource-configuration>
+            
+            <service name="DB2 Monitor"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.jdbc.db2.DB2MonitorDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.jdbc.db2.DB2MonitorComponent"
+                     description="DB2 Monitor"
+                     singleton="true">
+                <plugin-configuration>
+                    <c:simple-property name="principal" required="false"
+                                       description="The name of the monitoring user."/>
+                    <c:simple-property name="credentials" type="password" required="false"
+                                       description="The credentials (i.e. password) for the monitoring user."/>
+                </plugin-configuration>
+                
+                <metric property="rows_deleted" displayName="Rows Deleted"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
+                        description="The number of row deletions attempted."/>
+                <metric property="rows_inserted" displayName="Rows Inserted"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
+                        description="The number of row insertions attempted."/>
+                <metric property="rows_updated" displayName="Rows Updated"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
+                        description="The number of row updates attempted."/>
+                <metric property="rows_selected" displayName="Rows Selected"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
+                        description="The number of rows that have been selected and returned to the application."/>
+                <metric property="rows_read" displayName="Rows Read"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
+                        description="The number of rows read."/>
+                <metric property="agent_usr_cpu_time" displayName="CPU Time"
+                        category="utilization" units="milliseconds" defaultInterval="120000" measurementType="trendsup"
+                        description="The CPU time consumed by the DB2 agents linked to this data source."/>
+                <metric property="lock_waits" displayName="Lock Waits"
+                        category="performance" defaultInterval="120000" measurementType="trendsup"
+                        description="The total number of times that applications or connections waited for locks."/>
+                <metric property="lock_wait_time:lock_waits" displayName="Avg Lock Wait Time"
+                        category="performance" units="milliseconds" defaultInterval="120000"
+                        description="The average time the application waited for a lock."/>
+                <metric property="deadlocks" displayName="Deadlocks"
+                        category="performance" defaultInterval="120000" measurementType="trendsup"
+                        description="The number of deadlocks that have occurred."/>
+                <metric property="lock_escals" displayName="Lock Escalations"
+                        category="performance" defaultInterval="120000" measurementType="trendsup"
+                        description="The number of times that locks have been escalated from several row locks to a table lock."/>
+                <metric property="locks_held" displayName="Locks Held"
+                        category="utilization" defaultInterval="120000"
+                        description="The total number of locks currently held."/>
+                <metric property="commit_sql_stmts" displayName="Commits"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
+                        description="The total number of SQL COMMIT statements that have been attempted."/>
+                <metric property="rollback_sql_stmts" displayName="Rollbacks"
+                        category="utilization" defaultInterval="120000" measurementType="trendsup"
+                        description="The total number of SQL ROLLBACK statements that have been attempted."/>
+                <metric property="uow_log_space_used" units="bytes" displayName="Log Space Used"
+                        category="utilization" defaultInterval="120000"
+                        description="The amount of log space used."/>
+                
+                <metric property="acr.primary" displayName="Primary Server" dataType="trait"
+                        displayType="summary" defaultOn="true"
+                        description="The primary server as seen by the RHQ agent, i.e. the DB2 server that the RHQ agent is connected to."/>
+                <metric property="acr.alternate" displayName="Alternate Servers" dataType="trait"
+                        displayType="summary" defaultOn="true"
+                        description="The list of alternate servers as reported by the primary DB2 server."/>
+            </service>
+        </service>
+        <service name="Connection Factory"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.j2c.J2CConnectionFactoryDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.j2c.J2CConnectionFactoryComponent"
+                 description="Datasource">
+            &isConfigured-operation;
+            
+            <metric property="stats.PoolSize" displayName="Pool size"
+                    category="utilization" displayType="summary" defaultInterval="600000"
+                    description="The size of the connection pool."/>
+            <metric property="stats.UseTime" displayName="Avg. Use Time"
+                    category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                    description="The average time in milliseconds that a connection is used"/>
+            <metric property="stats.WaitTime" displayName="Avg. Wait Time"
+                    category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                    description="The average waiting time in milliseconds until a connection is granted"/>
+            <metric property="stats.PercentUsed" displayName="% Used"
+                    category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
+                    description="Average percent of the pool that is in use. The value is based on the total number of configured connections in the ConnectionPool, not the current number of connections."/>
+            <metric property="stats.PercentMaxed" displayName="% Maxed"
+                    category="utilization" units="percentage" displayType="summary" defaultInterval="600000"
+                    description="The average percent of the time that all connections are in use."/>
+            <metric property="stats.AllocateCount" displayName="Allocated Connections"
+                    category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The total number of connections that are allocated."/>
+        </service>
+        <service name="Outbound Connection Cache"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.xm4was.OutboundConnectionCacheDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.xm4was.OutboundConnectionCacheComponent"
+                 description="Outbound HTTP Connection Cache">
+    
+            <metric property="stats.ConnectionsInUse" displayName="Connections In Use"
+                    category="utilization" displayType="summary" defaultInterval="60000"
+                    description="The number of connections currently in use."/>
+            <metric property="stats.PoolSize" displayName="Pool Size"
+                    category="utilization" displayType="summary" defaultInterval="120000"
+                    description="The current size of the pool."/>
+
+            <resource-configuration>
+                <c:simple-property name="maxConnection" displayName="Max Connections" type="integer" readOnly="true"
+                                   description="The maximum number of connections in the pool."/>
+                <c:simple-property name="connTimeout" displayName="Connection timeout" type="integer" readOnly="true"
+                                   description="The connection timeout."/>
+            </resource-configuration>
+        </service>
+        <service name="Application"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ApplicationDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ApplicationComponent"
+                 description="Application (EAR)">
+            
+            &isConfigured-operation;
+            <operation name="start" description="Start the application."/>
+            <operation name="stop" description="Stop the application."/>
+            
+            <metric property="implementationVersion" displayName="Version" dataType="trait"
+                    displayType="summary" defaultOn="true"
+                    description="The version of the application instance currently running."/>
+            <metric property="specVersion" displayName="Spec Version" dataType="trait"
+                    displayType="summary" defaultOn="true"
+                    description="The version of the J2EE specification used by the application, as defined in the deployment descriptor."/>
+            
+            <service name="Application Class Loader"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.xm4was.ModuleClassLoaderStatsDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.xm4was.ApplicationClassLoaderStatsComponent"
+                     description="Application Class Loader Statistics"
+                     singleton="true">
+                &class-loader-stats-metrics;
+            </service>
+            
+            <service name="Web module"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleComponent"
+                     description="Web module">
+                
+                <plugin-configuration>
+                &logevent-configuration;
+                </plugin-configuration>
+                                         
+                &isConfigured-operation;
+            
+                <metric property="specVersion" displayName="Spec Version" dataType="trait"
+                        displayType="summary" defaultOn="true"
+                        description="The version of the servlet specification used by the module as defined in the deployment descriptor."/>
+                
+                <event name="LogEvent" description="Logging message"/>
+                
+                <resource-configuration>
+                &deployment-configuration;
+                </resource-configuration>
+                
+                <service name="Web Module Class Loader"
+                         discovery="be.fgov.kszbcss.rhq.websphere.component.xm4was.ModuleClassLoaderStatsDiscoveryComponent"
+                         class="be.fgov.kszbcss.rhq.websphere.component.xm4was.WebModuleClassLoaderStatsComponent"
+                         description="Web Module Class Loader Statistics"
+                         singleton="true">
+                    &class-loader-stats-metrics;
+                </service>
+                
+                <service name="Servlet"
+                         discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletDiscoveryComponent"
+                         class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletComponent"
+                         description="Servlet">
+                    <plugin-configuration>
+                    &logevent-configuration;
+                    </plugin-configuration>                         
+                    
+                    <metric property="stats.ServiceTime" displayName="Avg. Servlet Resp. Time"
+                            category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                            description="Average response time of a servlet"/>
+                    <metric property="stats.ErrorCount" displayName="Error Count"
+                            category="availability" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                            description="The total number of times an error has been received from the servlet or JSP."/>
+                    <metric property="stats.RequestCount" displayName="Request Count"
+                            category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                            description="The number of requests received by the servlet"/>
+                    <metric property="stats.ConcurrentRequests" displayName="Concurrent Requests"
+                            category="utilization" defaultInterval="60000"
+                            description="The number of requests that are concurrently processed."/>
+                    
+                    <event name="LogEvent" description="Logging message"/>
+                </service>
+            </service>
+            
+            <service name="EJB module"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.EJBModuleDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.EJBModuleComponent"
+                     description="EJB module">
+                
+                &isConfigured-operation;
+            
+                <metric property="specVersion" displayName="Spec Version" dataType="trait"
+                        displayType="summary" defaultOn="true"
+                        description="The version of the EJB specification used by the module, as defined in the deployment descriptor."/>
+                
+                <service name="Stateless Session Bean"
+                         discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanDiscoveryComponent"
+                         class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanComponent"
+                         description="Stateless Session Bean">
+                    <plugin-configuration>
+                    &logevent-configuration;
+                    </plugin-configuration>                         
+                    
+                    &isConfigured-operation;
+                
+                    <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
+                            category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                            description="The average response time in milliseconds on the remote methods of the bean"/>
+                    <metric property="stats.MethodCallCount" displayName="Method Call Count"
+                            category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                            description="The number of calls to the remote methods of the bean"/>
+                    
+                    <event name="LogEvent" description="Logging message"/>
+                    
+                    <resource-configuration>
+                    &deployment-configuration;
+                    </resource-configuration>
+                </service>
+                <service name="Message Driven Bean"
+                         discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanDiscoveryComponent"
+                         class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanComponent"
+                         description="Message Driven Bean">
+                    <plugin-configuration>
+                    &logevent-configuration;
+                    </plugin-configuration>                         
+                    
+                    &isConfigured-operation;
+                    <operation name="pause" description="Deactivate the Message Endpoint for this MDB."/>
+                    <operation name="resume" description="Activate the Message Endpoint for this MDB."/>
+                    
+                    <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
+                            category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
+                            description="The average response time in milliseconds on the remote methods of the bean"/>
+                    <metric property="stats.MessageCount" displayName="Message Count"
+                            category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                            description="The number of messages delivered to the onMessage method of the bean"/>
+                    <metric property="stats.LiveCount" displayName="Live Count"
+                            category="utilization" defaultInterval="600000"
+                            description="The average number of concurrently live beans."/>
+                    <metric property="stats.ActiveMethodCount" displayName="Active Method Count"
+                            category="utilization" defaultInterval="60000"
+                            description="The average number of concurrently active methods (that is, the num methods called at the same time)."/>
+                    
+                    <event name="LogEvent" description="Logging message"/>
+                    
+                    <resource-configuration>
+                        <c:group name="listener" displayName="Listener Configuration">
+                            <c:simple-property name="activationSpecJndiName"
+                                               displayName="Activation Spec JNDI Name"
+                                               description="The JNDI name of the activation spec"
+                                               required="true" readOnly="true"/>
+                            <c:simple-property name="destinationJndiName"
+                                               displayName="Destination JNDI Name"
+                                               description="The JNDI name of the destination"
+                                               required="false" readOnly="true"/>
+                            <c:simple-property name="busName"
+                                               displayName="Bus Name"
+                                               description="The name of the SIBus where the destination is located"
+                                               required="false" readOnly="true"/>
+                            <c:simple-property name="destinationName"
+                                               displayName="Destination Name"
+                                               description="The name of the SIBus destination"
+                                               required="false" readOnly="true"/>
+                            <c:simple-property name="maxConcurrency"
+                                               displayName="Max Concurrency"
+                                               description="Maximum concurrent endpoints"
+                                               required="false" readOnly="true" type="integer"/>
+                        </c:group>
+                        &deployment-configuration;
+                    </resource-configuration>
+                </service>
+            </service>
+        </service>
+        
+        <service name="Messaging Engine"
+                 discovery="be.fgov.kszbcss.rhq.websphere.component.sib.SIBMessagingEngineDiscoveryComponent"
+                 class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBMessagingEngineComponent"
+                 description="SIBus Messaging Engine">
+            
+            &isConfigured-operation;
+            <operation name="enable" description="Enable this messaging engine in the HAManager."/>
+            <operation name="disable" description="Disable this messaging engine in the HAManager."/>
+        
+            <metric property="health" displayName="Health" dataType="trait"
+                    displayType="summary" defaultOn="true"
+                    description="The current Health of the Messaging Engine."/>
+            
+            <service name="Cache"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.sib.CacheDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.sib.CacheComponent"
+                     description="SIBus Messaging Engine Cache"
+                     singleton="true">
+                
+                <metric property="stats.CacheCurrentNotStoredByteCount" displayName="Not Stored Byte Count"
+                        category="utilization" units="bytes" displayType="summary" defaultInterval="600000"
+                        description="The current total of the declared sizes of all items in the dynamic memory cache which are never persisted."/>
+                <metric property="stats.CacheCurrentNotStoredCount" displayName="Not Stored Count"
+                        category="utilization" displayType="summary" defaultInterval="600000"
+                        description="The number of items currently in the dynamic memory cache which are never persisted."/>
+                <metric property="stats.CacheCurrentStoredByteCount" displayName="Stored Byte Count"
+                        category="utilization" units="bytes" displayType="summary" defaultInterval="600000"
+                        description="The total of the declared sizes of all items currently in the dynamic memory cache which are either persistent or potentially persistent."/>
+                <metric property="stats.CacheCurrentStoredCount" displayName="Stored Count"
+                        category="utilization" displayType="summary" defaultInterval="600000"
+                        description="The number of items currently in the dynamic memory cache which are either persistent or potentially persistent."/>
+            </service>
+            
+            <service name="Transactions"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.sib.TransactionsDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.sib.TransactionsComponent"
+                     description="SIBus Messaging Engine Transaction Statistics"
+                     singleton="true">
+                
+                <metric property="stats.GlobalTransactionStartCount" displayName="Global Transactions Started"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Global transactions started."/>
+                <!-- The PMI metric for in-doubt transactions doesn't seem to be reliable; instead, we use
+                     the getPreparedTransactions() on the MBean (see below) -->
+                <!-- metric property="stats.GlobalTransactionInDoubtCount" displayName="Global Transactions In Doubt"
+                        category="utilization" displayType="summary" defaultInterval="600000"
+                        description="Global transactions in doubt."/ -->
+                <metric property="stats.GlobalTransactionAbortCount" displayName="Global Transactions Aborted"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Global transactions aborted."/>
+                <metric property="stats.GlobalTransactionCommitCount" displayName="Global Transactions Committed"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Global transactions committed."/>
+                <metric property="stats.LocalTransactionStartCount" displayName="Local Transactions Started"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Local transactions started."/>
+                <metric property="stats.LocalTransactionAbortCount" displayName="Local Transactions Aborted"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Local transactions aborted."/>
+                <metric property="stats.LocalTransactionCommitCount" displayName="Local Transactions Committed"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Local transactions committed."/>
+                <metric property="IndoubtTransactions" displayName="In-doubt Transactions"
+                        category="utilization" displayType="summary" defaultInterval="600000"
+                        description="In-doublt transactions."/>
+            </service>
+            
+            <service name="Queue"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.sib.SIBQueuePointDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBQueuePointComponent"
+                     description="SIBus Queue">
+                
+                &isConfigured-operation;
+                
+                <metric property="stats.TotalMessagesProducedCount" displayName="Total Msg. Produced"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Total number of messages produced to this queue."/>
+                <metric property="stats.TotalMessagesConsumedCount" displayName="Total Msg. Consumed"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="Total number of messages consumed from this queue."/>
+                <metric property="stats.AvailableMessageCount" displayName="Avail. Msg. Count"
+                        category="utilization" displayType="summary" defaultInterval="600000"
+                        description="Number of messages available for consumption from this queue."/>
+                <metric property="stats.UnavailableMessageCount" displayName="Unavail. Msg. Count"
+                        category="utilization" displayType="summary" defaultInterval="600000"
+                        description="Number of messages on this queue but not available for consumption."/>
+            </service>
+            
+            <service name="Gateway Link"
+                     discovery="be.fgov.kszbcss.rhq.websphere.component.sib.SIBGatewayLinkDiscoveryComponent"
+                     class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBGatewayLinkComponent"
+                     description="SIBus Gateway Link">
+                
+                &isConfigured-operation;
+                
+                <metric property="depth" displayName="Depth"
+                        category="utilization" displayType="summary" defaultInterval="600000"
+                        description="Depth."/>
+                <metric property="numberOfMessagesSent" displayName="Msg. Sent"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="The number of messages sent over the link."/>
+                <metric property="numberOfMessagesReceived" displayName="Msg. Received"
+                        category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                        description="The number of messages received over the link."/>
+            </service>
+        </service>
+    </server>
+    
+    <service name="WebSphere Connector Subsystem"
+             discovery="be.fgov.kszbcss.rhq.websphere.connector.agent.ConnectorSubsystemDiscoveryComponent"
+             class="be.fgov.kszbcss.rhq.websphere.connector.agent.ConnectorSubsystemComponent"
+             description="WebSphere Connector Subsystem"
+             singleton="true">
+        
+        <runs-inside>
+            <parent-resource-type name="RHQ Agent" plugin="RHQAgent"/>
+        </runs-inside>
+        
+        <operation name="retrieveCellCertificate" description="Retrieve a cell root certificate from a deployment manager and add it to the trust store.">
+            <parameters>
+                &login-configuration;
+            </parameters>
+        </operation>
+        <operation name="retrieveCertificateFromPort" description="Retrieve ertificate from a given SSL port.">
+            <parameters>
+                <c:simple-property name="alias"/>
+                <c:simple-property name="host"/>
+                <c:simple-property name="port" type="integer"/>
+            </parameters>
+        </operation>
+        <operation name="listCertificates" description="List the certificates in the trust store.">
+            <results>
+                <c:list-property name="certificates"
+                                 displayName="Certificates"
+                                 description="The certificates in the trust store.">
+                    <c:map-property name="certificate">
+                        <c:simple-property name="alias"
+                                           displayName="Alias"
+                                           description="The alias of the certificate in the trust store."/>
+                        <c:simple-property name="subject"
+                                           displayName="Subject DN"
+                                           description="The DN of the subject the certificate was issued to."/>
+                        <c:simple-property name="fingerprint"
+                                           displayName="Fingerprint"
+                                           description="The fingerprint (SHA digest) of the certificate."/>
+                    </c:map-property>
+                </c:list-property>
+            </results>
+        </operation>
+        <operation name="removeCertificate" description="Remove the certificate with the given alias from the trust store.">
+            <parameters>
+                <c:simple-property name="alias"/>
+            </parameters>
+        </operation>
+        <operation name="renameCertificate" description="Rename a certificate alias.">
+            <parameters>
+                <c:simple-property name="oldAlias"/>
+                <c:simple-property name="newAlias"/>
+            </parameters>
+        </operation>
+        
+        <metric property="LogEventsPublished" displayName="Log Events Published"
+                category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                description="The number of log events received from WebSphere and published to RHQ."/>
+        <metric property="LogEventsSuppressed" displayName="Log Events Suppressed"
+                category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                description="The number of log events received from WebSphere but not published to RHQ."/>
+        <metric property="InvocationTime" dataType="calltime" units="milliseconds"
+                defaultOn="false" defaultInterval="600000" destinationType="Operation/Attribute Name"
+                description="The minimum, maximum, and average invocation times for JMX invocations."/>
+    </service>
+</plugin>
