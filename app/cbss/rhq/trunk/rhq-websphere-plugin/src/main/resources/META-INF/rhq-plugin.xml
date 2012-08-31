@@ -162,7 +162,6 @@
                 displayType="summary" defaultOn="true"
                 description="The process ID of the WebSphere JVM."/>
         
-        <event name="ThreadMonitor" description="Thread monitor event"/>
         <event name="LogEvent" description="Logging message"/>
         
         <resource-configuration>

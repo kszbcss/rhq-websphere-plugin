@@ -12,9 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.management.JMException;
-import javax.management.Notification;
-import javax.management.NotificationFilterSupport;
-import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
 import org.apache.commons.io.IOUtils;
@@ -25,8 +22,6 @@ import org.mc4j.ems.connection.settings.ConnectionSettings;
 import org.mc4j.ems.connection.support.ConnectionProvider;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.configuration.PropertySimple;
-import org.rhq.core.domain.event.Event;
-import org.rhq.core.domain.event.EventSeverity;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
@@ -43,7 +38,6 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.UnmanagedServer;
-import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
@@ -51,7 +45,6 @@ import be.fgov.kszbcss.rhq.websphere.component.server.log.none.NoneLoggingProvid
 import be.fgov.kszbcss.rhq.websphere.component.server.log.ras.RasLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.xm4was.XM4WASLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
-import be.fgov.kszbcss.rhq.websphere.connector.notification.NotificationListenerRegistration;
 import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
 import be.fgov.kszbcss.rhq.websphere.proxy.Server;
 import be.fgov.kszbcss.rhq.websphere.proxy.TraceService;
@@ -59,7 +52,6 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandle
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
 import com.ibm.websphere.management.AdminClient;
-import com.ibm.websphere.management.NotificationConstants;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class WebSphereServerComponent implements WebSphereComponent<ResourceComponent<?>>, MeasurementFacet, OperationFacet, ConfigurationFacet {
@@ -84,7 +76,6 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     private MeasurementFacetSupport measurementFacetSupport;
     private String loggingProviderName;
     private LoggingProvider loggingProvider;
-    private NotificationListenerRegistration threadPoolNotificationListenerRegistration;
     
     public void start(ResourceContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
@@ -118,19 +109,6 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         measurementFacetSupport = new MeasurementFacetSupport(this);
         measurementFacetSupport.setDefaultHandler(new JMXAttributeGroupHandler(server.getServerMBean()));
         
-        final EventContext eventContext = context.getEventContext();
-        
-        NotificationListener listener = new NotificationListener() {
-            public void handleNotification(Notification notification, Object handback) {
-                Utils.publishEvent(eventContext, new Event("ThreadMonitor", null, notification.getTimeStamp(), EventSeverity.INFO,
-                        "source=" + notification.getSource() + "; type=" + notification.getType() + "; userData=" + notification.getUserData()));
-            }
-        };
-        NotificationFilterSupport filter = new NotificationFilterSupport();
-        filter.enableType(NotificationConstants.TYPE_THREAD_MONITOR_THREAD_HUNG);
-        filter.enableType(NotificationConstants.TYPE_THREAD_MONITOR_THREAD_CLEAR);
-        threadPoolNotificationListenerRegistration = server.addNotificationListener(new ObjectName("WebSphere:*"), listener, filter, null, true);
-
         log.debug("Starting logging provider");
         loggingProvider.start(server, context.getEventContext(), EventPublisherImpl.INSTANCE, loadLoggingState());
     }
@@ -241,7 +219,6 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     }
     
     public void stop() {
-        threadPoolNotificationListenerRegistration.unregister();
         persistLoggingState(loggingProvider.stop());
         server.destroy();
     }
