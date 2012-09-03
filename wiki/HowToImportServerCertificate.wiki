@@ -1,0 +1,21 @@
+#summary How to import a server certificate
+
+= Introduction =
+
+This document describes how to import the certificate of a given !WebSphere instance into the trust store used by the !WebSphere plug-in for RHQ in order to allow the plug-in to connect to that instance. This is necessary if security is enabled in the !WebSphere cell. It should be noted that all !WebSphere instances on a given node share the same certificate. Therefore this procedure only needs to be executed once. In addition, on WAS 7.0 and above, all server certificates are signed by a commons root certificate. For these versions it is therefore sufficient to import the root certificate.
+
+= Identifying the port to connect to =
+
+The RHQ !WebSphere plug-in is able to retrive a certificate by connecting to any port that uses SSL. Typically one would use the SOAP connector (`SOAP_CONNECTOR_ADDRESS`) for this, but on an application server or deployment manager one can also use the HTTPS port corresponding to one of the virtual hosts (i.e. `WC_defaulthost_secure` or `WC_adminhost_secure`). The latter option is especially useful when retrieving the certificate of a deployment manager, because the port is the same as the one used to connect to the administrative console.
+
+The port numbers can easily be determined using the admin console, as shown in the following screenshot:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/websphere-ssl-ports.png
+
+= Importing the certificate into the trust store =
+
+After determining an SSL port of the !WebSphere instance, schedule an operation of type _Retrieve Certificate From Port_ on the _!WebSphere Connector Subsystem_ resource (located under _RHQ Agent_), as shown in the following screenshot:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/retrieve-cert-from-port.png
+
+Note that the alias is an arbitrary identifier that identifies the certificate after import into the trust store. It is strongly recommended to define a consistent naming convention (appropriate for the given !WebSphere topology) to choose the aliases for the imported certificates. This makes it easier to manage the certificates later.
