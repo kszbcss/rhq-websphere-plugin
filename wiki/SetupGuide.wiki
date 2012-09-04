@@ -1,0 +1,15 @@
+#summary Setup Guide
+
+= Prerequistes =
+
+This document describes the necessary steps to install the RHQ !WebSphere plug-in and to add !WebSphere instances to the RHQ inventory. It assumes that both the RHQ server and the RHQ agent(s) have already been installed.
+
+= Downloading and installing the plug-in =
+
+TODO
+
+= Preparing the agent(s) =
+
+The RHQ agents are usually configured to use a Sun/Oracle JVM. To use the RHQ !WebSphere plug-in, the agents must be reconfigured to run on an IBM JDK. In addition, several WebSphere libraries need to be added to the classpath of the agent. All necessary files are provided by the !WebSphere Application Server product. If the agent is expected to connect only to local !WebSphere instances, then all files are already present on the host system. If the agent will be configured to monitor !WebSphere instances remotely and the !WebSphere product is not yet installed on the host where the agent runs, then you need to install it before proceeding. Note that it is not necessary to create a !WebSphere profile. In the following, we will assume that !WebSphere has been installed under `$WAS_HOME`. Typically this would be something like `/opt/IBM/WebSphere/AppServer`.
+
+Now modify `$RHQ_AGENT_HOME/bin/rhq-agent-env.sh` to change the value of the `RHQ_AGENT_JAVA_HOME` environment variable to `$WAS_HOME/java`.
