@@ -48,6 +48,8 @@ public abstract class WebSphereServer {
     private final MBeanClientFactory mbeanClientFactory;
     private final MBeanClient serverMBean;
     private final AdminClient adminClient;
+    private final PIDWatcher pidWatcher;
+    private final PIDChangeTracker pmiConfigRefreshTracker;
     private final NotificationListenerManager notificationListenerManager;
     private final Perf perf;
     private PmiModuleConfig[] pmiModuleConfigs;
@@ -67,7 +69,10 @@ public abstract class WebSphereServer {
                 new Class<?>[] { AdminClient.class },
                 new LazyAdminClientInvocationHandler(new FailFastAdminClientProvider(processIdentityValidator)));
         
-        notificationListenerManager = new NotificationListenerManager(adminClient);
+        pidWatcher = new PIDWatcher(adminClient);
+        pmiConfigRefreshTracker = pidWatcher.createTracker();
+        
+        notificationListenerManager = new NotificationListenerManager(adminClient, pidWatcher);
         mbeanClientFactory = new MBeanClientFactory(this);
         serverMBean = getMBeanClient(new MBeanLocator() {
             public Set<ObjectName> queryNames(WebSphereServer server) throws JMException, ConnectorException {
@@ -148,6 +153,14 @@ public abstract class WebSphereServer {
         if (dashIndex != -1) {
             statsType = statsType.substring(0, dashIndex);
         }
+        
+        // Reload PMI configs after WebSphere restart (the WebSphere installation may have been
+        // updated and new PMI metrics may be available)
+        if (pmiConfigRefreshTracker.isRestarted()) {
+            log.debug("Discarding cached PMI config after server restart");
+            pmiModuleConfigs = null;
+        }
+        
         // Implementation note: PMI module configurations are not necessarily registered
         // immediately at server startup. Therefore, if we don't find the module configuration
         // in the cached data, we need to reload the data and try again. This problem has been
