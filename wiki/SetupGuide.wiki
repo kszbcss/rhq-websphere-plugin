@@ -10,6 +10,40 @@ TODO
 
 = Preparing the agent(s) =
 
-The RHQ agents are usually configured to use a Sun/Oracle JVM. To use the RHQ !WebSphere plug-in, the agents must be reconfigured to run on an IBM JDK. In addition, several WebSphere libraries need to be added to the classpath of the agent. All necessary files are provided by the !WebSphere Application Server product. If the agent is expected to connect only to local !WebSphere instances, then all files are already present on the host system. If the agent will be configured to monitor !WebSphere instances remotely and the !WebSphere product is not yet installed on the host where the agent runs, then you need to install it before proceeding. Note that it is not necessary to create a !WebSphere profile. In the following, we will assume that !WebSphere has been installed under `$WAS_HOME`. Typically this would be something like `/opt/IBM/WebSphere/AppServer`.
+The RHQ agents are usually configured to use a Sun/Oracle JVM. To use the RHQ !WebSphere plug-in, the agents must be reconfigured to run on an IBM JDK. In addition, several !WebSphere libraries need to be added to the classpath of the agent. All necessary files are provided by the !WebSphere Application Server product. If the agent is expected to connect to local !WebSphere instances, then all files are already present on the host system. If the agent will be configured to monitor !WebSphere instances remotely and the !WebSphere product is not yet installed on the host where the agent runs, then you need to install it before proceeding. Note that it is not necessary to create a !WebSphere profile. In the following, we will assume that !WebSphere has been installed under `$WAS_HOME`. Typically this would be something like `/opt/IBM/WebSphere/AppServer`.
 
-Now modify `$RHQ_AGENT_HOME/bin/rhq-agent-env.sh` to change the value of the `RHQ_AGENT_JAVA_HOME` environment variable to `$WAS_HOME/java`.
+Now modify `$RHQ_AGENT_HOME/bin/rhq-agent-env.sh` to change the value of the `RHQ_AGENT_JAVA_HOME` environment variable to `$WAS_HOME/java`. At the same time you may also want to adjust the `-Xms` and `-Xmx` options specified in the `RHQ_AGENT_JAVA_OPTS` environment variable, especially if you are planning to monitor a larger number of remote !WebSphere instances. E.g. 512 MB of heap should be enough to monitor about 30 WebSphere instances.
+
+Next, the libraries required to connect to !WebSphere must be added to the classpath of the agent. This can be done by creating symbolic links in the `$RHQ_AGENT_HOME/lib` directory. The following JARs from the !WebSphere server runtime must be included:
+  * `$WAS_HOME/runtimes/com.ibm.ws.admin.client_7.0.0.jar`
+  * `$WAS_HOME/plugins/com.ibm.ws.security.crypto.jar`
+  * `$WAS_HOME/plugins/com.tivoli.pd.amwas.core_6.1.0.jar` (necessary to avoid a communication error in the call to `getApplicationInfo` for monitored servers that are configured with Tivoli Access Manager)
+
+To use the DB2 monitoring features, it is also necessary to include the DB2 JDBC driver (`db2jcc.jar`) to the class path.
+
+If there are servers that host SIBus messaging engines, then a couple of classes from `$WAS_HOME/plugins/com.ibm.ws.runtime.jar` are required as well. However, when adding that JAR to the classpath, logging no longer works correctly (because the JAR contains a `commons-logging.properties` file). To avoid this, create a `$RHQ_AGENT_HOME/conf/commons-logging.properties` file with the following content:
+
+{{{
+org.apache.commons.logging.Log=org.apache.commons.logging.impl.Log4JLogger
+}}}
+
+= Creating the SSL trust store =
+
+To monitor !WebSphere instances that have security enabled, it is necessary to create a trust store with the relevant server certificates. This can be done entirely through the RHQ GUI; using `keytool` should not be necessary. The required steps depend on the type and version of the WebSphere instances:
+  * If you are planning to use a single agent to monitor multiple !WebSphere instances that are running on different nodes and that belong to the same !WebSphere 7.0 cell, then the most efficient way to build the trust store is to [HowToImportCellCertificate import the cell certificate].
+  * In all other cases, [HowToImportServerCertificate import the server certificate]. This applies to the following situations: monitoring !WebSphere 6.1 instances (in any kind of topology), monitoring stand-alone !WebSphere application servers (locally or remotely), monitoring !WebSphere instances locally. Note that the server certificate is shared by all !WebSphere instances running on the same !WebSphere node. Therefore, the procedure needs to be executed only once per node, by choosing any of the !WebSphere application servers on the node or by retrieving the certificate from the node agent.
+
+Note that there are other possible options to create the trust stores that may be more efficient in some topologies. E.g. if you are planning to monitor the !WebSphere instances locally (i.e. to install an RHQ agent on every host where a !WebSphere instance is running) and all these instances belong to the same !WebSphere 7.0 cell, then it may be more efficient to [HowToImportCellCertificate import the cell certificate] into the trust store of one agent and propagate that file manually to the other agents. The location of the file is `$RHQ_AGENT_HOME/data/WebSphere/trust.jks`.
+
+= Configuring !WebSphere =
+
+The minimum required configuration for a !WebSphere instance to be monitored is that PMI is enabled on that instance. Otherwise the RHQ !WebSphere plug-in will not be able to collect metrics from the server. Note that since the plug-in is able to activate individual PMI metrics automatically, it is not necessary to change the instrumentation level configuration of the server.
+
+To leverage all features of the plug-in, it is recommended to apply the following configurations as well:
+  * Install the [http://code.google.com/p/xm4was/ XM4WAS plug-in] on the !WebSphere instances to be monitored. This is required to use the following features of the RHQ !WebSphere plug-in:
+    * JVM metrics.
+    * Class loader leak statistics.
+    * Advanced remote log event collection, including correlation of log events with applications/modules that triggered them.
+    * JAX-RPC and JAX-WS connection cache metrics.
+    * UNIX process statistics.
+  * 
