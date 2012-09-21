@@ -17,7 +17,7 @@
     </properties>
     <modules>
         <module>rhq-websphere-plugin</module>
-        <module>manual</module>
+        <module>design-doc</module>
         <module>websphere-apis</module>
     </modules>
     <repositories>

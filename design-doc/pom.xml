@@ -6,8 +6,8 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>manual</artifactId>
-    <name>Manual</name>
+    <artifactId>design-doc</artifactId>
+    <name>Design documentation</name>
     <build>
         <plugins>
             <plugin>
