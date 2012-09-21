@@ -7,6 +7,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>design-doc</artifactId>
+    <packaging>pom</packaging>
     <name>Design documentation</name>
     <build>
         <plugins>
@@ -59,6 +60,28 @@
                         <scope>runtime</scope>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>attach-pdfs</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>${project.build.directory}/docbkx/pdf/design-doc.pdf</file>
+                                    <type>pdf</type>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
