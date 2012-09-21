@@ -11,9 +11,30 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>gmaven-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <id>init-properties</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                import java.io.File
+                                
+                                project.properties['baseUrl'] = project.basedir.toURI().toString()
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>com.agilejava.docbkx</groupId>
                 <artifactId>docbkx-maven-plugin</artifactId>
-                <version>2.0.11</version>
+                <version>2.0.14</version>
                 <executions>
                     <execution>
                         <id>pdf</id>
@@ -23,10 +44,10 @@
                         <phase>package</phase>
                         <configuration>
                             <includes>*.xml</includes>
-                            <foCustomization>src/docbkx/xsl/fo.xsl</foCustomization>
-                            <!-- TODO: this is to work around an issue in multi-module builds -->
-                            <draftWatermarkImage>src/docbkx/draft.png</draftWatermarkImage>
-                            <!-- xincludeSupported>true</xincludeSupported -->
+                            <!-- ${basedir} is necessary because of http://code.google.com/p/docbkx-tools/issues/detail?id=93 -->
+                            <foCustomization>${basedir}/src/docbkx/xsl/fo.xsl</foCustomization>
+                            <imgSrcPath>${baseUrl}/src/docbkx/images/</imgSrcPath>
+                            <admonGraphicsPath>${baseUrl}/src/docbkx/admon-graphics/</admonGraphicsPath>
                         </configuration>
                     </execution>
                 </executions>
