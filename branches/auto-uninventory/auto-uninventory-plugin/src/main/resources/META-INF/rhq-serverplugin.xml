@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<generic-plugin name="WebSphereAutoUninventory"
-                displayName="WebSphere Resource Auto-Uninventory"
-                description="Automatically uninventories resources that have been removed from the WebSphere configuration"
+<generic-plugin name="WebSphereServerPlugin"
+                displayName="WebSphere Application Server"
+                description="Supports management and monitoring of WebSphere Application Server"
                 package="be.fgov.kszbcss.rhq.websphere"
                 xmlns="urn:xmlns:rhq-serverplugin.generic"
                 xmlns:serverplugin="urn:xmlns:rhq-serverplugin"
                 xmlns:c="urn:xmlns:rhq-configuration">
 
-    <serverplugin:help><![CDATA[
+    <serverplugin:help>
         Automatically uninventories resources that have been removed from the WebSphere configuration.
-    ]]></serverplugin:help>
+    </serverplugin:help>
     
     <serverplugin:plugin-component class="WebSphereServerPlugin"/>
     
@@ -22,7 +22,7 @@
                     <c:option value="cron" default="true"/>
                 </c:property-options>
             </c:simple-property>
-            <c:simple-property name="scheduleTrigger" type="string" required="true" default="0/10 * * * * ?" summary="true" description="Based on the schedule type, this is either the period, in milliseconds, or the cron expression"/>
+            <c:simple-property name="scheduleTrigger" type="string" required="true" default="0 0 0/4 * * ?" summary="true" description="Based on the schedule type, this is either the period, in milliseconds, or the cron expression"/>
             <c:simple-property name="concurrent" type="boolean" required="false" default="false" summary="true" description="Whether or not the job can be run multiple times concurrently"/>
             <c:simple-property name="clustered" type="boolean" required="true" default="true" summary="true" description="Whether or not the job can be run on any machine in the server cluster. If false, it will always run on all machines where this plugin is deployed."/>
         </c:map-property>
