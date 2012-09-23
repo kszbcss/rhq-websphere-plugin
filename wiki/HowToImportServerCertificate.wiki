@@ -6,7 +6,7 @@ This document describes how to import the certificate of a given !WebSphere inst
 
 = Identifying the port to connect to =
 
-The RHQ !WebSphere plug-in is able to retrive a certificate by connecting to any port that uses SSL. Typically one would use the SOAP connector (`SOAP_CONNECTOR_ADDRESS`) for this, but on an application server or deployment manager one can also use the HTTPS port corresponding to one of the virtual hosts (i.e. `WC_defaulthost_secure` or `WC_adminhost_secure`). The latter option is especially useful when retrieving the certificate of a deployment manager, because the port is the same as the one used to connect to the administrative console.
+The RHQ !WebSphere plug-in is able to retrieve a certificate by connecting to any port that uses SSL. Typically one would use the SOAP connector (`SOAP_CONNECTOR_ADDRESS`) for this, but on an application server or deployment manager one can also use the HTTPS port corresponding to one of the virtual hosts (i.e. `WC_defaulthost_secure` or `WC_adminhost_secure`). The latter option is especially useful when retrieving the certificate of a deployment manager, because the port is the same as the one used to connect to the administrative console.
 
 The port numbers can easily be determined using the admin console, as shown in the following screenshot:
 

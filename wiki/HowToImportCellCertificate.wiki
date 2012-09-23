@@ -1,0 +1,27 @@
+#summary How to import a cell certificate
+
+= Introduction =
+
+This document describes how to import a cell certificate into the trust store used by the RHQ !WebSphere plug-in. In a !WebSphere cell, all server certificates are signed with that certificate. It is therefore enough to import the cell certificate into the trust store in order to be able to connect to any !WebSphere instance in that cell. Note that this applies only to !WebSphere version 7.0 and above. In !WebSphere 6.1, there is no cell certificate and all server certificates are self-signed.
+
+= Temporarily importing the certificate of the deployment manager =
+
+Importing the cell certificate requires a connection to the configuration repository hosted on the deployment manager. To establish that connection, it is necessary to temporarily import the certificate of the deployment manager in the trust store. After the cell certificate has been imported, that server certificate can be safely removed because it is itself signed by the cell certificate. Keeping it in the trust store would be redundant.
+
+To import the certificate from the deployment manager, use the procedure described [HowToImportServerCertificate here]. Since the certificate only needs to be imported temporarily and will be removed afterwards, the certificate alias is unimportant. You may e.g. choose `temp`.
+
+= Importing the cell certificate =
+
+To import the cell certificate, schedule an operation of type _Retrieve Cell Certificate_ on the _!WebSphere Connector Subsystem_ resource, as shown in the following screenshot:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/retrieve-cell-cert.png
+
+The connection information to be provided is similar to what needs to be entered when adding a !WebSphere server to the inventory (as described in the [SetupGuide setup guide]). If you choose RMI as protocol, enter the `BOOTSTRAP_ADDRESS` or `ORB_LISTENER_ADDRESS` of the deployment manager. If you choose SOAP, enter the `SOAP_CONNECTOR_ADDRESS`. Note that no alias for the certificate needs to be specified; the plug-in automatically generates the alias by prepending `cell:` to the cell name.
+
+= Deleting the certificate of the deployment manager =
+
+As explained above, once the cell certificate has been imported, the server certificate of the deployment manager is no longer needed and can be removed. To do this, schedule an operation of type _Remove Certificate_ on the _!WebSphere Connector Subsystem_ resource, as shown in the following screenshot:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/remove-cert.png
+
+Make sure to use the same alias as the one chosen in the first step above. Note that you can at any moment inspect the content of the trust store using the _List Certificate_ operation.
