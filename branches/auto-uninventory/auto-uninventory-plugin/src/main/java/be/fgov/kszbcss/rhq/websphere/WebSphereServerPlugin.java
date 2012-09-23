@@ -46,6 +46,7 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
         
         ResourceCriteria resourceCriteria = new ResourceCriteria();
         resourceCriteria.addFilterCurrentAvailability(AvailabilityType.DOWN);
+        resourceCriteria.addFilterPluginName("WebSphere");
         resourceCriteria.fetchParentResource(true);
         resourceCriteria.setPageControl(PageControl.getUnlimitedInstance());
         LinkedList<Resource> resources = new LinkedList<Resource>();
