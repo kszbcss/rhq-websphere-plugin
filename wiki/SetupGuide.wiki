@@ -17,7 +17,6 @@ Now modify `$RHQ_AGENT_HOME/bin/rhq-agent-env.sh` to change the value of the `RH
 Next, the libraries required to connect to !WebSphere must be added to the classpath of the agent. This can be done by creating symbolic links in the `$RHQ_AGENT_HOME/lib` directory. The following JARs from the !WebSphere server runtime must be included:
   * `$WAS_HOME/runtimes/com.ibm.ws.admin.client_7.0.0.jar`
   * `$WAS_HOME/plugins/com.ibm.ws.security.crypto.jar`
-  * `$WAS_HOME/plugins/com.tivoli.pd.amwas.core_6.1.0.jar` (necessary to avoid a communication error in the call to `getApplicationInfo` for monitored servers that are configured with Tivoli Access Manager)
 
 To use the DB2 monitoring features, it is also necessary to include the DB2 JDBC driver (`db2jcc.jar`) to the class path.
 
@@ -26,6 +25,8 @@ If there are servers that host SIBus messaging engines, then a couple of classes
 {{{
 org.apache.commons.logging.Log=org.apache.commons.logging.impl.Log4JLogger
 }}}
+
+Finally, if the !WebSphere servers to be monitored are configured with Tivoli Access Manager, then you also need to add `$WAS_HOME/plugins/com.tivoli.pd.amwas.core_6.1.0.jar` to `$RHQ_AGENT_HOME/lib`.
 
 = Creating the SSL trust store =
 
