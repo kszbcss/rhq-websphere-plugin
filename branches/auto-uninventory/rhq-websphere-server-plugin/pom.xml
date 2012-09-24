@@ -6,8 +6,8 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>auto-uninventory-plugin</artifactId>
-    <name>Auto-uninventory Plugin</name>
+    <artifactId>rhq-websphere-server-plugin</artifactId>
+    <name>RHQ WebSphere Server Plugin</name>
     <description>RHQ server plugin that automatically uninventories resources that have been removed from the WebSphere configuration</description>
     <dependencies>
         <dependency>
