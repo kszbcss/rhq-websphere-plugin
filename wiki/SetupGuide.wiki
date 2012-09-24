@@ -6,7 +6,9 @@ This document describes the necessary steps to install the RHQ !WebSphere plug-i
 
 = Downloading and installing the plug-in =
 
-TODO
+Binary distributions for the plug-in can be found [http://code.google.com/p/rhq-websphere-plugin/downloads/ here]. The plug-in has two parts, one running in the RHQ agents and one running in the server. Refer to the sections titled [https://docs.jboss.org/author/display/RHQ/Agent+Plugin+Administration#AgentPluginAdministration-AddingorUpdatingAgentPlugins Adding or Updating Agent Plugins] and [https://docs.jboss.org/author/display/RHQ/Server+Plugin+Administration#ServerPluginAdministration-AddingorUpdatingServerPlugins Adding or Updating Server Plugins] in the RHQ documentation to install these two plug-in files.
+
+To deploy the plug-in on the agents, they will need to be restarted. However, the configuration of the agents that will be used to monitor !WebSphere instances needs to be changed as described in the next section, and that configuration change also requires a restart. Therefore, it is not necessary to restart the agents at this point.
 
 = Preparing the agent(s) =
 
