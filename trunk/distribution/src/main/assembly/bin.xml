@@ -24,6 +24,11 @@
         <fileSet>
             <directory>src/main/scripts</directory>
             <outputDirectory>/</outputDirectory>
+            <excludes>
+                <!-- Avoid including class files generated automatically when testing the scripts
+                     directory from src/main/scripts -->
+                <exclude>**/*.class</exclude>
+            </excludes>
         </fileSet>
     </fileSets>
 </assembly>
