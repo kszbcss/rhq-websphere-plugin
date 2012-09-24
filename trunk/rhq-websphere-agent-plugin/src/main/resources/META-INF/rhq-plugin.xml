@@ -566,6 +566,8 @@
                     &logevent-configuration;
                     </plugin-configuration>                         
                     
+                    &isConfigured-operation;
+                
                     <metric property="stats.ServiceTime" displayName="Avg. Servlet Resp. Time"
                             category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                             description="Average response time of a servlet"/>
