@@ -9,7 +9,7 @@
         <dependencySet>
             <useProjectArtifact>false</useProjectArtifact>
             <includes>
-                <include>*:rhq-websphere-plugin:jar</include>
+                <include>*:*-plugin:jar</include>
             </includes>
         </dependencySet>
         <dependencySet>

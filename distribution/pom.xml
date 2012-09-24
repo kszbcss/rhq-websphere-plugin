@@ -17,6 +17,11 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>rhq-websphere-server-plugin</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>design-doc</artifactId>
             <version>${project.version}</version>
             <type>pdf</type>
