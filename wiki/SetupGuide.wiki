@@ -40,7 +40,7 @@ Note that there are other possible options to create the trust stores that may b
 
 = Configuring !WebSphere =
 
-The minimum required configuration for a !WebSphere instance to be monitored is that PMI is enabled on that instance. Otherwise the RHQ !WebSphere plug-in will not be able to collect metrics from the server. Note that since the plug-in is able to activate individual PMI metrics automatically, it is not necessary to change the instrumentation level configuration of the server.
+The minimum required configuration for a !WebSphere instance to be monitored is that PMI is enabled on that instance. Otherwise the RHQ !WebSphere plug-in will not be able to collect metrics from the server. Note that since the plug-in is able to activate individual PMI metrics automatically, it is not necessary to change the instrumentation level configuration of the server (with one exception described below).
 
 To leverage all features of the plug-in, it is recommended to apply the following configurations as well:
   * Install the [http://code.google.com/p/xm4was/ XM4WAS plug-in] on the !WebSphere instances to be monitored. This is required to use the following features of the RHQ !WebSphere plug-in:
@@ -49,4 +49,4 @@ To leverage all features of the plug-in, it is recommended to apply the followin
     * Advanced remote log event collection, including correlation of log events with applications/modules that triggered them.
     * JAX-RPC and JAX-WS connection cache metrics.
     * UNIX process statistics.
-  * 
+  * The RHQ !WebSphere plug-in will enable PMI metrics automatically as required. However, some particular metrics may return invalid values if they are switched on while the server is running. This is the case for all metrics that measure concurrency, such as the number of active threads in a thread pool or the number of concurrent requests on a servlet or EJB. These metrics are always set to 0 when they are first enabled, even if there are active requests. This means that the measurements are incorrect and may return negative values. To avoid this, it is recommended to enable these metrics in the !WebSphere configuration so that they will be switched on when the server is started. The binary distribution contains a wsadmin script called `pmi_config.py` that can be used to automate this configuration.
