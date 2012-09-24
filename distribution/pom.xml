@@ -12,7 +12,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>rhq-websphere-plugin</artifactId>
+            <artifactId>rhq-websphere-agent-plugin</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

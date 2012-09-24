@@ -6,8 +6,8 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>rhq-websphere-plugin</artifactId>
-    <name>RHQ WebSphere Plugin</name>
+    <artifactId>rhq-websphere-agent-plugin</artifactId>
+    <name>RHQ WebSphere Agent Plugin</name>
     <description>RHQ plugin for managing WebSphere Application Server</description>
     <dependencies>
         <dependency>
