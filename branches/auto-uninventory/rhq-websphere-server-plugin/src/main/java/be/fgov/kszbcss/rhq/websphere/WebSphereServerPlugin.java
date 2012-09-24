@@ -1,8 +1,10 @@
 package be.fgov.kszbcss.rhq.websphere;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,10 +17,12 @@ import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.operation.OperationRequestStatus;
 import org.rhq.core.domain.operation.ResourceOperationHistory;
 import org.rhq.core.domain.resource.Resource;
+import org.rhq.core.domain.resource.composite.ResourceAvailabilitySummary;
 import org.rhq.core.domain.util.PageControl;
 import org.rhq.core.domain.util.PageList;
 import org.rhq.enterprise.server.operation.OperationManagerLocal;
 import org.rhq.enterprise.server.operation.ResourceOperationSchedule;
+import org.rhq.enterprise.server.plugin.pc.ScheduledJobInvocationContext;
 import org.rhq.enterprise.server.plugin.pc.ServerPluginComponent;
 import org.rhq.enterprise.server.plugin.pc.ServerPluginContext;
 import org.rhq.enterprise.server.resource.ResourceManagerLocal;
@@ -39,10 +43,12 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
     public void shutdown() {
     }
     
-    public void autoUninventory() throws Exception {
+    public void autoUninventory(ScheduledJobInvocationContext invocation) throws Exception {
         Subject user = LookupUtil.getSubjectManager().getOverlord();
         ResourceManagerLocal resourceManager = LookupUtil.getResourceManager();
         OperationManagerLocal operationManager = LookupUtil.getOperationManager();
+        
+        int uninventoryDelay = Integer.parseInt(invocation.getJobDefinition().getCallbackData().getProperty("uninventoryDelay"));
         
         ResourceCriteria resourceCriteria = new ResourceCriteria();
         resourceCriteria.addFilterCurrentAvailability(AvailabilityType.DOWN);
@@ -53,22 +59,38 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
         PageList<Resource> resourcePageList = resourceManager.findResourcesByCriteria(user, resourceCriteria);
         for (Resource resource : resourcePageList) {
             if (!resourcePageList.contains(resource.getParentResource())) {
+                if (uninventoryDelay > 0) {
+                    ResourceAvailabilitySummary availability = resourceManager.getAvailabilitySummary(user, resource.getId());
+                    if ((System.currentTimeMillis() - availability.getLastChange().getTime())/60000 < uninventoryDelay) {
+                        continue;
+                    }
+                }
                 resources.add(resource);
             }
         }
         
+        Map<Integer,Boolean> hasCheckConfigurationByResourceTypeId = new HashMap<Integer,Boolean>();
+        
+        // RHQ has no API to invoke operations synchronously. Therefore we need to go through the normal
+        // APIs, schedule an operation and poll for the result. To accelerate things, we schedule a certain
+        // number of operations in parallel.
         List<ResourceOperationSchedule> schedules = new ArrayList<ResourceOperationSchedule>();
         while (!resources.isEmpty() || !schedules.isEmpty()) {
-            // Process resources in chunks to avoid server overload and OOM on the client side
             while (!resources.isEmpty() && schedules.size() < 6) {
                 Resource resource = resources.removeFirst();
-                OperationDefinitionCriteria opDefCriteria = new OperationDefinitionCriteria();
-                opDefCriteria.setPageControl(PageControl.getUnlimitedInstance());
-                opDefCriteria.addFilterResourceTypeId(resource.getResourceType().getId());
-                opDefCriteria.addFilterName("checkConfiguration");
-                if (operationManager.findOperationDefinitionsByCriteria(user, opDefCriteria).size() > 0) {
+                int resourceTypeId = resource.getResourceType().getId();
+                Boolean hasCheckConfiguration = hasCheckConfigurationByResourceTypeId.get(resourceTypeId);
+                if (hasCheckConfiguration == null) {
+                    OperationDefinitionCriteria opDefCriteria = new OperationDefinitionCriteria();
+                    opDefCriteria.setPageControl(PageControl.getUnlimitedInstance());
+                    opDefCriteria.addFilterResourceTypeId(resource.getResourceType().getId());
+                    opDefCriteria.addFilterName("checkConfiguration");
+                    hasCheckConfiguration = operationManager.findOperationDefinitionsByCriteria(user, opDefCriteria).size() > 0;
+                    hasCheckConfigurationByResourceTypeId.put(resourceTypeId, hasCheckConfiguration);
+                }
+                if (hasCheckConfiguration) {
                     log.info("Scheduling checkConfiguration for " + resource.getName() + " (" + resource.getId() + ")");
-                    schedules.add(operationManager.scheduleResourceOperation(user, resource.getId(), "checkConfiguration", 0, 0, 0, 0, new Configuration(), "Scheduled by uninventory_undeployed_resources.js"));
+                    schedules.add(operationManager.scheduleResourceOperation(user, resource.getId(), "checkConfiguration", 0, 0, 0, 0, new Configuration(), "Scheduled by RHQ WebSphere Server Plugin"));
                 } else {
                     log.info("checkConfiguration operation not supported on " + resource.getName() + " (" + resource.getId() + ")");
                 }
@@ -99,6 +121,10 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                     } else {
                         log.error("Operation didn't succeed on " + schedule.getResource().getName() + " (" + schedule.getResource().getId() + "): " + history.getStatus());
                     }
+                } else if (historyList.size() == 0) {
+                    // If we get here, then the ResourceOperationHistory has not been created yet (it is created asynchronously) 
+                    log.info("ResourceOperationHistory for " + schedule.getResource().getName() + " (" + schedule.getResource().getId() + ") not found yet");
+                    deferred.add(schedule);
                 } else {
                     log.error("Unexpected result from findResourceOperationHistoriesByCriteria for " + schedule.getResource().getName() + " (" + schedule.getResource().getId() + ")");
                 }

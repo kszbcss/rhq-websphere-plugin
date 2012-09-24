@@ -25,6 +25,8 @@
             <c:simple-property name="scheduleTrigger" type="string" required="true" default="0 0 0/4 * * ?" summary="true" description="Based on the schedule type, this is either the period, in milliseconds, or the cron expression"/>
             <c:simple-property name="concurrent" type="boolean" required="false" default="false" summary="true" description="Whether or not the job can be run multiple times concurrently"/>
             <c:simple-property name="clustered" type="boolean" required="true" default="true" summary="true" description="Whether or not the job can be run on any machine in the server cluster. If false, it will always run on all machines where this plugin is deployed."/>
+            <!-- Actual job configuration -->
+            <c:simple-property name="uninventoryDelay" type="integer" required="true" default="120" summary="true" description="The (minimum) number of minutes to keep undeployed/unconfigured resources in the RHQ inventory before removing them from the inventory. Use a non zero value if you frequently update WebSphere configuration objects by deleting and recreating them. Use a large value if you need to keep statistics for undeployed/unconfigured resources."/>
         </c:map-property>
     </serverplugin:scheduled-jobs>
 </generic-plugin>
