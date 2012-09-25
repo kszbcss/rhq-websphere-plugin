@@ -50,3 +50,30 @@ To leverage all features of the plug-in, it is recommended to apply the followin
     * JAX-RPC and JAX-WS connection cache metrics.
     * UNIX process statistics.
   * The RHQ !WebSphere plug-in will enable PMI metrics automatically as required. However, some particular metrics may return invalid values if they are switched on while the server is running. This is the case for all metrics that measure concurrency, such as the number of active threads in a thread pool or the number of concurrent requests on a servlet or EJB. These metrics are always set to 0 when they are first enabled, even if there are active requests. This means that the measurements are incorrect and may return negative values. To avoid this, it is recommended to enable these metrics in the !WebSphere configuration so that they will be switched on when the server is started. The binary distribution contains a wsadmin script called `pmi_config.py` that can be used to automate this configuration.
+
+= Adding !WebSphere instances to the RHQ inventory =
+
+If RHQ agents are colocated with !WebSphere instances, then these !WebSphere instances should have been detected automatically and appear in the auto-discovery queue, as shown in the following screenshot:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/auto-discovery.png
+
+Select the servers to add to the inventory and click _Import_. Note that you may still need to adjust the connection properties to establish the connection to the newly imported server, in particular if security is enabled. The connection properties can be modified in the tab shown in the following screenshot (see below for the meaning of the various properties):
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/inventory-connection-props.png
+
+If you want to monitor !WebSphere instances remotely, then you need to [https://docs.jboss.org/author/display/RHQ/Inventory#Inventory-Manualdiscovery add them manually]. The resource type is _WebSphere Server_. The following screenshots shows the connection properties to enter:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/manual-add.png
+
+Most of the properties correspond to the parameters that are also needed when connecting to a !WebSphere instance with wsadmin. If you are unsure about the protocol, use RMI. The port number depends on the chosen protocol. It can be determined from the !WebSphere configuration as follows:
+
+|| *Protocol* || *Port name in the !WebSphere configuration* ||
+|| RMI || `BOOTSTRAP_ADDRESS` or `ORB_LISTENER_ADDRESS`. If `ORB_LISTENER_ADDRESS` is 0, use `BOOTSTRAP_ADDRESS`. Otherwise, use `ORB_LISTENER_ADDRESS` ||
+|| SOAP || `SOAP_CONNECTOR_ADDRESS` ||
+
+If security is enabled on the !WebSphere instance, then it is mandatory to specify a user name and password. The user must have operator role in !WebSphere.
+
+Finally, the _Logging Provider_ property determines if and how log events are collected from the server:
+  * _None_: No log events will be collected.
+  * _RasLoggingService_: Collects log events using JMX notifications emitted by the `RasLoggingService` MBean which is registered on any !WebSphere server. This mechanism is supported out of the box.
+  * _XM4WAS LoggingService_: This option requires deployment of the [http://code.google.com/p/xm4was/ XM4WAS plug-ins] to WebSphere (see above). It adds support for stack traces and correlating events with application components. In addition, it uses polling instead of JMX notifications.
