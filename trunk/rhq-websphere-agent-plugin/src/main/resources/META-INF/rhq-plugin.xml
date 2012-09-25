@@ -149,7 +149,7 @@
             </c:group>
         </plugin-configuration>
         
-        <process-scan name="WebSphere" query="process|name|match=.*[\\/]java[\\/]bin[\\/]java(\.exe)?$,arg|-application|match=com\.ibm\.ws\.bootstrap\.WSLauncher,arg|com.ibm.ws.runtime.WsServer|match=.*"/>
+        <process-scan name="WebSphere" query="process|name|match=.*[\\/]java(\.exe)?$,arg|-application|match=com\.ibm\.ws\.bootstrap\.WSLauncher,arg|com.ibm.ws.runtime.WsServer|match=.*"/>
         
         <operation name="restart" description="Restart the server process."/>
         <operation name="pauseAllMessageEndpoints" description="Pause all J2C message endpoints on this server."/>
