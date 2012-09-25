@@ -25,13 +25,13 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>be.fgov.kszbcss.rhq</groupId>
-        <artifactId>rhq</artifactId>
+        <artifactId>rhq-websphere-plugin</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>websphere-apis</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>WebSphere APIs</name>
+    <name>WebSphere API Stubs</name>
     <description>
         Contains dummy versions of some WebSphere APIs so that it is possible to
         build the project without the need for additional WebSphere dependencies.
