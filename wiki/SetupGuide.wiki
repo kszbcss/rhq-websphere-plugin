@@ -61,7 +61,7 @@ Select the servers to add to the inventory and click _Import_. Note that you may
 
 http://rhq-websphere-plugin.googlecode.com/svn/wiki/inventory-connection-props.png
 
-If you want to monitor !WebSphere instances remotely, then you need to [https://docs.jboss.org/author/display/RHQ/Inventory#Inventory-Manualdiscovery add them manually]. The resource type is _WebSphere Server_. The following screenshots shows the connection properties to enter:
+If you want to monitor !WebSphere instances remotely, then you need to [https://docs.jboss.org/author/display/RHQ/Inventory#Inventory-Manualdiscovery add them manually]. The resource type is _!WebSphere Server_. The following screenshots shows the connection properties to enter:
 
 http://rhq-websphere-plugin.googlecode.com/svn/wiki/manual-add.png
 
@@ -75,5 +75,5 @@ If security is enabled on the !WebSphere instance, then it is mandatory to speci
 
 Finally, the _Logging Provider_ property determines if and how log events are collected from the server:
   * _None_: No log events will be collected.
-  * _RasLoggingService_: Collects log events using JMX notifications emitted by the `RasLoggingService` MBean which is registered on any !WebSphere server. This mechanism is supported out of the box.
-  * _XM4WAS LoggingService_: This option requires deployment of the [http://code.google.com/p/xm4was/ XM4WAS plug-ins] to WebSphere (see above). It adds support for stack traces and correlating events with application components. In addition, it uses polling instead of JMX notifications.
+  * _!RasLoggingService_: Collects log events using JMX notifications emitted by the `RasLoggingService` MBean which is registered on any !WebSphere server. This mechanism is supported out of the box.
+  * _XM4WAS !LoggingService_: This option requires deployment of the [http://code.google.com/p/xm4was/ XM4WAS plug-ins] to !WebSphere (see above). It adds support for stack traces and correlating events with application components. In addition, it uses polling instead of JMX notifications.
