@@ -6,8 +6,8 @@
     <packaging>pom</packaging>
     <name>RHQ</name>
     <scm>
-        <connection>scm:svn:http://scm.cbss.inet/cbss/app/cbss/rhq/trunk</connection>
-        <developerConnection>scm:svn:http://scm.cbss.inet/cbss/app/cbss/rhq/trunk</developerConnection>
+        <connection>scm:svn:http://rhq-websphere-plugin.googlecode.com/svn/trunk</connection>
+        <developerConnection>scm:svn:https://rhq-websphere-plugin.googlecode.com/svn/trunk</developerConnection>
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
