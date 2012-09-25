@@ -76,6 +76,20 @@
                     <target>1.5</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <!--
+                    Note: Use the following commands to do a release:
+                    
+                    $ mvn -Dusername=... -Dpassword=... release:prepare
+                    $ mvn release:clean
+                -->
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.3.2</version>
+                <inherited>false</inherited>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
