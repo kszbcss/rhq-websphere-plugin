@@ -1,7 +1,9 @@
 package be.fgov.kszbcss.rhq.websphere.component.server;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javanet.staxutils.SimpleNamespaceContext;
@@ -35,7 +37,33 @@ import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class WebSphereServerDiscoveryComponent implements ResourceDiscoveryComponent<ResourceComponent<?>>, ManualAddFacet<ResourceComponent<?>> {
+    private static class PortSpec {
+        private final String endPointName;
+        private final String protocol;
+        
+        public PortSpec(String endPointName, String protocol) {
+            this.endPointName = endPointName;
+            this.protocol = protocol;
+        }
+
+        public String getEndPointName() {
+            return endPointName;
+        }
+
+        public String getProtocol() {
+            return protocol;
+        }
+    }
+    
     private static final Log log = LogFactory.getLog(WebSphereServerDiscoveryComponent.class);
+    
+    private static final List<PortSpec> portSpecs = new ArrayList<PortSpec>();
+    
+    static {
+        portSpecs.add(new PortSpec("ORB_LISTENER_ADDRESS", "RMI"));
+        portSpecs.add(new PortSpec("BOOTSTRAP_ADDRESS", "RMI"));
+        portSpecs.add(new PortSpec("SOAP_CONNECTOR_ADDRESS", "SOAP"));
+    }
     
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
@@ -57,7 +85,9 @@ public class WebSphereServerDiscoveryComponent implements ResourceDiscoveryCompo
                 continue;
             }
             if (commandLine.length-appOptionIndex != 7) {
-                log.debug("Unexpected number of arguments after -application");
+                if (log.isDebugEnabled()) {
+                    log.debug("Unexpected number of arguments (" + (commandLine.length-appOptionIndex) + ") after -application");
+                }
                 continue;
             }
             if (!commandLine[appOptionIndex+1].equals("com.ibm.ws.bootstrap.WSLauncher")) {
@@ -114,17 +144,39 @@ public class WebSphereServerDiscoveryComponent implements ResourceDiscoveryCompo
             SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
             nsContext.setPrefix("serverindex", "http://www.ibm.com/websphere/appserver/schemas/5.0/serverindex.xmi");
             xpath.setNamespaceContext(nsContext);
-            String portString = (String)xpath.evaluate("/serverindex:ServerIndex/serverEntries[@serverName='" + processName
-                    + "']/specialEndpoints[@endPointName='ORB_LISTENER_ADDRESS']/endPoint/@port", serverIndex, XPathConstants.STRING);
-            if (portString == null || portString.length() == 0) {
-                log.error("Unable to extract ORB_LISTENER_ADDRESS from " + serverIndexFile);
-                continue;
+            int port = -1;
+            String protocol = null;
+            for (PortSpec portSpec : portSpecs) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Attempting to extract " + portSpec.getEndPointName());
+                }
+                String portString = (String)xpath.evaluate("/serverindex:ServerIndex/serverEntries[@serverName='" + processName
+                        + "']/specialEndpoints[@endPointName='" + portSpec.getEndPointName() + "']/endPoint/@port", serverIndex, XPathConstants.STRING);
+                if (portString == null || portString.length() == 0) {
+                    log.debug(portSpec.getEndPointName() + " not found");
+                    continue;
+                }
+                int candidatePort;
+                try {
+                    candidatePort = Integer.parseInt(portString);
+                } catch (NumberFormatException ex) {
+                    log.warn("Found non numerical port number in " + serverIndexFile);
+                    continue;
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("Port is " + candidatePort);
+                }
+                if (candidatePort != 0) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Using " + portSpec.getEndPointName() + "=" + candidatePort + ", protocol " + portSpec.getProtocol());
+                    }
+                    port = candidatePort;
+                    protocol = portSpec.getProtocol();
+                    break;
+                }
             }
-            int port;
-            try {
-                port = Integer.parseInt(portString);
-            } catch (NumberFormatException ex) {
-                log.error("Found non numerical port number in " + serverIndexFile);
+            if (port == -1) {
+                log.error("Unable to locate usable port in " + serverIndexFile);
                 continue;
             }
             
@@ -135,7 +187,7 @@ public class WebSphereServerDiscoveryComponent implements ResourceDiscoveryCompo
             Configuration conf = new Configuration();
             conf.put(new PropertySimple("host", "localhost"));
             conf.put(new PropertySimple("port", port));
-            conf.put(new PropertySimple("protocol", "RMI"));
+            conf.put(new PropertySimple("protocol", protocol));
             conf.put(new PropertySimple("loggingProvider", "none")); // TODO: autodetect XM4WAS
             conf.put(new PropertySimple("childJmxServerName", "JVM"));
             conf.put(new PropertySimple("unmanaged", unmanaged));
