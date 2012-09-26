@@ -24,6 +24,7 @@ package be.fgov.kszbcss.rhq.websphere.component.server;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -91,10 +92,11 @@ public class WebSphereServerDiscoveryComponent implements ResourceDiscoveryCompo
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         for (ProcessScanResult process : context.getAutoDiscoveredProcesses()) {
             ProcessInfo processInfo = process.getProcessInfo();
+            String[] commandLine = processInfo.getCommandLine();
             if (log.isDebugEnabled()) {
                 log.debug("Examining process " + processInfo.getPid());
+                log.debug("Command line: " + Arrays.asList(commandLine));
             }
-            String[] commandLine = processInfo.getCommandLine();
             int appOptionIndex = -1; // The index of the -application option
             for (int i=0; i<commandLine.length; i++) {
                 if (commandLine[i].equals("-application")) {
