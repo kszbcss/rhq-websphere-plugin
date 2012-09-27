@@ -1,4 +1,5 @@
 #summary Known issues
+#labels Featured
 
   * Process auto-discovery of !WebSphere instances may fail on Windows. This has been observed with RHQ 3.0.0, Windows XP and !WebSphere 8.0, but is likely to occur with other versions. The issue is caused by the fact that the !WebSphere process has a long list of command line arguments and that this list is truncated by RHQ (or by the [http://www.hyperic.com/products/sigar SIGAR] library used by RHQ).
   * (Issue #12) The RHQ !WebSphere plug-in allows to change the `maxConnections` property of a JDBC data source at runtime. This is particularly handy during certain types of incidents. However, after the value is changed, there may be a noticeable performance degradation of the !WebSphere server. The issue persists even after the `maxConnections` property has been reset, and a restart of the server is necessary to restore normal performance.
