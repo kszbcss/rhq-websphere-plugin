@@ -9,3 +9,15 @@ http://rhq-websphere-plugin.googlecode.com/svn/wiki/screenshots/cluster.png
 Statistics collected from a DB2 instance. The graphs show metrics retrieved from DB2 and aggregated over all connections belonging to a given JDBC data source instance configured in !WebSphere:
 
 http://rhq-websphere-plugin.googlecode.com/svn/wiki/screenshots/db2monitor.png
+
+----
+
+Scheduling a restart of a !WebSphere server using RHQ:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/screenshots/schedule-restart.png
+
+----
+
+Visualizing the effect of class loader leaks (caused by frequent application redeployment) on heap usage. The view combines metrics from different resources: the number of leaked application class loaders, the time spent in garbage collection and the average heap usage:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/screenshots/classloader-leaks.png
