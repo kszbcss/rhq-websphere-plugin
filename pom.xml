@@ -25,12 +25,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>be.fgov.kszbcss.rhq</groupId>
     <artifactId>rhq-websphere-plugin</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>RHQ WebSphere Plug-in</name>
     <scm>
-        <connection>scm:svn:http://rhq-websphere-plugin.googlecode.com/svn/tags/rhq-websphere-plugin-1.0.0</connection>
-        <developerConnection>scm:svn:https://rhq-websphere-plugin.googlecode.com/svn/tags/rhq-websphere-plugin-1.0.0</developerConnection>
+        <connection>scm:svn:http://rhq-websphere-plugin.googlecode.com/svn/trunk</connection>
+        <developerConnection>scm:svn:https://rhq-websphere-plugin.googlecode.com/svn/trunk</developerConnection>
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
