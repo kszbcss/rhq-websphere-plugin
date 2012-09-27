@@ -26,7 +26,7 @@
     <parent>
         <groupId>be.fgov.kszbcss.rhq</groupId>
         <artifactId>rhq-websphere-plugin</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>rhq-websphere-agent-plugin</artifactId>
