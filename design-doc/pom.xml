@@ -47,8 +47,6 @@
                         </goals>
                         <configuration>
                             <source>
-                                import java.io.File
-                                
                                 project.properties['baseUrl'] = project.basedir.toURI().toString()
                             </source>
                         </configuration>
