@@ -1,0 +1,8 @@
+#summary Troubleshooting Guide
+#labels Draft
+
+= Troubleshooting the agent plug-in =
+
+<pre>javax.management.JMException: Parent process not available</pre>
+
+In a !WebSphere ND environment, the RHQ !WebSphere plug-in needs to connect to the deployment manager of the cell in order to retrieve information from the configuration repository. To locate the deployment manager, the plug-in first asks the application server about the location of the node agent and then connects to the node agent to request the location of the deployment manager. If the connection to the node agent or the deployment manager fails, the error message shown above appears in the logs of the RHQ agent.
