@@ -33,7 +33,7 @@ org.apache.commons.logging.Log=org.apache.commons.logging.impl.Log4JLogger
 
 Finally, if the !WebSphere servers to be monitored are configured with Tivoli Access Manager, then you also need to add `$WAS_HOME/plugins/com.tivoli.pd.amwas.core_6.1.0.jar` to `$RHQ_AGENT_HOME/lib`.
 
-After changing the configuration and class path, restart the agent so that the new settings are taken into account.
+After changing the configuration and class path, restart the agent so that the new settings are taken into account. Note that restarting the agent by scheduling a _Restart Agent_ operation on the corresponding resource in RHQ will not work because the class path is not updated. Instead restart the agent from the command line using `$RHQ_AGENT_HOME/bin/rhq-agent-wrapper.sh restart`.
 
 = Creating the SSL trust store =
 
