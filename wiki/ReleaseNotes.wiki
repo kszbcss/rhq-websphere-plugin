@@ -1,0 +1,8 @@
+#summary Release notes
+#labels Featured
+
+= RHQ !WebSphere Plug-in 1.0.0 =
+
+This is the first generally available release of the RHQ !WebSphere plug-in. It has been extensively tested with RHQ 3.0.0, !WebSphere 6.1 and !WebSphere 7.0. It is expected to work also with RHQ 4.x, !WebSphere 8.0 and !WebSphere 8.5. Earlier versions of RHQ and !WebSphere are not supported.
+
+Please consult the KnownIssues page for more information about known issues in this release.
