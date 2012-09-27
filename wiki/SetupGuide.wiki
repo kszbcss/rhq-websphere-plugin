@@ -11,6 +11,8 @@ Binary distributions for the plug-in can be found [http://code.google.com/p/rhq-
 
 To deploy the plug-in on the agents, they will need to be restarted. However, the configuration of the agents that will be used to monitor !WebSphere instances needs to be changed as described in the next section, and that configuration change also requires a restart. Therefore, it is not necessary to restart the agents at this point.
 
+On some RHQ 4.x versions, it may also be required to restart the RHQ server before being able to add !WebSphere servers to the inventory. See [https://bugzilla.redhat.com/show_bug.cgi?id=861058 BZ 861058].
+
 = Preparing the agent(s) =
 
 The RHQ agents are usually configured to use a Sun/Oracle JVM. To use the RHQ !WebSphere plug-in, the agents must be reconfigured to run on an IBM JDK. In addition, several !WebSphere libraries need to be added to the classpath of the agent. All necessary files are provided by the !WebSphere Application Server product. If the agent is expected to connect to local !WebSphere instances, then all files are already present on the host system. If the agent will be configured to monitor !WebSphere instances remotely and the !WebSphere product is not yet installed on the host where the agent runs, then you need to install it before proceeding. Note that it is not necessary to create a !WebSphere profile. In the following, we will assume that !WebSphere has been installed under `$WAS_HOME`. Typically this would be something like `/opt/IBM/WebSphere/AppServer`.
@@ -30,6 +32,8 @@ org.apache.commons.logging.Log=org.apache.commons.logging.impl.Log4JLogger
 }}}
 
 Finally, if the !WebSphere servers to be monitored are configured with Tivoli Access Manager, then you also need to add `$WAS_HOME/plugins/com.tivoli.pd.amwas.core_6.1.0.jar` to `$RHQ_AGENT_HOME/lib`.
+
+After changing the configuration and class path, restart the agent so that the new settings are taken into account.
 
 = Creating the SSL trust store =
 
