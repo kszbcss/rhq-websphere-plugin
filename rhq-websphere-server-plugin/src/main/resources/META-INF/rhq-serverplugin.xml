@@ -41,7 +41,7 @@
             <c:simple-property name="scheduleType" type="string" required="true" default="cron" summary="true" description="Indicates when the schedule triggers">
                 <c:property-options>
                     <c:option value="periodic"/>
-                    <c:option value="cron" default="true"/>
+                    <c:option value="cron"/>
                 </c:property-options>
             </c:simple-property>
             <c:simple-property name="scheduleTrigger" type="string" required="true" default="0 0 0/4 * * ?" summary="true" description="Based on the schedule type, this is either the period, in milliseconds, or the cron expression"/>
