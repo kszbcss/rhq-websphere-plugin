@@ -1,0 +1,11 @@
+#summary Screenshots
+
+Monitoring view of a !WebShere cluster with two members:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/screenshots/cluster.png
+
+----
+
+Statistics collected from a DB2 instance. The graphs show metrics retrieved from DB2 and aggregated over all connections belonging to a given JDBC data source instance configured in !WebSphere:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/screenshots/db2monitor.png
