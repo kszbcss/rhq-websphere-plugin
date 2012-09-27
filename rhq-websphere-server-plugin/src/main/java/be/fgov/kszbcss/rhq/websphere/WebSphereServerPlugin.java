@@ -129,7 +129,9 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                     ResourceOperationHistory history = historyList.get(0);
                     if (history.getStatus() == OperationRequestStatus.SUCCESS) {
                         if (history.getResults() == null) {
-                            log.info("No results available for operation on " + schedule.getResource().getName() + " (" + schedule.getResource().getId() + ")");
+                            // This may happen if the checkConfiguration operation is declared on the resource type,
+                            // but not correctly implemented by the resource component.
+                            log.error("No results available for operation on " + schedule.getResource().getName() + " (" + schedule.getResource().getId() + ")");
                         } else {
                             if (!history.getResults().getSimple("isConfigured").getBooleanValue()) {
                                 log.info("About to uninventory " + schedule.getResource().getName() + " (" + schedule.getResource().getId() + ")");
