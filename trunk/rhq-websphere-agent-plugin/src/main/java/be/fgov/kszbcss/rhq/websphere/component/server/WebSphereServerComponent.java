@@ -224,7 +224,9 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
 
     public Configuration loadResourceConfiguration() throws Exception {
         Configuration config = new Configuration();
-        config.put(new PropertySimple("clusterName", server.getClusterName()));
+        String clusterName = server.getClusterName();
+        config.put(new PropertySimple("clusterName", clusterName));
+        config.put(new PropertySimple("clusterKey", clusterName == null ? null : server.getCell() + "/" + clusterName));
         return config;
     }
 

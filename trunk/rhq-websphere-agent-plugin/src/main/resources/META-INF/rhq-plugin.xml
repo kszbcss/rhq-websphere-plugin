@@ -191,6 +191,8 @@
         <resource-configuration>
             <c:simple-property name="clusterName" displayName="Cluster Name" type="string" required="false" readOnly="true"
                                description="The name of the cluster the application server is a member of."/>
+            <c:simple-property name="clusterKey" displayName="Cluster Key" type="string" required="false" readOnly="true"
+                               description="A unique identifier (containing the cell and cluster name) of the cluster the application server is a member of. This is useful for usage in groupBy clauses in Dynagroup definitions."/>
         </resource-configuration>
         
         <server name="WebSphere JVM"
