@@ -3,11 +3,11 @@
 
 = Managing the inventory =
 
-== Keeping the inventory in sync with the WebSphere configuration ==
+== Keeping the inventory in sync with the !WebSphere configuration ==
 
 TODO
 
-== Creating groups for WebSphere clusters ==
+== Creating groups for !WebSphere clusters ==
 
 To be able to efficiently monitor !WebSphere servers that are cluster members, you need to create groups in RHQ that match the !WebSphere topology. This can either be done by creating these groups manually or by using the Dynagroup feature to let RHQ create the groups automatically.
 
