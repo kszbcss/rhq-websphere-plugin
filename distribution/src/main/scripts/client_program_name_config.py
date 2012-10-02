@@ -89,5 +89,8 @@ for cluster in getConfigObjects("/ServerCluster:/"):
                 else:
                     print "        clientProgramName already configured (with expected value)"
 
-if raw_input("Do you want to save these changes [y/n]? ").lower() == "y":
-    AdminConfig.save()
+if AdminConfig.hasChanges():
+    if raw_input("Do you want to save these changes [y/n]? ").lower() == "y":
+        AdminConfig.save()
+else:
+    print "No changes need to be saved."
