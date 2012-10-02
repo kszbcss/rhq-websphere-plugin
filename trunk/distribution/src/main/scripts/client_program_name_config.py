@@ -26,6 +26,8 @@ sys.modules['AdminConfig'] = AdminConfig
 
 from wsadminlib import *
 
+jndiPrefixes = [ "jdbc/", "datasources/", "ds/" ]
+
 for cluster in getConfigObjects("/ServerCluster:/"):
     clusterName = cluster.getAttribute("name")
     print "    Processing cluster %s" % clusterName
@@ -62,10 +64,11 @@ for cluster in getConfigObjects("/ServerCluster:/"):
         if dataSource.getAttribute("datasourceHelperClassname") == "com.ibm.websphere.rsadapter.DB2UniversalDataStoreHelper":
             jndiName = dataSource.getAttribute("jndiName")
             print "      Processing DB2 data source %s" % jndiName
-            if jndiName.startswith("jdbc/"):
-                baseName = jndiName[5:]
-            else:
-                baseName = jndiName
+            baseName = jndiName
+            for prefix in jndiPrefixes:
+                if jndiName.startswith(prefix):
+                    baseName = jndiName[len(prefix):]
+                    break
             baseName = baseName.lower()
             # APPL_NAME (which is the variable that clientProgramName sets on the server side)
             # is truncated at 20 characters
