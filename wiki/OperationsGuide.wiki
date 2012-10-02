@@ -1,0 +1,28 @@
+#summary Operations Guide
+#labels Draft
+
+= Managing the inventory =
+
+== Keeping the inventory in sync with the WebSphere configuration ==
+
+TODO
+
+== Creating groups for WebSphere clusters ==
+
+To be able to efficiently monitor !WebSphere servers that are cluster members, you need to create groups in RHQ that match the !WebSphere topology. This can either be done by creating these groups manually or by using the Dynagroup feature to let RHQ create the groups automatically.
+
+If you choose to create the groups manually, make sure that they are configured as containing compatible resources (of type _!WebSphere Server_) and that the recursive option is enabled:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/create-cluster-group.png
+
+If you choose to configure a Dynagroup definition to let RHQ create the groups automatically, use the following expression:
+
+{{{
+groupby resource.resourceconfiguration[clusterKey]
+resource.type.plugin = WebSphere
+resource.type.name = WebSphere Server
+}}}
+
+The `clusterKey` is constructed from the cell and cluster name. If your !WebSphere topology is designed with a naming convention that ensures that cluster names are unique acress cells, then you can use `clusterName` instead. Note that `clusterKey` doesn't exist in version 1.0.0 of the RHQ !WebSphere plug-in.
+
+*Important:* If your inventory contains !WebSphere instances that are not cluster members, then the group calculation will fail because of a bug in RHQ. In that case, don't use Dynagroups and create the groups manually.
