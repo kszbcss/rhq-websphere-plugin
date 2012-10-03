@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!--
+  ~ RHQ WebSphere Plug-in
+  ~ Copyright (C) 2012 Crossroads Bank for Social Security
+  ~ All rights reserved.
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License, version 2, as
+  ~ published by the Free Software Foundation, and/or the GNU Lesser
+  ~ General Public License, version 2.1, also as published by the Free
+  ~ Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  ~ GNU General Public License and the GNU Lesser General Public License
+  ~ for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ and the GNU Lesser General Public License along with this program;
+  ~ if not, write to the Free Software Foundation, Inc.,
+  ~ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>be.fgov.kszbcss.rhq</groupId>
+        <artifactId>rhq-websphere-plugin</artifactId>
+        <version>1.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>distribution</artifactId>
+    <packaging>pom</packaging>
+    <name>Distribution</name>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>rhq-websphere-agent-plugin</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>rhq-websphere-server-plugin</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>design-doc</artifactId>
+            <version>${project.version}</version>
+            <type>pdf</type>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>rhq-websphere-plugin-${project.version}</finalName>
+                            <descriptors>
+                                <descriptor>src/main/assembly/bin.xml</descriptor>
+                                <descriptor>src/main/assembly/src.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
