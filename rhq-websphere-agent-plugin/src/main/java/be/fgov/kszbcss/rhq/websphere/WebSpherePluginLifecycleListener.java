@@ -22,7 +22,9 @@
  */
 package be.fgov.kszbcss.rhq.websphere;
 
+import java.lang.reflect.Field;
 import java.security.Security;
+import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,6 +35,8 @@ import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
 import be.fgov.kszbcss.rhq.websphere.connector.security.CustomProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.security.TrustStoreManager;
 
+import com.ibm.CORBA.iiop.ORB;
+import com.ibm.ws.orb.GlobalORBFactory;
 import com.ibm.ws.ssl.config.SSLConfig;
 import com.ibm.ws.ssl.config.SSLConfigManager;
 
@@ -41,10 +45,24 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
     
     private static final String SSL_CONFIG_ALIAS = "RHQSSLConfig";
     
+    private ORB orb;
     private SSLConfigManager configManager;
     private SSLConfig sslConfig;
     
     public void initialize(PluginContext context) throws Exception {
+        // We explicitly manage the lifecycle of the ORB so that we can cleanly
+        // shut it down.
+        log.info("Starting ORB");
+        // The ORB initialization may change the name of the current thread
+        // (apparently this occurs only for the "main" thread). We don't want that.
+        String threadName = Thread.currentThread().getName();
+        try {
+            Properties orbProps = new Properties();
+            orb = GlobalORBFactory.init(new String[0], orbProps);
+        } finally {
+            Thread.currentThread().setName(threadName);
+        }
+        
         TrustStoreManager.init(context);
         
         ConfigQueryServiceFactory.init(context);
@@ -82,5 +100,23 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
         configManager = null;
         sslConfig = null;
         Security.removeProvider(CustomProvider.NAME);
+        
+        // Shut down the ORB to prevent class loader leaks and to avoid reconnection
+        // issues if the plugin is restarted later.
+        log.info("Shutting down ORB");
+        orb.shutdown(false);
+        orb = null;
+        // Also reset the ORB singleton holder; otherwise we will have an issue if the
+        // plugin is restarted later (and the GlobalORBFactory class is loaded from the
+        // system class loader).
+        synchronized (GlobalORBFactory.class) {
+            try {
+                Field orbField = GlobalORBFactory.class.getDeclaredField("orb");
+                orbField.setAccessible(true);
+                orbField.set(null, null);
+            } catch (Exception ex) {
+                log.error("Failed to remove singleton ORB instance; this will cause a failure to restart the plugin", ex);
+            }
+        }
     }
 }
