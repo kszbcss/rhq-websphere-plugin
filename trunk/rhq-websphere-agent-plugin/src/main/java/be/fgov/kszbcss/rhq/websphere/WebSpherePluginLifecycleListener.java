@@ -22,6 +22,7 @@
  */
 package be.fgov.kszbcss.rhq.websphere;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.security.Security;
 import java.util.Properties;
@@ -59,6 +60,8 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
         try {
             Properties orbProps = new Properties();
             orbProps.setProperty("com.ibm.CORBA.ConfigURL", WebSpherePluginLifecycleListener.class.getResource("sas.client.props").toExternalForm());
+            // This prevents the ORB from creating orbtrc files
+            orbProps.setProperty("com.ibm.CORBA.Debug.Output", File.separatorChar == '/' ? "/dev/null" : "NUL");
             orb = GlobalORBFactory.init(new String[0], orbProps);
         } finally {
             Thread.currentThread().setName(threadName);
