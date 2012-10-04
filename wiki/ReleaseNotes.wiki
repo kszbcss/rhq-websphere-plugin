@@ -4,6 +4,7 @@
 = RHQ !WebSphere Plug-in 1.0.1 (not released yet) =
 
   * Fixed issue #14.
+  * The agent now configures the IBM ORB to prevent it from creating `orbmsg.*` and `orbtrc.*` log files.
 
 = RHQ !WebSphere Plug-in 1.0.0 =
 
