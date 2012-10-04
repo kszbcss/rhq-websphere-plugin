@@ -50,14 +50,15 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
     private SSLConfig sslConfig;
     
     public void initialize(PluginContext context) throws Exception {
-        // We explicitly manage the lifecycle of the ORB so that we can cleanly
-        // shut it down.
+        // We explicitly manage the lifecycle of the ORB so that we can configure
+        // it without relying on system properties and also cleanly shut it down.
         log.info("Starting ORB");
         // The ORB initialization may change the name of the current thread
         // (apparently this occurs only for the "main" thread). We don't want that.
         String threadName = Thread.currentThread().getName();
         try {
             Properties orbProps = new Properties();
+            orbProps.setProperty("com.ibm.CORBA.ConfigURL", WebSpherePluginLifecycleListener.class.getResource("sas.client.props").toExternalForm());
             orb = GlobalORBFactory.init(new String[0], orbProps);
         } finally {
             Thread.currentThread().setName(threadName);
@@ -66,10 +67,6 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
         TrustStoreManager.init(context);
         
         ConfigQueryServiceFactory.init(context);
-        
-        // This is obviously ugly, but we didn't find a way yet to set the CSI
-        // properties dynamically (in contrast to the SSL properties)
-        System.setProperty("com.ibm.CORBA.ConfigURL", WebSpherePluginLifecycleListener.class.getResource("sas.client.props").toExternalForm());
         
         // TODO: we should specify com.ibm.ssl.customTrustManagers and set com.ibm.ssl.skipDefaultTrustManagerWhenCustomDefined=true
         //       to use our own trust manager so that we can reload the trust store without restarting the agent;
