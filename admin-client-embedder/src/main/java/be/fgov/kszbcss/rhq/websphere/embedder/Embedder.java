@@ -27,10 +27,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Attributes.Name;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -65,6 +68,28 @@ public class Embedder {
             in.close();
         }
         out.closeEntry();
+    }
+    
+    private static void addClasses(JarOutputStream out, File jarFile, String... packages) throws IOException {
+        Set<String> folders = new HashSet<String>();
+        for (String pkg : packages) {
+            folders.add(pkg.replace('.', '/'));
+        }
+        JarInputStream in = new JarInputStream(new FileInputStream(jarFile));
+        try {
+            JarEntry entry;
+            while ((entry = in.getNextJarEntry()) != null) {
+                String name = entry.getName();
+                int idx = name.lastIndexOf('/');
+                if (idx != -1 && folders.contains(name.substring(0, idx))) {
+                    out.putNextEntry(entry);
+                    IOUtils.copy(in, out);
+                    out.closeEntry();
+                }
+            }
+        } finally {
+            in.close();
+        }
     }
     
     public static void main(String[] args) throws Exception {
@@ -142,6 +167,10 @@ public class Embedder {
         }
         addLibrary(out, new File(wasHome, "runtimes/com.ibm.ws.admin.client_7.0.0.jar"));
         addLibrary(out, new File(wasHome, "plugins/com.ibm.ws.security.crypto.jar"));
+        addLibrary(out, new File(wasHome, "plugins/com.tivoli.pd.amwas.core_6.1.0.jar"));
+        addClasses(out, new File(wasHome, "plugins/com.ibm.ws.runtime.jar"),
+                "com.ibm.wsspi.hamanager",
+                "com.ibm.websphere.hamanager.jmx");
         in.close();
         out.close();
     }
