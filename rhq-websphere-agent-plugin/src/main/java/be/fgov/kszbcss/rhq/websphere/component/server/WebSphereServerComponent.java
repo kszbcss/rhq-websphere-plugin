@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.management.JMException;
+import javax.management.JMRuntimeException;
 import javax.management.ObjectName;
 
 import org.apache.commons.io.IOUtils;
@@ -162,6 +163,9 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
     }
     
     public AvailabilityType getAvailability() {
+        if (log.isDebugEnabled()) {
+            log.debug("Starting to determine availability for server " + getResourceContext().getResourceKey());
+        }
         AdminClient adminClient = server.getAdminClient();
         ObjectName serverMBean;
         try {
@@ -178,6 +182,9 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
             return AvailabilityType.DOWN;
         } catch (JMException ex) {
             log.warn("Unexpected management exception while getting the 'state' attribute from the server MBean", ex);
+            return AvailabilityType.DOWN;
+        } catch (JMRuntimeException ex) {
+            log.warn("Unexpected management runtime exception while getting the 'state' attribute from the server MBean", ex);
             return AvailabilityType.DOWN;
         }
         if (log.isDebugEnabled()) {
