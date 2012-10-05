@@ -1,0 +1,41 @@
+#
+# RHQ WebSphere Plug-in
+# Copyright (C) 2012 Crossroads Bank for Social Security
+# All rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2, as
+# published by the Free Software Foundation, and/or the GNU Lesser
+# General Public License, version 2.1, also as published by the Free
+# Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License and the GNU Lesser General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License
+# and the GNU Lesser General Public License along with this program;
+# if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+com.ibm.CORBA.securityEnabled=true
+com.ibm.CORBA.authenticationTarget=BasicAuth
+com.ibm.CORBA.authenticationRetryEnabled=true
+com.ibm.CORBA.authenticationRetryCount=3
+com.ibm.CORBA.validateBasicAuth=true
+com.ibm.CORBA.loginTimeout=300
+com.ibm.CORBA.loginSource=none
+com.ibm.CSI.performStateful=true
+com.ibm.CSI.performClientAuthenticationRequired=false
+com.ibm.CSI.performClientAuthenticationSupported=true
+com.ibm.CSI.performTLClientAuthenticationRequired=false
+com.ibm.CSI.performTLClientAuthenticationSupported=false
+com.ibm.CSI.performTransportAssocSSLTLSRequired=false
+com.ibm.CSI.performTransportAssocSSLTLSSupported=true
+com.ibm.CSI.performMessageIntegrityRequired=true
+com.ibm.CSI.performMessageIntegritySupported=true
+com.ibm.CSI.performMessageConfidentialityRequired=false
+com.ibm.CSI.performMessageConfidentialitySupported=true
+com.ibm.CORBA.requestTimeout=180
