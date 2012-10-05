@@ -26,11 +26,11 @@
     <parent>
         <groupId>be.fgov.kszbcss.rhq</groupId>
         <artifactId>rhq-websphere-plugin</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>websphere-apis</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
     <name>WebSphere API Stubs</name>
     <description>
         Contains dummy versions of some WebSphere APIs so that it is possible to
