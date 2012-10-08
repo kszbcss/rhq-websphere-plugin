@@ -31,11 +31,11 @@ import org.rhq.core.pluginapi.event.EventContext;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import com.ibm.websphere.management.exception.ConnectorException;
-
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
+
+import com.ibm.websphere.management.exception.ConnectorException;
 
 public abstract class ModuleComponent extends WebSphereServiceComponent<ApplicationComponent> implements MeasurementFacet {
     private MBeanClient mbean;
@@ -70,13 +70,23 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
         getApplication().unregisterLogEventContext(getModuleName(), componentName);
     }
     
+    /**
+     * Get the module configuration.
+     * 
+     * @param immediate
+     * @return the module configuration, or <code>null</code> if the module no longer exists in the
+     *         WebSphere configuration
+     * @throws InterruptedException
+     * @throws ConnectorException
+     */
     public ModuleInfo getModuleInfo(boolean immediate) throws InterruptedException, ConnectorException {
         return getApplication().getApplicationInfo(immediate).getModule(getModuleName());
     }
     
     @Override
     protected boolean isConfigured(boolean immediate) throws Exception {
-        return getModuleInfo(immediate) != null;
+        ModuleInfo module = getModuleInfo(immediate);
+        return module != null && module.getTargetMapping(getServer()) != null;
     }
 
     protected AvailabilityType doGetAvailability() {

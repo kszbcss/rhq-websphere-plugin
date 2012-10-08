@@ -22,23 +22,16 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
-public class ModuleInfo extends DeployedObject {
-    private static final long serialVersionUID = 8027001937193232664L;
-    
-    private final ModuleType type;
-    private final String name;
-    
-    public ModuleInfo(ModuleType type, String name, byte[] deploymentDescriptor, TargetMapping[] targetMappings) {
-        super(deploymentDescriptor, targetMappings);
-        this.type = type;
-        this.name = name;
-    }
+import java.io.Serializable;
 
-    public ModuleType getType() {
-        return type;
-    }
+import javax.management.JMException;
 
-    public String getName() {
-        return name;
-    }
+import com.ibm.websphere.management.exception.ConnectorException;
+
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+
+public abstract class Target implements Serializable {
+    private static final long serialVersionUID = -1343391240314708L;
+
+    public abstract boolean matches(ApplicationServer server) throws ConnectorException, InterruptedException, JMException;
 }

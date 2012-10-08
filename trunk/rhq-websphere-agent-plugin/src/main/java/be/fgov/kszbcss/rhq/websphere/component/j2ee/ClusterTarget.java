@@ -22,23 +22,23 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
-public class ModuleInfo extends DeployedObject {
-    private static final long serialVersionUID = 8027001937193232664L;
+import javax.management.JMException;
+
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+
+import com.ibm.websphere.management.exception.ConnectorException;
+
+public class ClusterTarget extends Target {
+    private static final long serialVersionUID = -5066994601226876792L;
     
-    private final ModuleType type;
-    private final String name;
-    
-    public ModuleInfo(ModuleType type, String name, byte[] deploymentDescriptor, TargetMapping[] targetMappings) {
-        super(deploymentDescriptor, targetMappings);
-        this.type = type;
-        this.name = name;
+    private final String clusterName;
+
+    public ClusterTarget(String clusterName) {
+        this.clusterName = clusterName;
     }
 
-    public ModuleType getType() {
-        return type;
-    }
-
-    public String getName() {
-        return name;
+    @Override
+    public boolean matches(ApplicationServer server) throws ConnectorException, InterruptedException, JMException {
+        return clusterName.equals(server.getClusterName());
     }
 }

@@ -22,23 +22,23 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
-public class ModuleInfo extends DeployedObject {
-    private static final long serialVersionUID = 8027001937193232664L;
+import com.ibm.websphere.management.exception.ConnectorException;
+
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+
+public class ServerTarget extends Target {
+    private static final long serialVersionUID = 4315746012424558339L;
     
-    private final ModuleType type;
-    private final String name;
+    private final String nodeName;
+    private final String serverName;
     
-    public ModuleInfo(ModuleType type, String name, byte[] deploymentDescriptor, TargetMapping[] targetMappings) {
-        super(deploymentDescriptor, targetMappings);
-        this.type = type;
-        this.name = name;
+    public ServerTarget(String nodeName, String serverName) {
+        this.nodeName = nodeName;
+        this.serverName = serverName;
     }
 
-    public ModuleType getType() {
-        return type;
-    }
-
-    public String getName() {
-        return name;
+    @Override
+    public boolean matches(ApplicationServer server) throws ConnectorException {
+        return server.getNode().equals(nodeName) && server.getServer().equals(serverName);
     }
 }
