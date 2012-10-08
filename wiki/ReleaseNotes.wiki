@@ -3,6 +3,10 @@
 
 = RHQ !WebSphere Plug-in 1.0.2 (not yet released) =
 
+This release requires RHQ 4.x. RHQ 3.x is no longer supported.
+
+Changes:
+
   * Fixed issue #16: the plug-in now correctly supports applications that have modules mapped to different targets.
 
 = RHQ !WebSphere Plug-in 1.0.1 =
@@ -12,6 +16,8 @@ Version 1.0.1 implements compatibility with RHQ 4.5 and fixes a couple of minor 
 Changes:
   * Fixed issue #14.
   * The agent now configures the IBM ORB to prevent it from creating `orbmsg.*` and `orbtrc.*` log files.
+
+*Important:* Because of an incompatible change in the RHQ API, the server-side part of the RHQ !WebSphere plug-in shipped in this release doesn't work with RHQ 4.x (see issue #17). It is only supported on RHQ 3.x.
 
 Please consult the KnownIssues page for more information about known issues in this release.
 
