@@ -1,6 +1,10 @@
 #summary Release notes
 #labels Featured
 
+= RHQ !WebSphere Plug-in 1.0.2 (not yet released) =
+
+  * Fixed issue #16: the plug-in now correctly supports applications that have modules mapped to different targets.
+
 = RHQ !WebSphere Plug-in 1.0.1 =
 
 Version 1.0.1 implements compatibility with RHQ 4.5 and fixes a couple of minor issues.
