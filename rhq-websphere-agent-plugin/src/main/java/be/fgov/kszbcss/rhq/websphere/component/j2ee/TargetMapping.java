@@ -22,23 +22,27 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
-public class ModuleInfo extends DeployedObject {
-    private static final long serialVersionUID = 8027001937193232664L;
+import java.io.Serializable;
+
+/**
+ * Describes a mapping of an application or module to a target.
+ */
+public class TargetMapping implements Serializable {
+    private static final long serialVersionUID = 6191855577710345892L;
+
+    private final Target target;
+    private final boolean autoStart;
     
-    private final ModuleType type;
-    private final String name;
-    
-    public ModuleInfo(ModuleType type, String name, byte[] deploymentDescriptor, TargetMapping[] targetMappings) {
-        super(deploymentDescriptor, targetMappings);
-        this.type = type;
-        this.name = name;
+    public TargetMapping(Target target, boolean autoStart) {
+        this.target = target;
+        this.autoStart = autoStart;
     }
 
-    public ModuleType getType() {
-        return type;
+    public Target getTarget() {
+        return target;
     }
 
-    public String getName() {
-        return name;
+    public boolean isAutoStart() {
+        return autoStart;
     }
 }

@@ -45,7 +45,13 @@ public abstract class ModuleDiscoveryComponent implements ResourceDiscoveryCompo
         }
         for (ModuleInfo module : modules) {
             String name = module.getName();
-            result.add(new DiscoveredResourceDetails(context.getResourceType(), name, name, null, getDescription(name), null, null));
+            if (module.getTargetMapping(context.getParentResourceComponent().getServer()) == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Module " + name + " is not mapped to server");
+                }
+            } else {
+                result.add(new DiscoveredResourceDetails(context.getResourceType(), name, name, null, getDescription(name), null, null));
+            }
         }
         return result;
     }

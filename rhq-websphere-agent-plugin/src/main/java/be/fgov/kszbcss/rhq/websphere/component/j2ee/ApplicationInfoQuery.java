@@ -38,8 +38,8 @@ import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.management.exception.DocumentNotFoundException;
 
 public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
-    private static final long serialVersionUID = 5507520583493264073L;
-    
+    private static final long serialVersionUID = -5051704435449788314L;
+
     private static final Log log = LogFactory.getLog(ApplicationInfoQuery.class);
     
     private final String applicationName;
@@ -68,7 +68,7 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
             if (log.isDebugEnabled()) {
                 log.debug("Loading deployment descriptor " + deploymentDescriptorURI);
             }
-            moduleInfos.add(factory.create(uri, config.extract(deploymentDescriptorURI)));
+            moduleInfos.add(factory.create(uri, config.extract(deploymentDescriptorURI), loadTargetMappings(module)));
         }
         byte[] deploymentDescriptor;
         try {
@@ -80,7 +80,30 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
                 throw ex;
             }
         }
-        return new ApplicationInfo(deploymentDescriptor, moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
+        return new ApplicationInfo(deploymentDescriptor, loadTargetMappings(applicationDeployment),
+                moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
+    }
+    
+    private TargetMapping[] loadTargetMappings(ConfigObject object) throws JMException, ConnectorException, InterruptedException {
+        List<TargetMapping> targetMappings = new ArrayList<TargetMapping>();
+        for (ConfigObject targetMapping : object.getChildren("targetMappings")) {
+            ConfigObject targetConfigObject = (ConfigObject)targetMapping.getAttribute("target");
+            Target target;
+            String type = targetConfigObject.getType();
+            if (type.equals("ClusteredTarget")) {
+                target = new ClusterTarget((String)targetConfigObject.getAttribute("name"));
+            } else if (type.equals("ServerTarget")) {
+                target = new ServerTarget((String)targetConfigObject.getAttribute("nodeName"),
+                        (String)targetConfigObject.getAttribute("name"));
+            } else {
+                log.warn("Ignoring unexpected target configuration object type " + type);
+                target = null;
+            }
+            if (target != null) {
+                targetMappings.add(new TargetMapping(target, (Boolean)targetMapping.getAttribute("enable")));
+            }
+        }
+        return targetMappings.toArray(new TargetMapping[targetMappings.size()]);
     }
 
     @Override

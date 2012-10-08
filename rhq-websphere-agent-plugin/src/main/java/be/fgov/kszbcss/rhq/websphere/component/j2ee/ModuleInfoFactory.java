@@ -86,7 +86,7 @@ public class ModuleInfoFactory {
         return null;
     }
     
-    public ModuleInfo create(String name, byte[] deploymentDescriptor) {
-        return new ModuleInfo(type, name, deploymentDescriptor);
+    public ModuleInfo create(String name, byte[] deploymentDescriptor, TargetMapping[] targetMappings) {
+        return new ModuleInfo(type, name, deploymentDescriptor, targetMappings);
     }
 }
