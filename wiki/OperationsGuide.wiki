@@ -26,3 +26,20 @@ resource.type.name = WebSphere Server
 The `clusterKey` is constructed from the cell and cluster name. If your !WebSphere topology is designed with a naming convention that ensures that cluster names are unique acress cells, then you can use `clusterName` instead. Note that `clusterKey` doesn't exist in version 1.0.0 of the RHQ !WebSphere plug-in.
 
 *Important:* If your inventory contains !WebSphere instances that are not cluster members, then the group calculation will fail because of a bug in RHQ. In that case, don't use Dynagroups and create the groups manually.
+
+= Setting up DB2 monitoring =
+
+The RHQ !WebSphere plug-in is able to collect [http://publib.boulder.ibm.com/infocenter/db2luw/v9r5/topic/com.ibm.db2.luw.sql.rtn.doc/doc/r0052905.html per connection statistics] from DB2 and to aggregate these metrics per data source configured in !WebSphere. For this to work, two conditions must be satisfied:
+  * The plug-in must be able to identify the connections belonging to a each data source instance. This is done by configuring the `clientProgramName` property on the data sources to be monitored. The `clientProgramName` property specifies the value of the [http://publib.boulder.ibm.com/infocenter/db2luw/v9r5/topic/com.ibm.db2.luw.sql.ref.doc/doc/r0005865.html `CURRENT CLIENT_APPLNAME` special register] for all connections created by the data source. Since this information is available in the data collected from DB2, it will allow the RHQ !WebSphere plug-in to correlate DB2 connections with data sources configured in !WebSphere.
+  * Access to the monitoring data collected by the DB2 instance requires at least SYSMON authority. In general the application user configured on the data source doesn't have this authority. Therefore the plug-in must be configured with an appropriate user for the monitoring connection.
+
+== Configuring the `clientProgramName` ==
+
+There is nothing fundamentally difficult about configuring the `clientProgramName` on a data source in the !WebSphere configuration. Just [http://pic.dhe.ibm.com/infocenter/wasinfo/v7r0/topic/com.ibm.websphere.nd.doc/info/ae/ae/tdat_ccrtpds.html add a new custom property or edit the existing `clientProgramName` property]. However, there are several things to keep in mind. This first is that the configuration must be done in such a way that each data source *instance* gets a unique value for that property. This is important for data sources that are defined at a scope other than server. For example, a data source defined on a cluster will be instantiated on each member of that cluster, and the value of the `clientProgramName` property must be different for each of these instances. This can be achieved by using !WebSphere variables in the definition of the `clientProgramName` property. The other important thing to keep in mind is that values longer than 20 characters (after expansion of the !WebSphere variables) will be truncated by the DB2 server. Taking these two constraints into account, the following approach is recommended:
+  * If the !WebSphere server names are unique and the length of these names is reasonable (less than 10 characters), then use the predefined `WAS_SERVER_NAME` variable in the definition of the `clientProgramName` property. Obviously this variable needs to be concatenated with a fixed string that identifies the data source. E.g. for a data source with JNDI name `jdbc/myds` you may choose `${WAS_SERVER_NAME}:myds` as the `clientProgramName`.
+  * In all other cases, define a new !WebSphere variable `RHQ_DB2MON_SERVER_IDENTIFIER` at server scope and assign it a unique value for each server (that should not be longer than 10 characters). You can then use this variable in the data source configuration, e.g. `${RHQ_DB2MON_SERVER_IDENTIFIER}:myds`.
+Note that the binary distribution contains a wsadmin script called `client_program_name_config.py` that can be used to automate the configuration of the individual data sources. It detects if a `RHQ_DB2MON_SERVER_IDENTIFIER` variable has been defined and constructs the `clientProgramName` accordingly.
+
+== Configuring the monitoring user ==
+
+TODO
