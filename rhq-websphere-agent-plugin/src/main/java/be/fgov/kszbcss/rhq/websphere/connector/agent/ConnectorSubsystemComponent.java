@@ -109,7 +109,7 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
             String cell = dm.getCell();
             ConfigQueryService configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryServiceWithoutCaching(dm);
             try {
-                X509Certificate cert = configQueryService.query(CellRootCertificateQuery.INSTANCE, true);
+                X509Certificate cert = configQueryService.query(CellRootCertificateQuery.INSTANCE);
                 TrustStoreManager.getInstance().addCertificate("cell:" + cell, cert);
             } finally {
                 configQueryService.release();

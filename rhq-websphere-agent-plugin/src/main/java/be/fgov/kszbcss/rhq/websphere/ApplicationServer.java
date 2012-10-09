@@ -53,13 +53,13 @@ public abstract class ApplicationServer extends WebSphereServer {
 
     protected abstract ConfigQueryService createConfigQueryService() throws ConnectorException;
     
-    public final <T extends Serializable> T queryConfig(ConfigQuery<T> query, boolean immediate) throws InterruptedException, ConnectorException {
+    public final <T extends Serializable> T queryConfig(ConfigQuery<T> query) throws InterruptedException, ConnectorException {
         synchronized (this) {
             if (configQueryService == null) {
                 configQueryService = createConfigQueryService();
             }
         }
-        return configQueryService.query(query, immediate);
+        return configQueryService.query(query);
     }
 
     public abstract String getClusterName() throws InterruptedException, JMException, ConnectorException;

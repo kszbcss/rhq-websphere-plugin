@@ -38,9 +38,9 @@ public class EJBModuleComponent extends ModuleComponent {
         return "EJBModule";
     }
     
-    public Set<String> getBeanNames(EnterpriseBeanType type, boolean immediate) throws InterruptedException, ConnectorException {
+    public Set<String> getBeanNames(EnterpriseBeanType type) throws InterruptedException, ConnectorException {
         Set<String> names = new HashSet<String>();
-        Element beans = Utils.getFirstElement(getModuleInfo(immediate).getDeploymentDescriptor().getDocumentElement(), "enterprise-beans");
+        Element beans = Utils.getFirstElement(getModuleInfo().getDeploymentDescriptor().getDocumentElement(), "enterprise-beans");
         if (beans != null) {
             if (type == EnterpriseBeanType.MESSAGE_DRIVEN) {
                 for (Element bean : Utils.getElements(beans, "message-driven")) {

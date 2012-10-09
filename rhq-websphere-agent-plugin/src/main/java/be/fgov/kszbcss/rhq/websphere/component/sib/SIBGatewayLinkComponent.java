@@ -77,8 +77,8 @@ public class SIBGatewayLinkComponent extends WebSphereServiceComponent<SIBMessag
     }
 
     @Override
-    protected boolean isConfigured(boolean immediate) throws Exception {
-        SIBMessagingEngineInfo meInfo = getResourceContext().getParentResourceComponent().getInfo(immediate);
+    protected boolean isConfigured() throws Exception {
+        SIBMessagingEngineInfo meInfo = getResourceContext().getParentResourceComponent().getInfo();
         return meInfo != null && meInfo.getTargetUUIDForGatewayLink(getResourceContext().getResourceKey()) != null;
     }
 

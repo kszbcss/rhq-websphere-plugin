@@ -60,9 +60,9 @@ public class WebModuleComponent extends ModuleComponent implements Configuration
         return "WebModule";
     }
     
-    public Set<String> getServletNames(boolean immediate) throws JMException, ConnectorException, InterruptedException {
+    public Set<String> getServletNames() throws JMException, ConnectorException, InterruptedException {
         Set<String> result = new HashSet<String>();
-        for (Element servlet : Utils.getElements(getModuleInfo(immediate).getDeploymentDescriptor().getDocumentElement(), "servlet")) {
+        for (Element servlet : Utils.getElements(getModuleInfo().getDeploymentDescriptor().getDocumentElement(), "servlet")) {
             result.add(Utils.getFirstElement(servlet, "servlet-name").getTextContent());
         }
         return result;

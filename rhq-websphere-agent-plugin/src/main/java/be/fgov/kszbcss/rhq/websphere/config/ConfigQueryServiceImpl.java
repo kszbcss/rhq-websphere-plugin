@@ -141,14 +141,14 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Serializable> T query(ConfigQuery<T> query, boolean immediate) throws InterruptedException {
+    public <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException {
         // If the current thread is already interrupted, then don't query the cache at all
         if (Thread.interrupted()) {
             throw new InterruptedException();
         }
         T result;
         try {
-            result = (T)queryCache.get(query, immediate).object;
+            result = (T)queryCache.get(query, CacheRefreshStrategy.isImmediateRefresh()).object;
         } catch (CacheRefreshException ex) {
             // TODO: handle this properly
             throw new RuntimeException(ex);

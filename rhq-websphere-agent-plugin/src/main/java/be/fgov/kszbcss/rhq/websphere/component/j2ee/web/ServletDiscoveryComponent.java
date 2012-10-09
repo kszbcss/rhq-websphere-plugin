@@ -34,7 +34,7 @@ import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 public class ServletDiscoveryComponent implements ResourceDiscoveryComponent<WebModuleComponent> {
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebModuleComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        for (String servletName : context.getParentResourceComponent().getServletNames(true)) {
+        for (String servletName : context.getParentResourceComponent().getServletNames()) {
             result.add(new DiscoveredResourceDetails(context.getResourceType(), servletName, servletName, null, "A servlet.", null, null));
         }
         return result;

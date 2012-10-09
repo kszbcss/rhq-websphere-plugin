@@ -42,7 +42,7 @@ public class SIBMessagingEngineDiscoveryComponent implements ResourceDiscoveryCo
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         ApplicationServer server = context.getParentResourceComponent().getServer();
         log.debug("Retrieving list of messaging engines");
-        for (SIBMessagingEngineInfo me : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()), true)) {
+        for (SIBMessagingEngineInfo me : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()))) {
             if (log.isDebugEnabled()) {
                 log.debug("Found messaging engine " + me.getName() + " (bus " + me.getBusName() + ")");
             }

@@ -38,7 +38,7 @@ public abstract class ModuleDiscoveryComponent implements ResourceDiscoveryCompo
     
     public final Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<ApplicationComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        ApplicationInfo applicationInfo = context.getParentResourceComponent().getApplicationInfo(true);
+        ApplicationInfo applicationInfo = context.getParentResourceComponent().getApplicationInfo();
         List<ModuleInfo> modules = applicationInfo.getModules(getModuleType());
         if (log.isDebugEnabled()) {
             log.debug("Found " + modules.size() + " module(s) of type " + getModuleType() + " in application " + context.getParentResourceComponent().getApplicationName());

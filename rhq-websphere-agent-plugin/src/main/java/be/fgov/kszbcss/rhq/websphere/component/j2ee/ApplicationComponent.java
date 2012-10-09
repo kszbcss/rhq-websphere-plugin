@@ -64,12 +64,12 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
         return getResourceContext().getResourceKey();
     }
     
-    public ApplicationInfo getApplicationInfo(boolean immediate) throws InterruptedException, ConnectorException {
-        return getServer().queryConfig(new ApplicationInfoQuery(getApplicationName()), immediate);
+    public ApplicationInfo getApplicationInfo() throws InterruptedException, ConnectorException {
+        return getServer().queryConfig(new ApplicationInfoQuery(getApplicationName()));
     }
     
-    public ApplicationConfiguration getConfiguration(boolean immediate) throws InterruptedException, ConnectorException {
-        return getServer().queryConfig(new ApplicationConfigurationQuery(getApplicationName()), immediate);
+    public ApplicationConfiguration getConfiguration() throws InterruptedException, ConnectorException {
+        return getServer().queryConfig(new ApplicationConfigurationQuery(getApplicationName()));
     }
     
     public void registerLogEventContext(String moduleName, EventContext context) {
@@ -89,9 +89,9 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     }
     
     @Override
-    protected boolean isConfigured(boolean immediate) throws Exception {
+    protected boolean isConfigured() throws Exception {
         ApplicationServer server = getServer();
-        return Arrays.asList(server.queryConfig(new DeployedApplicationsQuery(server.getNode(), server.getServer()), immediate)).contains(getApplicationName());
+        return Arrays.asList(server.queryConfig(new DeployedApplicationsQuery(server.getNode(), server.getServer()))).contains(getApplicationName());
     }
 
     protected AvailabilityType doGetAvailability() {

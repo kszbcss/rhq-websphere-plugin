@@ -42,7 +42,7 @@ public class WorkManagerThreadPoolMBeanLocator extends DynamicMBeanObjectNamePat
 
     @Override
     protected void applyKeyProperties(WebSphereServer server, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
-        String name = ((ApplicationServer)server).queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer()), false).get(jndiName);
+        String name = ((ApplicationServer)server).queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer())).get(jndiName);
         if (name == null) {
             throw new JMException("No work manager found for JNDI name " + jndiName);
         }

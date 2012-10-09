@@ -39,7 +39,7 @@ public abstract class ConnectionFactoryDiscoveryComponent implements ResourceDis
     public final Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         ApplicationServer server = context.getParentResourceComponent().getServer();
-        for (String jndiName : server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType()), true).getJndiNames()) {
+        for (String jndiName : server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getJndiNames()) {
             result.add(new DiscoveredResourceDetails(context.getResourceType(), jndiName, jndiName, null, getDescription(), null, null));
         }
         return result;

@@ -61,7 +61,7 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException, InterruptedException {
-                ConnectionFactoryInfo cf = getConnectionFactoryInfo(false);
+                ConnectionFactoryInfo cf = getConnectionFactoryInfo();
                 return new String[] { getType().getPmiModule(), cf.getProviderName(), cf.getJndiName() };
             }
         };
@@ -80,14 +80,14 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
     public void stop() {
     }
 
-    public ConnectionFactoryInfo getConnectionFactoryInfo(boolean immediate) throws JMException, ConnectorException, InterruptedException {
+    public ConnectionFactoryInfo getConnectionFactoryInfo() throws JMException, ConnectorException, InterruptedException {
         ApplicationServer server = getServer();
-        return server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType()), immediate).getByJndiName(jndiName);
+        return server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getByJndiName(jndiName);
     }
     
     @Override
-    protected boolean isConfigured(boolean immediate) throws Exception {
-        return getConnectionFactoryInfo(immediate) != null;
+    protected boolean isConfigured() throws Exception {
+        return getConnectionFactoryInfo() != null;
     }
 
     protected AvailabilityType doGetAvailability() {
