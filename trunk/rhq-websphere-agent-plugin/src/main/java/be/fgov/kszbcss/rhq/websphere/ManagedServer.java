@@ -52,6 +52,6 @@ public class ManagedServer extends ApplicationServer {
     }
 
     public String getClusterName() throws InterruptedException, JMException, ConnectorException {
-        return queryConfig(new ClusterNameQuery(getNode(), getServer()), false);
+        return queryConfig(new ClusterNameQuery(getNode(), getServer()));
     }
 }

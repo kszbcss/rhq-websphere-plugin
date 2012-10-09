@@ -67,7 +67,7 @@ public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagin
     }
 
     @Override
-    protected boolean isConfigured(boolean immediate) throws Exception {
+    protected boolean isConfigured() throws Exception {
         // The SIB messaging engine cache is always configured
         return true;
     }

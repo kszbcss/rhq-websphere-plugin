@@ -36,7 +36,7 @@ public class DB2MonitorDiscoveryComponent implements ResourceDiscoveryComponent<
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<DataSourceComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
 //        if (context.getParentResourceComponent().getConnectionFactoryInfo().getProperty("clientProgramName") != null) {
-        if (context.getParentResourceComponent().getConnectionFactoryInfo(true).getDataSourceHelper().equals("com.ibm.websphere.rsadapter.DB2UniversalDataStoreHelper")) {
+        if (context.getParentResourceComponent().getConnectionFactoryInfo().getDataSourceHelper().equals("com.ibm.websphere.rsadapter.DB2UniversalDataStoreHelper")) {
             result.add(new DiscoveredResourceDetails(context.getResourceType(), "default", "DB2 Monitor", null, "DB2 Monitor", null, null));
         }
         return result;

@@ -93,14 +93,14 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
     public void loadResourceConfiguration(Configuration configuration) throws Exception {
         super.loadResourceConfiguration(configuration);
         ApplicationServer server = getServer();
-        List<Map<String,String>> data = getModule().getApplication().getConfiguration(true).getData("BindJndiForEJBMessageBinding", getModuleName(), getBeanName());
+        List<Map<String,String>> data = getModule().getApplication().getConfiguration().getData("BindJndiForEJBMessageBinding", getModuleName(), getBeanName());
         if (data == null || data.size() != 1) {
             throw new Exception("No message listener binding found");
         }
         Map<String,String> binding = data.get(0);
         String activationSpecJndiName = binding.get("JNDI");
         String destinationJndiName = binding.get("jndi.dest");
-        ActivationSpecInfo activationSpec = server.queryConfig(new ActivationSpecQuery(server.getNode(), server.getServer()), true).getActivationSpec(activationSpecJndiName);
+        ActivationSpecInfo activationSpec = server.queryConfig(new ActivationSpecQuery(server.getNode(), server.getServer())).getActivationSpec(activationSpecJndiName);
         String busName = null;
         String destinationName = null;
         if (destinationJndiName != null && destinationJndiName.length() == 0) {
@@ -117,7 +117,7 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
             }
         }
         if (destinationJndiName != null) {
-            SIBDestinationMap sibDestinationMap = server.queryConfig(new SIBDestinationMapQuery(server.getNode(), server.getServer()), true);
+            SIBDestinationMap sibDestinationMap = server.queryConfig(new SIBDestinationMapQuery(server.getNode(), server.getServer()));
             SIBDestination dest = sibDestinationMap.getSIBDestination(destinationJndiName);
             if (dest != null) {
                 busName = dest.getBusName();

@@ -73,19 +73,18 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
     /**
      * Get the module configuration.
      * 
-     * @param immediate
      * @return the module configuration, or <code>null</code> if the module no longer exists in the
      *         WebSphere configuration
      * @throws InterruptedException
      * @throws ConnectorException
      */
-    public ModuleInfo getModuleInfo(boolean immediate) throws InterruptedException, ConnectorException {
-        return getApplication().getApplicationInfo(immediate).getModule(getModuleName());
+    public ModuleInfo getModuleInfo() throws InterruptedException, ConnectorException {
+        return getApplication().getApplicationInfo().getModule(getModuleName());
     }
     
     @Override
-    protected boolean isConfigured(boolean immediate) throws Exception {
-        ModuleInfo module = getModuleInfo(immediate);
+    protected boolean isConfigured() throws Exception {
+        ModuleInfo module = getModuleInfo();
         return module != null && module.getTargetMapping(getServer()) != null;
     }
 

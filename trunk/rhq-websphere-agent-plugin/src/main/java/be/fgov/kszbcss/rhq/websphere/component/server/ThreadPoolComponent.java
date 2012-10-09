@@ -71,9 +71,9 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
     }
 
     @Override
-    protected boolean isConfigured(boolean immediate) throws Exception {
+    protected boolean isConfigured() throws Exception {
         ApplicationServer server = getServer();
-        for (ThreadPoolConfiguration threadPool : server.queryConfig(new ThreadPoolQuery(server.getNode(), server.getServer()), immediate)) {
+        for (ThreadPoolConfiguration threadPool : server.queryConfig(new ThreadPoolQuery(server.getNode(), server.getServer()))) {
             if (threadPool.getName().equals(getResourceContext().getResourceKey())) {
                 return true;
             }

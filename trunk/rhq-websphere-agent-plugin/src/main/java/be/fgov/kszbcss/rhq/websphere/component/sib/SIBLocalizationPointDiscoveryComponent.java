@@ -34,7 +34,7 @@ public abstract class SIBLocalizationPointDiscoveryComponent implements Resource
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<SIBMessagingEngineComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         SIBMessagingEngineComponent me = context.getParentResourceComponent();
-        SIBMessagingEngineInfo meInfo = me.getInfo(true);
+        SIBMessagingEngineInfo meInfo = me.getInfo();
         if (meInfo == null) {
             throw new InvalidPluginConfigurationException("Messaging engine " + me.getName() + " not found");
         }

@@ -36,8 +36,8 @@ public class ConfigQueryServiceHandle implements ConfigQueryService {
         this.dmc = dmc;
     }
     
-    public <T extends Serializable> T query(ConfigQuery<T> query, boolean immediate) throws InterruptedException {
-        return dmc.getConfigQueryService().query(query, immediate);
+    public <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException {
+        return dmc.getConfigQueryService().query(query);
     }
     
     public void release() {

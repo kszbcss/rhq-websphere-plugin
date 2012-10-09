@@ -44,6 +44,6 @@ public class SIBGatewayLinkMBeanLocator extends DynamicMBeanObjectNamePatternLoc
     @Override
     protected void applyKeyProperties(WebSphereServer server, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
         // Note: mbeanIdentifier is present in both WAS 6.1 and 7.0, but 6.1 doesn't have targetUuid and SIBMessagingEngine
-        props.put("mbeanIdentifier", me.getInfo(false).getGatewayLinkId(name).replace('|', '/'));
+        props.put("mbeanIdentifier", me.getInfo().getGatewayLinkId(name).replace('|', '/'));
     }
 }

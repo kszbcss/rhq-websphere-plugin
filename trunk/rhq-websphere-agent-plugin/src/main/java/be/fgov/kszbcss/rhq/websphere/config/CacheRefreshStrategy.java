@@ -22,28 +22,31 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
-import java.io.Serializable;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-// TODO: Javadoc is no longer accurate
-/**
- * Supports sending queries for configuration data to a deployment manager. There is a single
- * instance of this class for each WebSphere cell with at least one server being monitored by the
- * plugin. Query results are stored in a cache.
- * <p>
- * <b>Note:</b> The implementation is designed such that a single cache instance can be used for all
- * cells (i.e. the cache key contains the cell name). This makes sure that cache entries eventually
- * disappear when all servers for a given cell are removed from the inventory.
- */
-public interface ConfigQueryService {
-    /**
-     * 
-     * 
-     * @param <T>
-     * @param query
-     * @return
-     * @throws InterruptedException
-     */
-    <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException;
+public class CacheRefreshStrategy {
+    private static final Log log = LogFactory.getLog(CacheRefreshStrategy.class);
     
-    void release();
+    private static final ThreadLocal<Boolean> threadLocal = new ThreadLocal<Boolean>();
+    
+    static void setImmediateRefresh(Boolean immediateRefresh) {
+        if ((immediateRefresh == null) == (threadLocal.get() == null)) {
+            throw new IllegalStateException();
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Setting immediateRefresh to " + immediateRefresh);
+        }
+        threadLocal.set(immediateRefresh);
+    }
+    
+    public static boolean isImmediateRefresh() {
+        Boolean immediateRefresh = threadLocal.get();
+        if (immediateRefresh == null) {
+            log.warn("No cache refresh strategy defined in current context; using default");
+            return true;
+        } else {
+            return immediateRefresh;
+        }
+    }
 }

@@ -42,7 +42,7 @@ public class ModuleSpecVersionMeasurementHandler extends SpecVersionMeasurementH
 
     @Override
     protected Document getDeploymentDescriptor() throws InterruptedException, ConnectorException {
-        return moduleComponent.getModuleInfo(false).getDeploymentDescriptor();
+        return moduleComponent.getModuleInfo().getDeploymentDescriptor();
     }
 
     @Override

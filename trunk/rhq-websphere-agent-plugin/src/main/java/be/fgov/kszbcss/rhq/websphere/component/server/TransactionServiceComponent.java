@@ -68,7 +68,7 @@ public class TransactionServiceComponent extends WebSphereServiceComponent<WebSp
     }
 
     @Override
-    protected boolean isConfigured(boolean immediate) throws Exception {
+    protected boolean isConfigured() throws Exception {
         return true;
     }
 
