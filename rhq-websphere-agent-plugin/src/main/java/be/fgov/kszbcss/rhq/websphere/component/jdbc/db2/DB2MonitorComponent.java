@@ -28,9 +28,12 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.configuration.Configuration;
+import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
+import org.rhq.core.pluginapi.configuration.ConfigurationFacet;
+import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
@@ -40,7 +43,7 @@ import be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceComponent;
 import be.fgov.kszbcss.rhq.websphere.proxy.AdminOperations;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
-public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceComponent> implements MeasurementFacet {
+public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceComponent> implements MeasurementFacet, ConfigurationFacet {
     private static final Log log = LogFactory.getLog(DB2MonitorComponent.class);
     
     private DataSourceComponent dataSourceComponent;
@@ -107,6 +110,23 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
         } else {
             measurementFacetSupport.getValues(report, requests);
         }
+    }
+
+    public Configuration loadResourceConfiguration() throws Exception {
+        Configuration config = new Configuration();
+        Map<String,Object> dsProps = getContext().getDataSourceProperties();
+        config.put(new PropertySimple("primary", dsProps.get("serverName") + ":" + dsProps.get("portNumber")));
+        String alternateServerName = (String)dsProps.get("clientRerouteAlternateServerName");
+        if (alternateServerName != null && alternateServerName.length() > 0) {
+            config.put(new PropertySimple("alternate", alternateServerName + ":" + dsProps.get("clientRerouteAlternatePortNumber")));
+        } else {
+            config.put(new PropertySimple("alternate", null));
+        }
+        return config;
+    }
+
+    public void updateResourceConfiguration(ConfigurationUpdateReport report) {
+        // Empty: all properties are read only
     }
 
     public void stop() {

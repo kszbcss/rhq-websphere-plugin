@@ -485,6 +485,13 @@
                 <metric property="acr.alternate" displayName="Alternate Servers" dataType="trait"
                         displayType="summary" defaultOn="true"
                         description="The list of alternate servers as reported by the primary DB2 server."/>
+                
+                <resource-configuration>
+                    <c:simple-property name="primary" displayName="Primary Server" type="string" readOnly="true"
+                                       description="The primary server set in the data source configuration."/>
+                    <c:simple-property name="alternate" displayName="Alternate Servers" type="string" required="false" readOnly="true"
+                                       description="The list of alternate servers set in the data source configuration."/>
+                </resource-configuration>
             </service>
         </service>
         <service name="Connection Factory"
