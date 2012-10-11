@@ -27,11 +27,16 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.auth.Subject;
 import org.rhq.core.domain.configuration.Configuration;
+import org.rhq.core.domain.configuration.Property;
+import org.rhq.core.domain.configuration.PropertyMap;
+import org.rhq.core.domain.configuration.PropertySimple;
+import org.rhq.core.domain.configuration.ResourceConfigurationUpdate;
 import org.rhq.core.domain.criteria.OperationDefinitionCriteria;
 import org.rhq.core.domain.criteria.ResourceCriteria;
 import org.rhq.core.domain.criteria.ResourceOperationHistoryCriteria;
@@ -43,6 +48,7 @@ import org.rhq.core.domain.resource.Resource;
 import org.rhq.core.domain.resource.composite.ResourceAvailabilitySummary;
 import org.rhq.core.domain.util.PageControl;
 import org.rhq.core.domain.util.PageList;
+import org.rhq.enterprise.server.configuration.ConfigurationManagerLocal;
 import org.rhq.enterprise.server.operation.OperationManagerLocal;
 import org.rhq.enterprise.server.plugin.pc.ScheduledJobInvocationContext;
 import org.rhq.enterprise.server.plugin.pc.ServerPluginComponent;
@@ -53,7 +59,10 @@ import org.rhq.enterprise.server.util.LookupUtil;
 public class WebSphereServerPlugin implements ServerPluginComponent {
     private static final Log log = LogFactory.getLog(WebSphereServerPlugin.class);
     
+    private Configuration config;
+    
     public void initialize(ServerPluginContext context) throws Exception {
+        config = context.getPluginConfiguration();
     }
 
     public void start() {
@@ -154,6 +163,47 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                 }
             }
             schedules = deferred;
+        }
+    }
+    
+    public void updateDB2MonitorUsers(ScheduledJobInvocationContext invocation) throws Exception {
+        Subject user = LookupUtil.getSubjectManager().getOverlord();
+        ResourceManagerLocal resourceManager = LookupUtil.getResourceManager();
+        ConfigurationManagerLocal configurationManager = LookupUtil.getConfigurationManager();
+        
+        ResourceCriteria resourceCriteria = new ResourceCriteria();
+        resourceCriteria.addFilterPluginName("WebSphere");
+        resourceCriteria.addFilterResourceTypeName("DB2 Monitor");
+        resourceCriteria.fetchPluginConfiguration(true);
+        resourceCriteria.setPageControl(PageControl.getUnlimitedInstance());
+        for (Resource resource : resourceManager.findResourcesByCriteria(user, resourceCriteria)) {
+            ResourceConfigurationUpdate rcUpdate = configurationManager.getLatestResourceConfigurationUpdate(user, resource.getId());
+            if (rcUpdate == null) {
+                log.warn("Couldn't get latest configuration for resource " + resource.getId());
+            } else {
+                String primaryServer = rcUpdate.getConfiguration().getSimpleValue("primary", null);
+                if (primaryServer == null) {
+                    log.warn("Unable to determine primary server for DB2 monitor " + resource.getId());
+                } else {
+                    for (Property property : config.getList("db2MonitorUsers").getList()) {
+                        PropertyMap db2MonitorUser = (PropertyMap)property;
+                        Pattern pattern = Pattern.compile(db2MonitorUser.getSimpleValue("instancePattern", null));
+                        if (pattern.matcher(primaryServer).matches()) {
+                            String principal = db2MonitorUser.getSimpleValue("principal", null);
+                            String credentials = db2MonitorUser.getSimpleValue("credentials", null);
+                            Configuration pluginConfig = resource.getPluginConfiguration();
+                            PropertySimple principalProperty = pluginConfig.getSimple("principal");
+                            PropertySimple credentialsProperty = pluginConfig.getSimple("credentials");
+                            if (!principal.equals(principalProperty.getStringValue()) || !credentials.equals(credentialsProperty.getStringValue())) {
+                                log.info("Updating DB2 monitor user for resource " + resource.getId());
+                                principalProperty.setStringValue(principal);
+                                credentialsProperty.setStringValue(credentials);
+                                configurationManager.updatePluginConfiguration(user, resource.getId(), pluginConfig);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
