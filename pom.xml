@@ -34,8 +34,8 @@
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <rhq.version>4.0.1</rhq.version>
-        <ems.version>1.2.15.1</ems.version>
+        <rhq.version>4.4.0</rhq.version>
+        <ems.version>1.3</ems.version>
     </properties>
     <modules>
         <module>rhq-websphere-agent-plugin</module>
