@@ -39,6 +39,9 @@ import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
+import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryInfo;
+import be.fgov.kszbcss.rhq.websphere.component.JAASAuthData;
+import be.fgov.kszbcss.rhq.websphere.component.JAASAuthDataQuery;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceComponent;
 import be.fgov.kszbcss.rhq.websphere.proxy.AdminOperations;
@@ -93,12 +96,36 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
     }
 
     public DB2MonitorContext getContext() throws Exception {
-        Map<String,Object> dataSourceProperties = dataSourceComponent.getConnectionFactoryInfo().getProperties();
+        ConnectionFactoryInfo connectionFactoryInfo = dataSourceComponent.getConnectionFactoryInfo();
+        Map<String,Object> dataSourceProperties = connectionFactoryInfo.getProperties();
         if (context == null || !context.getDataSourceProperties().equals(dataSourceProperties)) {
             if (context != null) {
                 context.destroy();
             }
-            context = new DB2MonitorContext(dataSourceProperties, principal, credentials);
+            String effectivePrincipal = null;
+            String effectiveCredentials = null;
+            if (principal != null) {
+                log.debug("Using credentials specified in the plug-in configuration");
+                effectivePrincipal = principal;
+                effectiveCredentials = credentials;
+            } else {
+                String authDataAlias = connectionFactoryInfo.getAuthDataAlias();
+                if (authDataAlias == null) {
+                    log.debug("No authentication alias found");
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Loading data for authentication alias " + authDataAlias);
+                    }
+                    JAASAuthData authData = getServer().queryConfig(new JAASAuthDataQuery()).getData(authDataAlias);
+                    if (authData == null) {
+                        log.warn("No data found for authentication alias " + authDataAlias);
+                    } else {
+                        effectivePrincipal = authData.getUserId();
+                        effectiveCredentials = authData.getPassword();
+                    }
+                }
+            }
+            context = new DB2MonitorContext(dataSourceProperties, effectivePrincipal, effectiveCredentials);
         }
         return context;
     }

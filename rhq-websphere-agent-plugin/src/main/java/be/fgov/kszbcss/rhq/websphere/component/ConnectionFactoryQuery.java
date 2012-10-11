@@ -39,8 +39,8 @@ import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> {
-    private static final long serialVersionUID = 6533346488075959L;
-    
+    private static final long serialVersionUID = -719660915106304560L;
+
     private static final Log log = LogFactory.getLog(ConnectionFactoryQuery.class);
     
     private final String node;
@@ -92,6 +92,7 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
                         (String)cf.getAttribute("name"),
                         jndiName,
                         type == ConnectionFactoryType.JDBC ? (String)cf.getAttribute("datasourceHelperClassname") : null,
+                        (String)cf.getAttribute("authDataAlias"),
                         properties));
             }
         }
