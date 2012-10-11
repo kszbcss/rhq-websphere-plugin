@@ -23,10 +23,12 @@
 package be.fgov.kszbcss.rhq.websphere;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
@@ -46,6 +48,7 @@ import org.rhq.core.domain.operation.ResourceOperationHistory;
 import org.rhq.core.domain.operation.bean.ResourceOperationSchedule;
 import org.rhq.core.domain.resource.Resource;
 import org.rhq.core.domain.resource.composite.ResourceAvailabilitySummary;
+import org.rhq.core.domain.tagging.Tag;
 import org.rhq.core.domain.util.PageControl;
 import org.rhq.core.domain.util.PageList;
 import org.rhq.enterprise.server.configuration.ConfigurationManagerLocal;
@@ -54,6 +57,7 @@ import org.rhq.enterprise.server.plugin.pc.ScheduledJobInvocationContext;
 import org.rhq.enterprise.server.plugin.pc.ServerPluginComponent;
 import org.rhq.enterprise.server.plugin.pc.ServerPluginContext;
 import org.rhq.enterprise.server.resource.ResourceManagerLocal;
+import org.rhq.enterprise.server.tagging.TagManagerLocal;
 import org.rhq.enterprise.server.util.LookupUtil;
 
 public class WebSphereServerPlugin implements ServerPluginComponent {
@@ -76,26 +80,45 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
     
     public void autoUninventory(ScheduledJobInvocationContext invocation) throws Exception {
         Subject user = LookupUtil.getSubjectManager().getOverlord();
+        TagManagerLocal tagManager = LookupUtil.getTagManager();
         ResourceManagerLocal resourceManager = LookupUtil.getResourceManager();
         OperationManagerLocal operationManager = LookupUtil.getOperationManager();
         
         int uninventoryDelay = Integer.parseInt(invocation.getJobDefinition().getCallbackData().getProperty("uninventoryDelay"));
         
+        // addTags either creates a new tag or returns an existing tag
+        Tag unconfiguredTag = tagManager.addTags(user, Collections.singleton(new Tag("websphere", null, "unconfigured"))).iterator().next();
+        
+        // Resources to check
+        LinkedList<Resource> resources = new LinkedList<Resource>();
+        
+        // Search resources that can be uninventoried
         ResourceCriteria resourceCriteria = new ResourceCriteria();
+        resourceCriteria.addFilterCurrentAvailability(AvailabilityType.DISABLED);
+        resourceCriteria.addFilterTag(unconfiguredTag);
+        resourceCriteria.fetchTags(true);
+        resourceCriteria.setPageControl(PageControl.getUnlimitedInstance());
+        PageList<Resource> resourcePageList = resourceManager.findResourcesByCriteria(user, resourceCriteria);
+        for (Resource resource : resourcePageList) {
+            ResourceAvailabilitySummary availability = resourceManager.getAvailabilitySummary(user, resource.getId());
+            if ((System.currentTimeMillis() - availability.getLastChange().getTime())/60000 > uninventoryDelay) {
+                log.info("About to uninventory " + resource.getName() + " (" + resource.getId() + ")");
+                resourceManager.uninventoryResources(user, new int[] { resource.getId() });
+            } else {
+                resources.add(resource);
+            }
+        }
+        
+        // Now search for WebSphere resources that are down and check if they have been unconfigured
+        resourceCriteria = new ResourceCriteria();
         resourceCriteria.addFilterCurrentAvailability(AvailabilityType.DOWN);
         resourceCriteria.addFilterPluginName("WebSphere");
         resourceCriteria.fetchParentResource(true);
+        resourceCriteria.fetchTags(true);
         resourceCriteria.setPageControl(PageControl.getUnlimitedInstance());
-        LinkedList<Resource> resources = new LinkedList<Resource>();
-        PageList<Resource> resourcePageList = resourceManager.findResourcesByCriteria(user, resourceCriteria);
+        resourcePageList = resourceManager.findResourcesByCriteria(user, resourceCriteria);
         for (Resource resource : resourcePageList) {
             if (!resourcePageList.contains(resource.getParentResource())) {
-                if (uninventoryDelay > 0) {
-                    ResourceAvailabilitySummary availability = resourceManager.getAvailabilitySummary(user, resource.getId());
-                    if ((System.currentTimeMillis() - availability.getLastChange().getTime())/60000 < uninventoryDelay) {
-                        continue;
-                    }
-                }
                 resources.add(resource);
             }
         }
@@ -121,7 +144,10 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                 }
                 if (hasCheckConfiguration) {
                     log.info("Scheduling checkConfiguration for " + resource.getName() + " (" + resource.getId() + ")");
-                    schedules.add(operationManager.scheduleResourceOperation(user, resource.getId(), "checkConfiguration", 0, 0, 0, 0, new Configuration(), "Scheduled by RHQ WebSphere Server Plugin"));
+                    ResourceOperationSchedule schedule = operationManager.scheduleResourceOperation(user, resource.getId(), "checkConfiguration", 0, 0, 0, 0, new Configuration(), "Scheduled by RHQ WebSphere Server Plugin");
+                    // Set the original Resource object because we need the set of tags (which is not loaded by scheduleResourceOperation)
+                    schedule.setResource(resource);
+                    schedules.add(schedule);
                 } else {
                     log.info("checkConfiguration operation not supported on " + resource.getName() + " (" + resource.getId() + ")");
                 }
@@ -129,6 +155,7 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
             Thread.sleep(1000);
             List<ResourceOperationSchedule> deferred = new ArrayList<ResourceOperationSchedule>();
             for (ResourceOperationSchedule schedule : schedules) {
+                Resource resource = schedule.getResource();
                 ResourceOperationHistoryCriteria historyCriteria = new ResourceOperationHistoryCriteria();
                 historyCriteria.setPageControl(PageControl.getUnlimitedInstance());
                 historyCriteria.addFilterJobId(schedule.getJobId());
@@ -140,26 +167,36 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                         if (history.getResults() == null) {
                             // This may happen if the checkConfiguration operation is declared on the resource type,
                             // but not correctly implemented by the resource component.
-                            log.error("No results available for operation on " + schedule.getResource().getName() + " (" + schedule.getResource().getId() + ")");
+                            log.error("No results available for operation on " + resource.getName() + " (" + resource.getId() + ")");
                         } else {
-                            if (!history.getResults().getSimple("isConfigured").getBooleanValue()) {
-                                log.info("About to uninventory " + schedule.getResource().getName() + " (" + schedule.getResource().getId() + ")");
-                                resourceManager.uninventoryResources(user, new int[] { schedule.getResource().getId() });
+                            boolean isConfigured = history.getResults().getSimple("isConfigured").getBooleanValue();
+                            if (resource.getCurrentAvailability().getAvailabilityType() == AvailabilityType.DOWN && !isConfigured) {
+                                log.info("Tagging " + resource.getName() + " (" + resource.getId() + ") as unconfigured");
+                                Set<Tag> tags = resource.getTags();
+                                tags.add(unconfiguredTag);
+                                tagManager.updateResourceTags(user, resource.getId(), tags);
+                                resourceManager.disableResources(user, new int[] { resource.getId() });
+                            } else if (resource.getCurrentAvailability().getAvailabilityType() == AvailabilityType.DISABLED && isConfigured) {
+                                log.info(resource.getName() + " (" + resource.getId() + ") has reappeared in the WebSphere configuration; reenabling it");
+                                Set<Tag> tags = resource.getTags();
+                                tags.remove(unconfiguredTag);
+                                tagManager.updateResourceTags(user, resource.getId(), tags);
+                                resourceManager.enableResources(user, new int[] { resource.getId() });
                             }
                             operationManager.deleteOperationHistory(user, history.getId(), false);
                         }
                     } else if (history.getStatus() == OperationRequestStatus.INPROGRESS) {
-                        log.info("Deferring operation on " + schedule.getResource().getName() + " (" + schedule.getResource().getId() + "): still in progress");
+                        log.info("Deferring operation on " + resource.getName() + " (" + resource.getId() + "): still in progress");
                         deferred.add(schedule);
                     } else {
-                        log.error("Operation didn't succeed on " + schedule.getResource().getName() + " (" + schedule.getResource().getId() + "): " + history.getStatus());
+                        log.error("Operation didn't succeed on " + resource.getName() + " (" + resource.getId() + "): " + history.getStatus());
                     }
                 } else if (historyList.size() == 0) {
                     // If we get here, then the ResourceOperationHistory has not been created yet (it is created asynchronously) 
-                    log.info("ResourceOperationHistory for " + schedule.getResource().getName() + " (" + schedule.getResource().getId() + ") not found yet");
+                    log.info("ResourceOperationHistory for " + resource.getName() + " (" + resource.getId() + ") not found yet");
                     deferred.add(schedule);
                 } else {
-                    log.error("Unexpected result from findResourceOperationHistoriesByCriteria for " + schedule.getResource().getName() + " (" + schedule.getResource().getId() + ")");
+                    log.error("Unexpected result from findResourceOperationHistoriesByCriteria for " + resource.getName() + " (" + resource.getId() + ")");
                 }
             }
             schedules = deferred;

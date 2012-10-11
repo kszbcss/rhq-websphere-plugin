@@ -44,7 +44,7 @@
                     <c:option value="cron"/>
                 </c:property-options>
             </c:simple-property>
-            <c:simple-property name="scheduleTrigger" type="string" required="true" default="0 0 0/4 * * ?" summary="true" description="Based on the schedule type, this is either the period, in milliseconds, or the cron expression"/>
+            <c:simple-property name="scheduleTrigger" type="string" required="true" default="0 0/15 * * * ?" summary="true" description="Based on the schedule type, this is either the period, in milliseconds, or the cron expression"/>
             <c:simple-property name="concurrent" type="boolean" required="false" default="false" summary="true" description="Whether or not the job can be run multiple times concurrently"/>
             <c:simple-property name="clustered" type="boolean" required="true" default="true" summary="true" description="Whether or not the job can be run on any machine in the server cluster. If false, it will always run on all machines where this plugin is deployed."/>
             <!-- Actual job configuration -->
