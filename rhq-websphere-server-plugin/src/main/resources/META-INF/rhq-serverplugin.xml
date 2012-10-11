@@ -50,5 +50,31 @@
             <!-- Actual job configuration -->
             <c:simple-property name="uninventoryDelay" type="integer" required="true" default="120" summary="true" description="The (minimum) number of minutes to keep undeployed/unconfigured resources in the RHQ inventory before removing them from the inventory. Use a non zero value if you frequently update WebSphere configuration objects by deleting and recreating them. Use a large value if you need to keep statistics for undeployed/unconfigured resources."/>
         </c:map-property>
+        <c:map-property name="updateDB2MonitorUsers">
+            <c:simple-property name="enabled" type="boolean" required="true" default="true" summary="true" description="Whether or not the job should be scheduled"/>
+            <c:simple-property name="scheduleType" type="string" required="true" default="cron" summary="true" description="Indicates when the schedule triggers">
+                <c:property-options>
+                    <c:option value="periodic"/>
+                    <c:option value="cron"/>
+                </c:property-options>
+            </c:simple-property>
+            <c:simple-property name="scheduleTrigger" type="string" required="true" default="0 0/30 * * * ?" summary="true" description="Based on the schedule type, this is either the period, in milliseconds, or the cron expression"/>
+            <c:simple-property name="concurrent" type="boolean" required="false" default="false" summary="true" description="Whether or not the job can be run multiple times concurrently"/>
+            <c:simple-property name="clustered" type="boolean" required="true" default="true" summary="true" description="Whether or not the job can be run on any machine in the server cluster. If false, it will always run on all machines where this plugin is deployed."/>
+        </c:map-property>
     </serverplugin:scheduled-jobs>
+    
+    <serverplugin:plugin-configuration>
+        <c:list-property name="db2MonitorUsers" displayName="DB2 Monitor Users"
+                         description="A list of DB2 monitor users." required="false">
+            <c:map-property name="db2MonitorUser">
+                <c:simple-property name="instancePattern"
+                                   description="A regular expression that is matched agains the &lt;host&gt;:&lt;port&gt; of the DB2 instance."/>
+                <c:simple-property name="principal"
+                                   description="The name of the monitoring user."/>
+                <c:simple-property name="credentials" type="password"
+                                   description="The credentials (i.e. password) for the monitoring user."/>
+            </c:map-property>
+        </c:list-property>
+    </serverplugin:plugin-configuration>
 </generic-plugin>
