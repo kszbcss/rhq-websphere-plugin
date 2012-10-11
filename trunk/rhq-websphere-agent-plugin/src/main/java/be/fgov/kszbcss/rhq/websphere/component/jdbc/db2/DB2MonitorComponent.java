@@ -37,6 +37,7 @@ import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
+import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceComponent;
@@ -127,6 +128,16 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
 
     public void updateResourceConfiguration(ConfigurationUpdateReport report) {
         // Empty: all properties are read only
+    }
+
+    @Override
+    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+        if (name.equals("testConnection")) {
+            getContext().testConnection();
+            return null;
+        } else {
+            return super.doInvokeOperation(name, parameters);
+        }
     }
 
     public void stop() {

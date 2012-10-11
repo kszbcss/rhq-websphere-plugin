@@ -436,6 +436,8 @@
                                        description="The credentials (i.e. password) for the monitoring user."/>
                 </plugin-configuration>
                 
+                <operation name="testConnection" description="Test the connection. This operation executes the same actions as an availability check. It is useful to retrieve the failure reason."/>
+                
                 <metric property="rows_deleted" displayName="Rows Deleted"
                         category="utilization" defaultInterval="120000" measurementType="trendsup"
                         description="The number of row deletions attempted."/>
