@@ -150,6 +150,10 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
         } else {
             config.put(new PropertySimple("alternate", null));
         }
+        config.put(new PropertySimple("databaseName", (String)dsProps.get("databaseName")));
+        if (log.isDebugEnabled()) {
+            log.debug("Loaded resource configuration: " + config.toString(true));
+        }
         return config;
     }
 

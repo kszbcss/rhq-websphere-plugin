@@ -493,6 +493,8 @@
                                        description="The primary server set in the data source configuration."/>
                     <c:simple-property name="alternate" displayName="Alternate Servers" type="string" required="false" readOnly="true"
                                        description="The list of alternate servers set in the data source configuration."/>
+                    <c:simple-property name="databaseName" displayName="Database" type="string" readOnly="true"
+                                       description="The database name set in the data source configuration."/>
                 </resource-configuration>
             </service>
         </service>
