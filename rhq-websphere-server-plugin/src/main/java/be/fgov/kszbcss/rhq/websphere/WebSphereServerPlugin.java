@@ -222,9 +222,10 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                 if (primaryServer == null) {
                     log.warn("Unable to determine primary server for DB2 monitor " + resource.getId());
                 } else {
+                    String database = primaryServer + "/" + rcUpdate.getConfiguration().getSimpleValue("databaseName");
                     for (Property property : config.getList("db2MonitorUsers").getList()) {
                         PropertyMap db2MonitorUser = (PropertyMap)property;
-                        Pattern pattern = Pattern.compile(db2MonitorUser.getSimpleValue("instancePattern", null));
+                        Pattern pattern = Pattern.compile(db2MonitorUser.getSimpleValue("databasePattern", null));
                         if (pattern.matcher(primaryServer).matches()) {
                             String principal = db2MonitorUser.getSimpleValue("principal", null);
                             String credentials = db2MonitorUser.getSimpleValue("credentials", null);
@@ -237,6 +238,7 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                                 credentialsProperty.setStringValue(credentials);
                                 configurationManager.updatePluginConfiguration(user, resource.getId(), pluginConfig);
                             }
+                            break;
                         }
                     }
                 }
