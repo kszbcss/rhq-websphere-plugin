@@ -68,8 +68,8 @@
         <c:list-property name="db2MonitorUsers" displayName="DB2 Monitor Users"
                          description="A list of DB2 monitor users." required="false">
             <c:map-property name="db2MonitorUser">
-                <c:simple-property name="instancePattern"
-                                   description="A regular expression that is matched agains the &lt;host&gt;:&lt;port&gt; of the DB2 instance."/>
+                <c:simple-property name="databasePattern"
+                                   description="A regular expression that is matched against [host]:[port]/[database]. Example: proddb.*\.example\.org:50000/.*"/>
                 <c:simple-property name="principal"
                                    description="The name of the monitoring user."/>
                 <c:simple-property name="credentials" type="password"
