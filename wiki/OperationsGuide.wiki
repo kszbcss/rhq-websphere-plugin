@@ -29,6 +29,16 @@ The `clusterKey` is constructed from the cell and cluster name. If your !WebSphe
 
 = Setting up DB2 monitoring =
 
+== Introduction ==
+
+For every data source that is configured with the DB2 JDBC driver, the RHQ !WebSphere plug-in creates an additional _DB2 Monitor_ resource as a child of that data source. That resource is used to directly monitor the availability of the database and to collect metrics from DB2, without going through the application server. By default (starting with version 1.1.0) the plug-in connects to the database with the credentials found in the data source configuration.
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/db2-monitor-in-tree.png
+
+By default the plug-in only checks the availability of the database and collects traits identifying the current primary and alternate servers (which is useful for DB2 instances that use ACR). Advanced metrics can be enabled, but this requires additional configuration as described in the next section.
+
+== Advanced metrics ==
+
 The RHQ !WebSphere plug-in is able to collect [http://publib.boulder.ibm.com/infocenter/db2luw/v9r5/topic/com.ibm.db2.luw.sql.rtn.doc/doc/r0052905.html per connection statistics] from DB2 and to aggregate these metrics per data source configured in !WebSphere. For this to work, two conditions must be satisfied:
   * The plug-in must be able to identify the connections belonging to a each data source instance. This is done by configuring the `clientProgramName` property on the data sources to be monitored. The `clientProgramName` property specifies the value of the [http://publib.boulder.ibm.com/infocenter/db2luw/v9r5/topic/com.ibm.db2.luw.sql.ref.doc/doc/r0005865.html `CURRENT CLIENT_APPLNAME` special register] for all connections created by the data source. Since this information is available in the data collected from DB2, it will allow the RHQ !WebSphere plug-in to correlate DB2 connections with data sources configured in !WebSphere.
   * Access to the monitoring data collected by the DB2 instance requires at least SYSMON authority. In general the application user configured on the data source doesn't have this authority. Therefore the plug-in must be configured with an appropriate user for the monitoring connection.
@@ -42,4 +52,12 @@ Note that the binary distribution contains a wsadmin script called `client_progr
 
 == Configuring the monitoring user ==
 
-TODO
+The monitoring user can be set manually by changing the connection settings of the _DB2 Monitor_ resource:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/db2-monitor-connection-settings.png
+
+In large !WebSphere topologies, configuring the monitoring user manually may not be practical. Starting with version 1.1.0 the plug-in offers the possibility to automate that configuration. To use this feature, log in as administrator, open the configuration of the _!WebSphere Application Server_ server plugin and define a set of rules that determine which monitor user to configure depending on the DB2 instance and/or database:
+
+http://rhq-websphere-plugin.googlecode.com/svn/wiki/db2-monitor-autoconfig.png
+
+By default, the job that updates the monitor users runs every 15 minutes. This can be changed in the _Scheduled Jobs_ section of the plug-in configuration.
