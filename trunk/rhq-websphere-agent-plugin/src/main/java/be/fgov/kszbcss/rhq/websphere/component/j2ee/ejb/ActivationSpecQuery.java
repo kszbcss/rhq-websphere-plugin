@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -49,7 +50,7 @@ public class ActivationSpecQuery implements ConfigQuery<ActivationSpecs> {
         this.server = server;
     }
 
-    public ActivationSpecs execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
+    public ActivationSpecs execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         Map<String,ActivationSpecInfo> map = new HashMap<String,ActivationSpecInfo>();
         for (ConfigObject ra : config.allScopes(node, server).path("J2CResourceAdapter").resolve()) {
             for (ConfigObject activationSpec : ra.getChildren("j2cActivationSpec")) {

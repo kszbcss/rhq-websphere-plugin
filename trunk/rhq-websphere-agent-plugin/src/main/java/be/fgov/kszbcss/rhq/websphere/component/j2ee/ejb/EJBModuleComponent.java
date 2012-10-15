@@ -31,6 +31,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.ModuleComponent;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 
 public class EJBModuleComponent extends ModuleComponent {
     @Override
@@ -38,7 +39,7 @@ public class EJBModuleComponent extends ModuleComponent {
         return "EJBModule";
     }
     
-    public Set<String> getBeanNames(EnterpriseBeanType type) throws InterruptedException, ConnectorException {
+    public Set<String> getBeanNames(EnterpriseBeanType type) throws InterruptedException, ConnectorException, ConfigQueryException {
         Set<String> names = new HashSet<String>();
         Element beans = Utils.getFirstElement(getModuleInfo().getDeploymentDescriptor().getDocumentElement(), "enterprise-beans");
         if (beans != null) {

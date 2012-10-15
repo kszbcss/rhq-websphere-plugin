@@ -29,6 +29,7 @@ import javax.management.JMException;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.DynamicMBeanObjectNamePatternLocator;
 
 public class SIBGatewayLinkMBeanLocator extends DynamicMBeanObjectNamePatternLocator {
@@ -44,6 +45,11 @@ public class SIBGatewayLinkMBeanLocator extends DynamicMBeanObjectNamePatternLoc
     @Override
     protected void applyKeyProperties(WebSphereServer server, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
         // Note: mbeanIdentifier is present in both WAS 6.1 and 7.0, but 6.1 doesn't have targetUuid and SIBMessagingEngine
-        props.put("mbeanIdentifier", me.getInfo().getGatewayLinkId(name).replace('|', '/'));
+        try {
+            props.put("mbeanIdentifier", me.getInfo().getGatewayLinkId(name).replace('|', '/'));
+        } catch (ConfigQueryException ex) {
+            // TODO
+            throw new RuntimeException(ex);
+        }
     }
 }

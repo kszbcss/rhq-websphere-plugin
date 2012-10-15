@@ -27,6 +27,7 @@ import javax.management.JMException;
 import org.rhq.core.domain.configuration.Configuration;
 
 import be.fgov.kszbcss.rhq.websphere.component.server.ClusterNameQuery;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
 
@@ -51,7 +52,7 @@ public class ManagedServer extends ApplicationServer {
         return ConfigQueryServiceFactory.getInstance().getConfigQueryService(getNodeAgent().getDeploymentManager());
     }
 
-    public String getClusterName() throws InterruptedException, JMException, ConnectorException {
+    public String getClusterName() throws InterruptedException, JMException, ConnectorException, ConfigQueryException {
         return queryConfig(new ClusterNameQuery(getNode(), getServer()));
     }
 }

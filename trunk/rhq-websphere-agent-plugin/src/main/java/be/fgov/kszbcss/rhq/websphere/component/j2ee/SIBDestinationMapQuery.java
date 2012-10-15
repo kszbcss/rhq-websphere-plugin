@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -49,7 +50,7 @@ public class SIBDestinationMapQuery implements ConfigQuery<SIBDestinationMap> {
         this.server = server;
     }
 
-    public SIBDestinationMap execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
+    public SIBDestinationMap execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         Map<String,SIBDestination> map = new HashMap<String,SIBDestination>();
         for (ConfigObject ra : config.allScopes(node, server).path("J2CResourceAdapter").resolve()) {
             for (ConfigObject adminObject : ra.getChildren("j2cAdminObjects")) {

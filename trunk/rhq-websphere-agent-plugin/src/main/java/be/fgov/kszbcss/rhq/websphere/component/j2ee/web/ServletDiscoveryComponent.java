@@ -30,7 +30,6 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-
 public class ServletDiscoveryComponent implements ResourceDiscoveryComponent<WebModuleComponent> {
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebModuleComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();

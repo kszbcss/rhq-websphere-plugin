@@ -36,15 +36,16 @@ import org.w3c.dom.DocumentType;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementHandler;
 
 public abstract class SpecVersionMeasurementHandler implements MeasurementHandler {
     private static final Log log = LogFactory.getLog(SpecVersionMeasurementHandler.class);
     
-    protected abstract Document getDeploymentDescriptor() throws InterruptedException, ConnectorException;
+    protected abstract Document getDeploymentDescriptor() throws InterruptedException, ConnectorException, ConfigQueryException;
     protected abstract Pattern[] getPublicIdPatterns();
     
-    public final void getValue(WebSphereServer server, MeasurementReport report, MeasurementScheduleRequest request) throws InterruptedException, ConnectorException {
+    public final void getValue(WebSphereServer server, MeasurementReport report, MeasurementScheduleRequest request) throws InterruptedException, ConnectorException, ConfigQueryException {
         Document document = getDeploymentDescriptor();
         if (document != null) {
             DocumentType docType = document.getDoctype();

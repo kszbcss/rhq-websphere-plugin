@@ -31,6 +31,7 @@ import javax.management.JMException;
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -41,7 +42,7 @@ public class CellRootCertificateQuery implements ConfigQuery<X509Certificate> {
 
     private CellRootCertificateQuery() {}
     
-    public X509Certificate execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
+    public X509Certificate execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         for (ConfigObject keyStoreConfig : config.cell().path("Security").resolveSingle().getChildren("keyStores")) {
             if (keyStoreConfig.getAttribute("name").equals("CellDefaultTrustStore")) {
                 String location = (String)keyStoreConfig.getAttribute("location");

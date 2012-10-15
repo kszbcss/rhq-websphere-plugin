@@ -44,5 +44,5 @@ import com.ibm.websphere.management.exception.ConnectorException;
  *            the return type of the configuration data query
  */
 public interface ConfigQuery<T extends Serializable> extends Serializable {
-    T execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException;
+    T execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException;
 }

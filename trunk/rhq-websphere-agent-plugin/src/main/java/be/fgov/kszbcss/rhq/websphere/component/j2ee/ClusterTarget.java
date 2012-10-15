@@ -25,6 +25,7 @@ package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -38,7 +39,7 @@ public class ClusterTarget extends Target {
     }
 
     @Override
-    public boolean matches(ApplicationServer server) throws ConnectorException, InterruptedException, JMException {
+    public boolean matches(ApplicationServer server) throws ConnectorException, InterruptedException, JMException, ConfigQueryException {
         return clusterName.equals(server.getClusterName());
     }
 }

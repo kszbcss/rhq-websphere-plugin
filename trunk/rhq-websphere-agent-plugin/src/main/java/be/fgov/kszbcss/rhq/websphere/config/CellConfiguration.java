@@ -143,7 +143,7 @@ public class CellConfiguration {
         return node(nodeName).path("Server", serverName);
     }
     
-    public Path allScopes(String nodeName, String serverName) throws JMException, ConnectorException, InterruptedException {
+    public Path allScopes(String nodeName, String serverName) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         Path cell = cell();
         Path node = cell.path("Node", nodeName);
         Path server = node.path("Server", serverName);

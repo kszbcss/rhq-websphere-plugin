@@ -39,6 +39,7 @@ import com.ibm.websphere.pmi.stat.WSRangeStatistic;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
@@ -61,7 +62,13 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException, InterruptedException {
-                ConnectionFactoryInfo cf = getConnectionFactoryInfo();
+                ConnectionFactoryInfo cf;
+                try {
+                    cf = getConnectionFactoryInfo();
+                } catch (ConfigQueryException ex) {
+                    // TODO
+                    throw new RuntimeException(ex);
+                }
                 return new String[] { getType().getPmiModule(), cf.getProviderName(), cf.getJndiName() };
             }
         };
@@ -80,7 +87,7 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
     public void stop() {
     }
 
-    public ConnectionFactoryInfo getConnectionFactoryInfo() throws JMException, ConnectorException, InterruptedException {
+    public ConnectionFactoryInfo getConnectionFactoryInfo() throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         ApplicationServer server = getServer();
         return server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getByJndiName(jndiName);
     }

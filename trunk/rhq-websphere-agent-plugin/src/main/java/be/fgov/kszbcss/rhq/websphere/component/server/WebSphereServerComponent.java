@@ -67,6 +67,7 @@ import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.none.NoneLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.ras.RasLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.xm4was.XM4WASLoggingProvider;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigObjectNotFoundException;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
 import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
 import be.fgov.kszbcss.rhq.websphere.proxy.Server;
@@ -77,7 +78,7 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class WebSphereServerComponent implements WebSphereComponent<ResourceComponent<?>>, MeasurementFacet, OperationFacet, ConfigurationFacet {
+public class WebSphereServerComponent extends WebSphereComponent<ResourceComponent<?>> implements MeasurementFacet, OperationFacet, ConfigurationFacet {
     private static final Log log = LogFactory.getLog(WebSphereServerComponent.class);
     
     private static final Map<String,Class<? extends LoggingProvider>> loggingProviderClasses;
@@ -162,7 +163,29 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         return connection;
     }
     
-    public AvailabilityType getAvailability() {
+    @Override
+    protected boolean isConfigured() throws Exception {
+        ApplicationServer server = getServer();
+        try {
+            // This effectively checks that the server still exists in the cell configuration.
+            // Of course this will not always work:
+            //  * If the server is unmanaged, then the cell configuration is managed by that
+            //    server and we cannot really check if the server is still configured.
+            //  * If the server is managed, then we rely on the deployment manager connection
+            //    still being available after the server has been removed. This will not
+            //    always be the case, in particular if the RHQ agent is restarted.
+            server.queryConfig(new ClusterNameQuery(server.getNode(), server.getServer()));
+            return true;
+        } catch (ConfigObjectNotFoundException ex) {
+            // We must return false only if the configuration object corresponding to the server
+            // has not been found. That means that the type of exception specified in the catch
+            // statement is really important.
+            return false;
+        }
+    }
+
+    @Override
+    protected AvailabilityType doGetAvailability() {
         if (log.isDebugEnabled()) {
             log.debug("Starting to determine availability for server " + getResourceContext().getResourceKey());
         }
@@ -201,7 +224,8 @@ public class WebSphereServerComponent implements WebSphereComponent<ResourceComp
         measurementFacetSupport.getValues(report, requests);
     }
 
-    public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+    @Override
+    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("restart")) {
             Server server = getServer().getServerMBean().getProxy(Server.class);
             server.restart();

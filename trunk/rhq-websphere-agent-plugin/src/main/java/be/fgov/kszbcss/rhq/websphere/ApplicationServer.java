@@ -27,6 +27,7 @@ import java.io.Serializable;
 import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
 
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -53,7 +54,7 @@ public abstract class ApplicationServer extends WebSphereServer {
 
     protected abstract ConfigQueryService createConfigQueryService() throws ConnectorException;
     
-    public final <T extends Serializable> T queryConfig(ConfigQuery<T> query) throws InterruptedException, ConnectorException {
+    public final <T extends Serializable> T queryConfig(ConfigQuery<T> query) throws InterruptedException, ConnectorException, ConfigQueryException {
         synchronized (this) {
             if (configQueryService == null) {
                 configQueryService = createConfigQueryService();
@@ -62,5 +63,5 @@ public abstract class ApplicationServer extends WebSphereServer {
         return configQueryService.query(query);
     }
 
-    public abstract String getClusterName() throws InterruptedException, JMException, ConnectorException;
+    public abstract String getClusterName() throws InterruptedException, JMException, ConnectorException, ConfigQueryException;
 }

@@ -39,6 +39,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.proxy.ApplicationManager;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandler;
@@ -64,11 +65,11 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
         return getResourceContext().getResourceKey();
     }
     
-    public ApplicationInfo getApplicationInfo() throws InterruptedException, ConnectorException {
+    public ApplicationInfo getApplicationInfo() throws InterruptedException, ConnectorException, ConfigQueryException {
         return getServer().queryConfig(new ApplicationInfoQuery(getApplicationName()));
     }
     
-    public ApplicationConfiguration getConfiguration() throws InterruptedException, ConnectorException {
+    public ApplicationConfiguration getConfiguration() throws InterruptedException, ConnectorException, ConfigQueryException {
         return getServer().queryConfig(new ApplicationConfigurationQuery(getApplicationName()));
     }
     
