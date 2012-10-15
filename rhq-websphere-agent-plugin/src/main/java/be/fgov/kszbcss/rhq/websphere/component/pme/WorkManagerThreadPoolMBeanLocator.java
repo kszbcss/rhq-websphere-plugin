@@ -28,6 +28,7 @@ import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.DynamicMBeanObjectNamePatternLocator;
 
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -42,7 +43,13 @@ public class WorkManagerThreadPoolMBeanLocator extends DynamicMBeanObjectNamePat
 
     @Override
     protected void applyKeyProperties(WebSphereServer server, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
-        String name = ((ApplicationServer)server).queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer())).get(jndiName);
+        String name;
+        try {
+            name = ((ApplicationServer)server).queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer())).get(jndiName);
+        } catch (ConfigQueryException ex) {
+            // TODO
+            throw new RuntimeException(ex);
+        }
         if (name == null) {
             throw new JMException("No work manager found for JNDI name " + jndiName);
         }

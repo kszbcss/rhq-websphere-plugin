@@ -30,10 +30,11 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 
 /**
  * Handles an individual measurement on behalf of {@link MeasurementFacetSupport}.
  */
 public interface MeasurementHandler {
-    void getValue(WebSphereServer server, MeasurementReport report, MeasurementScheduleRequest request) throws InterruptedException, JMException, ConnectorException;
+    void getValue(WebSphereServer server, MeasurementReport report, MeasurementScheduleRequest request) throws InterruptedException, JMException, ConnectorException, ConfigQueryException;
 }

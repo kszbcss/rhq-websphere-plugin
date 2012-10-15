@@ -32,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -48,7 +49,7 @@ public class TimerManagerMapQuery implements ConfigQuery<HashMap<String,String>>
         this.server = server;
     }
 
-    public HashMap<String,String> execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
+    public HashMap<String,String> execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         HashMap<String,String> map = new HashMap<String,String>();
         for (ConfigObject wm : config.allScopes(node, server).path("TimerManagerProvider").path("TimerManagerInfo").resolve()) {
             String jndiName = (String)wm.getAttribute("jndiName");

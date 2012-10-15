@@ -141,7 +141,7 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException {
+    public <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException, ConfigQueryException {
         // If the current thread is already interrupted, then don't query the cache at all
         if (Thread.interrupted()) {
             throw new InterruptedException();
@@ -150,8 +150,13 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable {
         try {
             result = (T)queryCache.get(query, CacheRefreshStrategy.isImmediateRefresh()).object;
         } catch (CacheRefreshException ex) {
-            // TODO: handle this properly
-            throw new RuntimeException(ex);
+            Throwable cause = ex.getCause();
+            if (cause instanceof ConfigQueryException) {
+                throw (ConfigQueryException)cause;
+            } else {
+                // TODO: handle this properly
+                throw new RuntimeException(ex);
+            }
         }
         // TODO: this is probably no longer applicable
         // The interrupt flag may have been set by ConfigQueryResultFactory

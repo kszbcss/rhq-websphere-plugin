@@ -42,8 +42,9 @@ public interface ConfigQueryService {
      * @param query
      * @return
      * @throws InterruptedException
+     * @throws ConfigQueryException 
      */
-    <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException;
+    <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException, ConfigQueryException;
     
     void release();
 }

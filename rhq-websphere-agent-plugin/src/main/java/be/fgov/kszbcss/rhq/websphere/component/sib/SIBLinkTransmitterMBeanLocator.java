@@ -29,6 +29,7 @@ import javax.management.JMException;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.DynamicMBeanObjectNamePatternLocator;
 
 public class SIBLinkTransmitterMBeanLocator extends DynamicMBeanObjectNamePatternLocator {
@@ -45,6 +46,11 @@ public class SIBLinkTransmitterMBeanLocator extends DynamicMBeanObjectNamePatter
     protected void applyKeyProperties(WebSphereServer server, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
         props.put("type", "SIBLinkTransmitter");
         props.put("SIBMessagingEngine", me.getName());
-        props.put("targetUuid", me.getInfo().getTargetUUIDForGatewayLink(name));
+        try {
+            props.put("targetUuid", me.getInfo().getTargetUUIDForGatewayLink(name));
+        } catch (ConfigQueryException ex) {
+            // TODO
+            throw new RuntimeException(ex);
+        }
     }
 }

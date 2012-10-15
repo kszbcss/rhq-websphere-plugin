@@ -28,6 +28,7 @@ import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.DynamicMBeanObjectNamePatternLocator;
 
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -49,7 +50,13 @@ public final class ConnectionFactoryMBeanLocator extends DynamicMBeanObjectNameP
 
     @Override
     protected void applyKeyProperties(WebSphereServer server, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
-        ConnectionFactoryInfo cf = ((ApplicationServer)server).queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), type)).getByJndiName(jndiName);
+        ConnectionFactoryInfo cf;
+        try {
+            cf = ((ApplicationServer)server).queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), type)).getByJndiName(jndiName);
+        } catch (ConfigQueryException ex) {
+            // TODO
+            throw new RuntimeException(ex);
+        }
         if (cf == null) {
             throw new JMException("A " + type.getConfigurationObjectType() + " with JNDI name " + jndiName + " doesn't exist in the configuration");
         }

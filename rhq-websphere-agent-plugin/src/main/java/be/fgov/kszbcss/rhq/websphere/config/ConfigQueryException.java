@@ -22,29 +22,22 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
-import java.io.Serializable;
+public class ConfigQueryException extends Exception {
+    private static final long serialVersionUID = -7760965104778091605L;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+    public ConfigQueryException() {
+        super();
+    }
 
-public class ConfigQueryServiceHandle implements ConfigQueryService {
-    private static final Log log = LogFactory.getLog(ConfigQueryServiceHandle.class);
-    
-    private DeploymentManagerConnection dmc;
-    
-    ConfigQueryServiceHandle(DeploymentManagerConnection dmc) {
-        this.dmc = dmc;
+    public ConfigQueryException(String message, Throwable cause) {
+        super(message, cause);
     }
-    
-    public <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException, ConfigQueryException {
-        return dmc.getConfigQueryService().query(query);
+
+    public ConfigQueryException(String message) {
+        super(message);
     }
-    
-    public void release() {
-        if (log.isDebugEnabled()) {
-            log.debug("Releasing one instance of ConfigQueryServiceHandle for cell " + dmc.getConfigQueryService().getCell());
-        }
-        dmc.decrementRefCount();
-        dmc = null;
+
+    public ConfigQueryException(Throwable cause) {
+        super(cause);
     }
 }

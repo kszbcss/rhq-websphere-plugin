@@ -29,9 +29,10 @@ import javax.management.JMException;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 
 public abstract class Target implements Serializable {
     private static final long serialVersionUID = -1343391240314708L;
 
-    public abstract boolean matches(ApplicationServer server) throws ConnectorException, InterruptedException, JMException;
+    public abstract boolean matches(ApplicationServer server) throws ConnectorException, InterruptedException, JMException, ConfigQueryException;
 }

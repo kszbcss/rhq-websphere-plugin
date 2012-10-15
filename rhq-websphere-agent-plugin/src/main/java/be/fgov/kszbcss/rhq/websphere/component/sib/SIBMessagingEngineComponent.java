@@ -40,6 +40,7 @@ import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.proxy.HAManager;
 import be.fgov.kszbcss.rhq.websphere.proxy.SIBMain;
@@ -89,7 +90,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         return sibMessagingEngine;
     }
 
-    public SIBMessagingEngineInfo getInfo() throws InterruptedException, JMException, ConnectorException {
+    public SIBMessagingEngineInfo getInfo() throws InterruptedException, JMException, ConnectorException, ConfigQueryException {
         ApplicationServer server = getServer();
         for (SIBMessagingEngineInfo me : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()))) {
             if (me.getName().equals(name)) {
@@ -99,7 +100,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         return null;
     }
     
-    private synchronized GroupName getGroupName() throws InterruptedException, JMException, ConnectorException {
+    private synchronized GroupName getGroupName() throws InterruptedException, JMException, ConnectorException, ConfigQueryException {
         if (groupName == null) {
             ApplicationServer server = getServer();
             SIBMessagingEngineInfo info = getInfo();

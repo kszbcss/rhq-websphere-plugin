@@ -59,10 +59,12 @@ public abstract class Path {
         return configObjects;
     }
     
-    public ConfigObject resolveSingle() throws JMException, ConnectorException, InterruptedException {
+    public ConfigObject resolveSingle() throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         ConfigObject[] configObjects = resolve();
         if (configObjects.length == 1) {
             return configObjects[0];
+        } else if (configObjects.length == 0) {
+            throw new ConfigObjectNotFoundException("Configuration object not found");
         } else {
             // TODO: proper exception type
             throw new RuntimeException("More than one configuration object found");

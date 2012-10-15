@@ -26,6 +26,8 @@ import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
 
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class ApplicationSpecVersionMeasurementHandler extends SpecVersionMeasurementHandler {
@@ -38,7 +40,7 @@ public class ApplicationSpecVersionMeasurementHandler extends SpecVersionMeasure
     }
 
     @Override
-    protected Document getDeploymentDescriptor() throws InterruptedException, ConnectorException {
+    protected Document getDeploymentDescriptor() throws InterruptedException, ConnectorException, ConfigQueryException {
         return applicationComponent.getApplicationInfo().getDeploymentDescriptor();
     }
 

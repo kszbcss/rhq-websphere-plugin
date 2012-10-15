@@ -28,6 +28,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.PmiConstants;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIModuleSelector;
 
 public class TimerManagerThreadPoolPMIModuleSelector implements PMIModuleSelector {
@@ -40,7 +41,13 @@ public class TimerManagerThreadPoolPMIModuleSelector implements PMIModuleSelecto
     }
 
     public String[] getPath() throws JMException, ConnectorException, InterruptedException {
-        String name = server.queryConfig(new TimerManagerMapQuery(server.getNode(), server.getServer())).get(jndiName);
+        String name;
+        try {
+            name = server.queryConfig(new TimerManagerMapQuery(server.getNode(), server.getServer())).get(jndiName);
+        } catch (ConfigQueryException ex) {
+            // TODO
+            throw new RuntimeException(ex);
+        }
         if (name == null) {
             throw new JMException("No timer manager found for JNDI name " + jndiName);
         }

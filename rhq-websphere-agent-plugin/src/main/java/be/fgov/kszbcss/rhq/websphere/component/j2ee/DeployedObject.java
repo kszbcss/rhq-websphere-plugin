@@ -31,6 +31,7 @@ import org.w3c.dom.Document;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 
 public abstract class DeployedObject implements Serializable {
     private static final long serialVersionUID = -5263858554100368909L;
@@ -47,7 +48,7 @@ public abstract class DeployedObject implements Serializable {
         return deploymentDescriptor == null ? null : deploymentDescriptor.getDOM();
     }
     
-    public final TargetMapping getTargetMapping(ApplicationServer server) throws ConnectorException, InterruptedException, JMException {
+    public final TargetMapping getTargetMapping(ApplicationServer server) throws ConnectorException, InterruptedException, JMException, ConfigQueryException {
         for (TargetMapping mapping : targetMappings) {
             if (mapping.getTarget().matches(server)) {
                 return mapping;
