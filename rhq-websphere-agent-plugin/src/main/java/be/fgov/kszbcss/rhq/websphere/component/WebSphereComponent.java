@@ -29,12 +29,13 @@ import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
+import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 import org.rhq.plugins.jmx.JMXComponent;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 
-public abstract class WebSphereComponent<T extends ResourceComponent<?>> implements JMXComponent<T> {
+public abstract class WebSphereComponent<T extends ResourceComponent<?>> implements JMXComponent<T>, OperationFacet {
     private static final Log log = LogFactory.getLog(WebSphereComponent.class);
     
     public abstract ResourceContext<T> getResourceContext();
