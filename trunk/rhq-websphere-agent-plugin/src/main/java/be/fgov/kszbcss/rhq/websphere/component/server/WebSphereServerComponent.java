@@ -55,7 +55,6 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
-import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
@@ -78,7 +77,7 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class WebSphereServerComponent extends WebSphereComponent<ResourceComponent<?>> implements MeasurementFacet, OperationFacet, ConfigurationFacet {
+public class WebSphereServerComponent extends WebSphereComponent<ResourceComponent<?>> implements MeasurementFacet, ConfigurationFacet {
     private static final Log log = LogFactory.getLog(WebSphereServerComponent.class);
     
     private static final Map<String,Class<? extends LoggingProvider>> loggingProviderClasses;

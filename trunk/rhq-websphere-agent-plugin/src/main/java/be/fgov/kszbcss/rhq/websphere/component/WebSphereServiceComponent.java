@@ -25,11 +25,10 @@ package be.fgov.kszbcss.rhq.websphere.component;
 import org.mc4j.ems.connection.EmsConnection;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
-import org.rhq.core.pluginapi.operation.OperationFacet;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 
-public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>> extends WebSphereComponent<T> implements OperationFacet {
+public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>> extends WebSphereComponent<T> {
     
     private ResourceContext<T> context;
 
