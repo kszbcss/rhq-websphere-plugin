@@ -196,10 +196,23 @@ public class MBeanClient {
      * @throws InterruptedException 
      */
     public boolean isRegistered() throws JMException, ConnectorException, InterruptedException {
-        return execute(new Action<Boolean>() {
-            public Boolean execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException {
-                return adminClient.isRegistered(objectName);
-            }
-        });
+        try {
+            execute(new Action<Void>() {
+                public Void execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException {
+                    // We need to take into account the case where the MBean has been re-registered
+                    // with an object name that is different than the last known object name,
+                    // but that still matches the MBeanLocator. To achieve this, we throw an
+                    // InstanceNotFoundException if the MBean is not registered. The execute method
+                    // will then attempt to re-resolve the object name.
+                    if (!adminClient.isRegistered(objectName)) {
+                        throw new InstanceNotFoundException();
+                    }
+                    return null;
+                }
+            });
+            return true;
+        } catch (InstanceNotFoundException ex) {
+            return false;
+        }
     }
 }
