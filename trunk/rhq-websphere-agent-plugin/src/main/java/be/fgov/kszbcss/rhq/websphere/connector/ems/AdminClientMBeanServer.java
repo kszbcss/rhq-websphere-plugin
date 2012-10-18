@@ -313,8 +313,11 @@ public class AdminClientMBeanServer implements MBeanServer {
     public void setAttribute(ObjectName name, Attribute attribute)
             throws InstanceNotFoundException, AttributeNotFoundException,
             InvalidAttributeValueException, MBeanException, ReflectionException {
-        // TODO
-        throw new UnsupportedOperationException();
+        try {
+            adminClient.setAttribute(mapper.toServerObjectName(name), attribute);
+        } catch (ConnectorException ex) {
+            throw new EmsException(ex);
+        }
     }
 
     public AttributeList setAttributes(ObjectName name, AttributeList attributes)
