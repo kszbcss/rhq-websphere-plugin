@@ -285,6 +285,9 @@
             <metric property="stats.VmRSS" units="bytes" displayName="Resident Set Size"
                     category="utilization" displayType="summary" defaultInterval="600000"
                     description="The number of bytes the process has in real memory."/>
+            <metric property="stats.MajorFaults" displayName="Page Ins"
+                    category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+                    description="The number of major faults the process has made which have required loading a memory page from disk."/>
         </service>
         
         <service name="Class Loader Stats"
