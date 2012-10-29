@@ -183,6 +183,9 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                                 tagManager.updateResourceTags(user, resource.getId(), tags);
                                 resourceManager.enableResources(user, new int[] { resource.getId() });
                             }
+                            if (log.isDebugEnabled()) {
+                                log.debug("Deleting operation history " + history);
+                            }
                             operationManager.deleteOperationHistory(user, history.getId(), false);
                         }
                     } else if (history.getStatus() == OperationRequestStatus.INPROGRESS) {
