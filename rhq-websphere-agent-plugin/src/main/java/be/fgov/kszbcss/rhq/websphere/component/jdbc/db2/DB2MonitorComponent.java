@@ -95,7 +95,7 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
         return true;
     }
 
-    public DB2MonitorContext getContext() throws Exception {
+    public synchronized DB2MonitorContext getContext() throws Exception {
         ConnectionFactoryInfo connectionFactoryInfo = dataSourceComponent.getConnectionFactoryInfo();
         Map<String,Object> dataSourceProperties = connectionFactoryInfo.getProperties();
         if (context == null || !context.getDataSourceProperties().equals(dataSourceProperties)) {
