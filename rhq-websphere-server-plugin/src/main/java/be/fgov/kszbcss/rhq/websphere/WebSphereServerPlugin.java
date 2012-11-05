@@ -229,7 +229,7 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                     for (Property property : config.getList("db2MonitorUsers").getList()) {
                         PropertyMap db2MonitorUser = (PropertyMap)property;
                         Pattern pattern = Pattern.compile(db2MonitorUser.getSimpleValue("databasePattern", null));
-                        if (pattern.matcher(primaryServer).matches()) {
+                        if (pattern.matcher(database).matches()) {
                             String principal = db2MonitorUser.getSimpleValue("principal", null);
                             String credentials = db2MonitorUser.getSimpleValue("credentials", null);
                             Configuration pluginConfig = resource.getPluginConfiguration();
