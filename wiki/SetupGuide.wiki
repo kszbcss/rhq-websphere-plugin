@@ -23,7 +23,7 @@ Next, the libraries required to connect to !WebSphere must be added to the class
   * `$WAS_HOME/runtimes/com.ibm.ws.admin.client_7.0.0.jar`
   * `$WAS_HOME/plugins/com.ibm.ws.security.crypto.jar`
 
-To use the DB2 monitoring features, it is also necessary to include the DB2 JDBC driver (`db2jcc.jar`) to the class path.
+To use the DB2 monitoring features, it is also necessary to include the DB2 JDBC driver (`db2jcc.jar`) in the class path.
 
 If there are servers that host SIBus messaging engines, then a couple of classes from `$WAS_HOME/plugins/com.ibm.ws.runtime.jar` are required as well. However, when adding that JAR to the classpath, logging no longer works correctly (because the JAR contains a `commons-logging.properties` file). To avoid this, create a `$RHQ_AGENT_HOME/conf/commons-logging.properties` file with the following content:
 
