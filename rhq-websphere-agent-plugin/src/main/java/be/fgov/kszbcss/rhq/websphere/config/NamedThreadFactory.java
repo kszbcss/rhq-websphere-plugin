@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.MDC;
 
 class NamedThreadFactory implements ThreadFactory, Thread.UncaughtExceptionHandler {
     private static final Log log = LogFactory.getLog(NamedThreadFactory.class);
@@ -40,8 +41,15 @@ class NamedThreadFactory implements ThreadFactory, Thread.UncaughtExceptionHandl
         this.namePrefix = namePrefix;
     }
 
-    public Thread newThread(Runnable r) {
-        Thread t = new Thread(group, r, namePrefix + "-" + threadNumber.getAndIncrement());
+    public Thread newThread(final Runnable runnable) {
+        // The log4j MDC is stored in an InheritableThreadLocal. We need to clear it.
+        Runnable runnableWrapper = new Runnable() {
+            public void run() {
+                MDC.getContext().clear();
+                runnable.run();
+            }
+        };
+        Thread t = new Thread(group, runnableWrapper, namePrefix + "-" + threadNumber.getAndIncrement());
         t.setDaemon(false);
         t.setUncaughtExceptionHandler(this);
         return t;
