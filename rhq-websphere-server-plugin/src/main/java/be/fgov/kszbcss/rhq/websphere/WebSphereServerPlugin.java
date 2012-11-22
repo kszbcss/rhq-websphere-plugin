@@ -163,11 +163,13 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                 PageList<ResourceOperationHistory> historyList = operationManager.findResourceOperationHistoriesByCriteria(user, historyCriteria);
                 if (historyList.size() == 1) {
                     ResourceOperationHistory history = historyList.get(0);
+                    boolean delete;
                     if (history.getStatus() == OperationRequestStatus.SUCCESS) {
                         if (history.getResults() == null) {
                             // This may happen if the checkConfiguration operation is declared on the resource type,
                             // but not correctly implemented by the resource component.
                             log.error("No results available for operation on " + resource.getName() + " (" + resource.getId() + ")");
+                            delete = true;
                         } else {
                             boolean isConfigured = history.getResults().getSimple("isConfigured").getBooleanValue();
                             if (resource.getCurrentAvailability().getAvailabilityType() == AvailabilityType.DOWN && !isConfigured) {
@@ -183,16 +185,21 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                                 tagManager.updateResourceTags(user, resource.getId(), tags);
                                 resourceManager.enableResources(user, new int[] { resource.getId() });
                             }
-                            if (log.isDebugEnabled()) {
-                                log.debug("Deleting operation history " + history);
-                            }
-                            operationManager.deleteOperationHistory(user, history.getId(), false);
+                            delete = true;
                         }
                     } else if (history.getStatus() == OperationRequestStatus.INPROGRESS) {
                         log.info("Deferring operation on " + resource.getName() + " (" + resource.getId() + "): still in progress");
                         deferred.add(schedule);
+                        delete = false;
                     } else {
                         log.error("Operation didn't succeed on " + resource.getName() + " (" + resource.getId() + "): " + history.getStatus());
+                        delete = true;
+                    }
+                    if (delete) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Deleting operation history " + history);
+                        }
+                        operationManager.deleteOperationHistory(user, history.getId(), false);
                     }
                 } else if (historyList.size() == 0) {
                     // If we get here, then the ResourceOperationHistory has not been created yet (it is created asynchronously) 
