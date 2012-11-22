@@ -33,7 +33,6 @@ import org.rhq.core.pluginapi.configuration.ConfigurationFacet;
 import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
-import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 
 import be.fgov.kszbcss.rhq.websphere.Utils;

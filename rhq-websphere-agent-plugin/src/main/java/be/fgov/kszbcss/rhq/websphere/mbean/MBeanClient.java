@@ -109,16 +109,7 @@ public class MBeanClient {
                     log.debug("Creating dynamic proxy for MBean " + locator);
                 }
                 for (Method method : iface.getMethods()) {
-                    boolean throwsJMException = false;
-                    boolean throwsConnectorException = false;
-                    for (Class<?> exceptionType : method.getExceptionTypes()) {
-                        if (exceptionType == JMException.class) {
-                            throwsJMException = true;
-                        } else if (exceptionType == ConnectorException.class) {
-                            throwsConnectorException = true;
-                        }
-                    }
-                    if (!throwsJMException || !throwsConnectorException) {
+                    if (!throwsException(method, JMException.class) || !throwsException(method, ConnectorException.class)) {
                         throw new IllegalArgumentException(iface.getName() + " is not a valid proxy class: method " + method.getName()
                                 + " must declare JMException and ConnectorException");
                     }
@@ -129,6 +120,15 @@ public class MBeanClient {
             }
             return iface.cast(proxy);
         }
+    }
+    
+    private static boolean throwsException(Method method, Class<?> exceptionType) {
+        for (Class<?> candidate : method.getExceptionTypes()) {
+            if (candidate.isAssignableFrom(exceptionType)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     private <T> T execute(Action<T> action) throws JMException, ConnectorException, InterruptedException {

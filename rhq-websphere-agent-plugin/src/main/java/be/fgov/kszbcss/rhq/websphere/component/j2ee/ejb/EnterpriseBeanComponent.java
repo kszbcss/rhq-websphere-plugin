@@ -29,6 +29,7 @@ import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
+import be.fgov.kszbcss.rhq.websphere.component.j2ee.ApplicationComponent;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.DeploymentConfigurationFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.J2EEComponent;
 
@@ -40,7 +41,7 @@ public abstract class EnterpriseBeanComponent extends J2EEComponent<EJBModuleCom
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         super.start();
-        configurationFacetSupport = new DeploymentConfigurationFacetSupport(getModule().getApplication(), getModuleName(), getBeanName());
+        configurationFacetSupport = new DeploymentConfigurationFacetSupport(getApplication(), getModuleName(), getBeanName());
     }
     
     protected abstract EnterpriseBeanType getType();
@@ -60,6 +61,14 @@ public abstract class EnterpriseBeanComponent extends J2EEComponent<EJBModuleCom
     
     public String getModuleName() {
         return getModule().getModuleName();
+    }
+    
+    public ApplicationComponent getApplication() {
+        return getModule().getApplication();
+    }
+    
+    public String getApplicationName() {
+        return getApplication().getApplicationName();
     }
     
     @Override
