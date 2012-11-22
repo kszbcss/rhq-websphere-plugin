@@ -68,6 +68,7 @@ import be.fgov.kszbcss.rhq.websphere.component.server.log.ras.RasLoggingProvider
 import be.fgov.kszbcss.rhq.websphere.component.server.log.xm4was.XM4WASLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObjectNotFoundException;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
+import be.fgov.kszbcss.rhq.websphere.proxy.EJBMonitor;
 import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
 import be.fgov.kszbcss.rhq.websphere.proxy.Server;
 import be.fgov.kszbcss.rhq.websphere.proxy.TraceService;
@@ -99,6 +100,7 @@ public class WebSphereServerComponent extends WebSphereComponent<ResourceCompone
     private MeasurementFacetSupport measurementFacetSupport;
     private String loggingProviderName;
     private LoggingProvider loggingProvider;
+    private EJBMonitor ejbMonitor;
     
     public void start(ResourceContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
@@ -134,6 +136,9 @@ public class WebSphereServerComponent extends WebSphereComponent<ResourceCompone
         
         log.debug("Starting logging provider");
         loggingProvider.start(server, context.getEventContext(), EventPublisherImpl.INSTANCE, loadLoggingState());
+        
+        // TODO: the EJBMonitor MBean is not necessarily registered; maybe we need something to prevent the plug-in from querying the server repeatedly for the same MBean
+        ejbMonitor = server.getMBeanClient("XM4WAS:type=EJBMonitor,*").getProxy(EJBMonitor.class);
     }
 
     public ResourceContext<ResourceComponent<?>> getResourceContext() {
@@ -272,6 +277,10 @@ public class WebSphereServerComponent extends WebSphereComponent<ResourceCompone
         loggingProvider.unregisterEventContext(new J2EEComponentKey(applicationName, moduleName, componentName));
     }
     
+    public EJBMonitor getEjbMonitor() {
+        return ejbMonitor;
+    }
+
     public void stop() {
         persistLoggingState(loggingProvider.stop());
         server.destroy();

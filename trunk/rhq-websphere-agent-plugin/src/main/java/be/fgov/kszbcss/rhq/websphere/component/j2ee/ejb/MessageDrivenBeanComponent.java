@@ -93,7 +93,7 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
     public void loadResourceConfiguration(Configuration configuration) throws Exception {
         super.loadResourceConfiguration(configuration);
         ApplicationServer server = getServer();
-        List<Map<String,String>> data = getModule().getApplication().getConfiguration().getData("BindJndiForEJBMessageBinding", getModuleName(), getBeanName());
+        List<Map<String,String>> data = getApplication().getConfiguration().getData("BindJndiForEJBMessageBinding", getModuleName(), getBeanName());
         if (data == null || data.size() != 1) {
             throw new Exception("No message listener binding found");
         }
