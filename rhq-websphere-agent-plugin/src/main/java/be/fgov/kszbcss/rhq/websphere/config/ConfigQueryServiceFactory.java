@@ -96,6 +96,7 @@ public class ConfigQueryServiceFactory {
         instance = null;
     }
 
+    // TODO: this method must not trigger a call to the deployment manager (and not throw ConnectorException); otherwise if the deployment manager has a problem, this will have an impact on resource components
     public synchronized ConfigQueryService getConfigQueryService(DeploymentManager deploymentManager) throws ConnectorException {
         String cell = deploymentManager.getCell();
         DeploymentManagerConnection dmc = dmcMap.get(cell);
