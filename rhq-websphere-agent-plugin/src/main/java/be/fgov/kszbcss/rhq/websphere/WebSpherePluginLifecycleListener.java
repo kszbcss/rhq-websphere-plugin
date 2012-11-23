@@ -62,6 +62,9 @@ public class WebSpherePluginLifecycleListener implements PluginLifecycleListener
             orbProps.setProperty("com.ibm.CORBA.ConfigURL", WebSpherePluginLifecycleListener.class.getResource("sas.client.props").toExternalForm());
             // This prevents the ORB from creating orbtrc files
             orbProps.setProperty("com.ibm.CORBA.Debug.Output", File.separatorChar == '/' ? "/dev/null" : "NUL");
+            // Set a reasonable connection timeout. This is important when starting
+            // the RHQ agent while some servers are down (and don't reply to SYN packets).
+            orbProps.setProperty("com.ibm.CORBA.ConnectTimeout", "5");
             orb = GlobalORBFactory.init(new String[0], orbProps);
         } finally {
             Thread.currentThread().setName(threadName);
