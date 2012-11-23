@@ -83,27 +83,35 @@ class ProcessIdentityValidator implements AdminClientProvider {
         }
     }
 
-    String getCell() throws ConnectorException {
-        init();
+    synchronized String getCell() throws ConnectorException {
+        if (cell == null) {
+            init();
+        }
         return cell;
     }
 
-    String getNode() throws ConnectorException {
-        init();
+    synchronized String getNode() throws ConnectorException {
+        if (node == null) {
+            init();
+        }
         return node;
     }
 
-    String getServer() throws ConnectorException {
-        init();
+    synchronized String getServer() throws ConnectorException {
+        if (server == null) {
+            init();
+        }
         return server;
     }
 
-    String getProcessType() throws ConnectorException {
-        init();
+    synchronized String getProcessType() throws ConnectorException {
+        if (processType == null) {
+            init();
+        }
         return processType;
     }
 
-    public AdminClient createAdminClient() throws ConnectorException {
+    public synchronized AdminClient createAdminClient() throws ConnectorException {
         init();
         return adminClient;
     }
