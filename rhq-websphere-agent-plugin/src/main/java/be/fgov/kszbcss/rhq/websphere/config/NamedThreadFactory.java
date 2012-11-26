@@ -22,6 +22,7 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
+import java.util.Hashtable;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -45,7 +46,10 @@ class NamedThreadFactory implements ThreadFactory, Thread.UncaughtExceptionHandl
         // The log4j MDC is stored in an InheritableThreadLocal. We need to clear it.
         Runnable runnableWrapper = new Runnable() {
             public void run() {
-                MDC.getContext().clear();
+                Hashtable<?,?> context = MDC.getContext();
+                if (context != null) {
+                    context.clear();
+                }
                 runnable.run();
             }
         };
