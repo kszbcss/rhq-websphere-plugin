@@ -41,7 +41,7 @@ public class XM4WASLoggingProvider implements LoggingProvider {
     
     public void start(ApplicationServer server, EventContext defaultEventContext, EventPublisher eventPublisher, String state) {
         timer = new Timer();
-        dispatcher = new LogEventDispatcher(
+        dispatcher = new LogEventDispatcher(server,
                 server.getMBeanClient("WebSphere:*,type=XM4WAS.LoggingService").getProxy(LoggingService.class),
                 defaultEventContext, eventPublisher);
         if (state != null) {
