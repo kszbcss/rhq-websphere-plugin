@@ -33,10 +33,12 @@ import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
+import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.ThreadPoolPMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
+import be.fgov.kszbcss.rhq.websphere.proxy.ThreadMonitor;
 import be.fgov.kszbcss.rhq.websphere.support.configuration.ConfigurationFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
@@ -45,17 +47,20 @@ import com.ibm.websphere.pmi.PmiConstants;
 public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, ConfigurationFacet {
     private MeasurementFacetSupport measurementFacetSupport;
     private ConfigurationFacetSupport configurationFacetSupport;
+    private ThreadMonitor threadMonitor;
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
+        ApplicationServer server = getServer();
         measurementFacetSupport = new MeasurementFacetSupport(this);
         String name = context.getResourceKey();
         // We don't use the ThreadPool mbean here because for some thread pools, no MBean is created
         // by the server (see the design document for more details).
-        measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(getServer().getServerMBean(), PmiConstants.THREADPOOL_MODULE, name));
+        measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(server.getServerMBean(), PmiConstants.THREADPOOL_MODULE, name));
         configurationFacetSupport = new ConfigurationFacetSupport(this,
-                getServer().getMBeanClient("WebSphere:type=ThreadPool,name=" + name + ",*"), true);
+                server.getMBeanClient("WebSphere:type=ThreadPool,name=" + name + ",*"), true);
+        threadMonitor = server.getMBeanClient("XM4WAS:type=ThreadMonitor,*").getProxy(ThreadMonitor.class); 
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
@@ -84,6 +89,16 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
     protected AvailabilityType doGetAvailability() {
         // TODO Auto-generated method stub
         return AvailabilityType.UP;
+    }
+
+    @Override
+    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+        if (name.equals("dump")) {
+            threadMonitor.dumpThreads(getResourceContext().getResourceKey(), true);
+            return null;
+        } else {
+            return super.doInvokeOperation(name, parameters);
+        }
     }
 
     public void stop() {

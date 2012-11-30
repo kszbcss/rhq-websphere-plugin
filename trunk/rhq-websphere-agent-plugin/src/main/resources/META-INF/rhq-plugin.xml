@@ -304,6 +304,8 @@
                  description="WebSphere Thread Pool">
             
             &isConfigured-operation;
+            <operation name="dump" description="Create a summarized thread dump and write it to SystemOut.log."/>
+            
             &threadpool-metrics;
             &threadpool-configuration;
         </service>
