@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.event.EventSeverity;
 import org.rhq.core.pluginapi.event.EventContext;
 
+import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.EventPublisher;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
 
@@ -43,13 +44,16 @@ class LogEventDispatcher extends TimerTask {
     
     private static final Log log = LogFactory.getLog(LogEventDispatcher.class);
     
+    private final WebSphereServer server;
     private final LoggingService service;
     private final EventContext defaultEventContext;
     private final EventPublisher eventPublisher;
     private final Map<J2EEComponentKey,EventContext> eventContexts = Collections.synchronizedMap(new HashMap<J2EEComponentKey,EventContext>());
     private volatile long sequence = -1;
+    private boolean threadNameUpdated;
     
-    LogEventDispatcher(LoggingService service, EventContext defaultEventContext, EventPublisher eventPublisher) {
+    LogEventDispatcher(WebSphereServer server, LoggingService service, EventContext defaultEventContext, EventPublisher eventPublisher) {
+        this.server = server;
         this.service = service;
         this.defaultEventContext = defaultEventContext;
         this.eventPublisher = eventPublisher;
@@ -74,6 +78,10 @@ class LogEventDispatcher extends TimerTask {
     @Override
     public void run() {
         try {
+            if (!threadNameUpdated) {
+                Thread.currentThread().setName("log-poller-" + server.getCell() + "-" + server.getNode() + "-" + server.getServer());
+                threadNameUpdated = true;
+            }
             if (sequence == -1) {
                 sequence = service.getNextSequence();
                 if (log.isDebugEnabled()) {
