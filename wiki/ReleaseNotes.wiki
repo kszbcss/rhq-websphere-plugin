@@ -8,6 +8,7 @@ This release requires RHQ 4.4 or higher. Older RHQ versions are no longer suppor
 Changes:
 
   * Fixed issue #16: the plug-in now correctly supports applications that have modules mapped to different targets.
+  * Fixed issue #18: auto-uninventory of resources that no longer exist in the !WebSphere configuration is now reliable.
 
 = RHQ !WebSphere Plug-in 1.0.1 =
 
