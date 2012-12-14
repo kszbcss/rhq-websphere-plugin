@@ -105,6 +105,7 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                 log.info("About to uninventory " + resource.getName() + " (" + resource.getId() + ")");
                 resourceManager.uninventoryResources(user, new int[] { resource.getId() });
             } else {
+                log.debug("Resource " + resource.getName() + " (" + resource.getId() + ") is tagged as unconfigured; force configuration check");
                 resources.add(resource);
             }
         }
