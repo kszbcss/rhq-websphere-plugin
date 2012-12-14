@@ -102,6 +102,10 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
         for (Resource resource : resourcePageList) {
             ResourceAvailabilitySummary availability = resourceManager.getAvailabilitySummary(user, resource.getId());
             if ((System.currentTimeMillis() - availability.getLastChange().getTime())/60000 > uninventoryDelay) {
+                log.debug("Removing unconfigured tag from resource " + resource.getName() + " (" + resource.getId() + ") to work around an issue in RHQ 4.5.1");
+                Set<Tag> tags = resource.getTags();
+                tags.remove(unconfiguredTag);
+                tagManager.updateResourceTags(user, resource.getId(), tags);
                 log.info("About to uninventory " + resource.getName() + " (" + resource.getId() + ")");
                 resourceManager.uninventoryResources(user, new int[] { resource.getId() });
             } else {
