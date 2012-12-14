@@ -3,7 +3,7 @@
 
 = RHQ !WebSphere Plug-in 1.1.0 (not yet released) =
 
-This release requires RHQ 4.4 or higher. Older RHQ versions are no longer supported.
+This release has been extensively tested with RHQ 4.5.1, but should also work with RHQ 4.4. Older RHQ versions are no longer supported.
 
 Changes:
 
