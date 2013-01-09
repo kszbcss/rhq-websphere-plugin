@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -70,6 +70,7 @@ import be.fgov.kszbcss.rhq.websphere.config.ConfigObjectNotFoundException;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
 import be.fgov.kszbcss.rhq.websphere.proxy.EJBMonitor;
 import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
+import be.fgov.kszbcss.rhq.websphere.proxy.JVM;
 import be.fgov.kszbcss.rhq.websphere.proxy.Server;
 import be.fgov.kszbcss.rhq.websphere.proxy.TraceService;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandler;
@@ -100,6 +101,7 @@ public class WebSphereServerComponent extends WebSphereComponent<ResourceCompone
     private MeasurementFacetSupport measurementFacetSupport;
     private String loggingProviderName;
     private LoggingProvider loggingProvider;
+    private JVM jvm;
     private EJBMonitor ejbMonitor;
     
     public void start(ResourceContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
@@ -136,6 +138,8 @@ public class WebSphereServerComponent extends WebSphereComponent<ResourceCompone
         
         log.debug("Starting logging provider");
         loggingProvider.start(server, context.getEventContext(), EventPublisherImpl.INSTANCE, loadLoggingState());
+        
+        jvm = server.getMBeanClient("WebSphere:type=JVM,*").getProxy(JVM.class);
         
         // TODO: the EJBMonitor MBean is not necessarily registered; maybe we need something to prevent the plug-in from querying the server repeatedly for the same MBean
         ejbMonitor = server.getMBeanClient("XM4WAS:type=EJBMonitor,*").getProxy(EJBMonitor.class);
@@ -240,6 +244,8 @@ public class WebSphereServerComponent extends WebSphereComponent<ResourceCompone
         } else if (name.equals("appendTraceString")) {
             TraceService traceService = getServer().getMBeanClient("WebSphere:type=TraceService,*").getProxy(TraceService.class);
             traceService.appendTraceString(parameters.getSimpleValue("traceString", null));
+        } else if (name.equals("generateSystemDump")) {
+            jvm.generateSystemDump();
         }
         return null;
     }
