@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
   ~ RHQ WebSphere Plug-in
-  ~ Copyright (C) 2012 Crossroads Bank for Social Security
+  ~ Copyright (C) 2012-2013 Crossroads Bank for Social Security
   ~ All rights reserved.
   ~
   ~ This program is free software; you can redistribute it and/or modify
@@ -182,6 +182,7 @@
                <c:simple-property name="traceString" required="true"/>
             </parameters>
         </operation>
+        <operation name="generateSystemDump" description="Generate a system dump of the server JVM."/>
         
         <metric property="pid" displayName="PID" dataType="trait"
                 displayType="summary" defaultOn="true"
