@@ -70,9 +70,10 @@ import be.fgov.kszbcss.rhq.websphere.config.ConfigObjectNotFoundException;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
 import be.fgov.kszbcss.rhq.websphere.proxy.EJBMonitor;
 import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
-import be.fgov.kszbcss.rhq.websphere.proxy.JVM;
+import be.fgov.kszbcss.rhq.websphere.proxy.WebSphereJVM;
 import be.fgov.kszbcss.rhq.websphere.proxy.Server;
 import be.fgov.kszbcss.rhq.websphere.proxy.TraceService;
+import be.fgov.kszbcss.rhq.websphere.proxy.XM4WASJVM;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
@@ -101,7 +102,8 @@ public class WebSphereServerComponent extends WebSphereComponent<ResourceCompone
     private MeasurementFacetSupport measurementFacetSupport;
     private String loggingProviderName;
     private LoggingProvider loggingProvider;
-    private JVM jvm;
+    private WebSphereJVM wasJvm;
+    private XM4WASJVM xm4wasJvm;
     private EJBMonitor ejbMonitor;
     
     public void start(ResourceContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
@@ -139,7 +141,8 @@ public class WebSphereServerComponent extends WebSphereComponent<ResourceCompone
         log.debug("Starting logging provider");
         loggingProvider.start(server, context.getEventContext(), EventPublisherImpl.INSTANCE, loadLoggingState());
         
-        jvm = server.getMBeanClient("WebSphere:type=JVM,*").getProxy(JVM.class);
+        wasJvm = server.getMBeanClient("WebSphere:type=JVM,*").getProxy(WebSphereJVM.class);
+        xm4wasJvm = server.getMBeanClient("XM4WAS:type=JVM,*").getProxy(XM4WASJVM.class);
         
         // TODO: the EJBMonitor MBean is not necessarily registered; maybe we need something to prevent the plug-in from querying the server repeatedly for the same MBean
         ejbMonitor = server.getMBeanClient("XM4WAS:type=EJBMonitor,*").getProxy(EJBMonitor.class);
@@ -245,7 +248,13 @@ public class WebSphereServerComponent extends WebSphereComponent<ResourceCompone
             TraceService traceService = getServer().getMBeanClient("WebSphere:type=TraceService,*").getProxy(TraceService.class);
             traceService.appendTraceString(parameters.getSimpleValue("traceString", null));
         } else if (name.equals("generateSystemDump")) {
-            jvm.generateSystemDump();
+            boolean performGC = Boolean.valueOf(parameters.getSimpleValue("performGC"));
+            // Use WebSphere's MBean if possible (because XM4WAS may not be installed on the target server)
+            if (performGC) {
+                wasJvm.generateSystemDump();
+            } else {
+                xm4wasJvm.generateSystemDump(false);
+            }
         }
         return null;
     }
