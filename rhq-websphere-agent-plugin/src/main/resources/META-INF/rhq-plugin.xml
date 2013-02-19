@@ -182,7 +182,11 @@
                <c:simple-property name="traceString" required="true"/>
             </parameters>
         </operation>
-        <operation name="generateSystemDump" description="Generate a system dump of the server JVM."/>
+        <operation name="generateSystemDump" description="Generate a system dump of the server JVM.">
+            <parameters>
+                <c:simple-property name="performGC" type="boolean" required="true"/>
+            </parameters>
+        </operation>
         
         <metric property="pid" displayName="PID" dataType="trait"
                 displayType="summary" defaultOn="true"

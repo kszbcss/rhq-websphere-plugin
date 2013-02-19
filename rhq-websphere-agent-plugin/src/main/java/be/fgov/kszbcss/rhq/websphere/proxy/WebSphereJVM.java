@@ -27,8 +27,8 @@ import javax.management.JMException;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 /**
- * Proxy interface for the <tt>JVM</tt> MBean.
+ * Proxy interface for WebSphere's <tt>JVM</tt> MBean.
  */
-public interface JVM {
+public interface WebSphereJVM {
     String generateSystemDump() throws JMException, ConnectorException;
 }
