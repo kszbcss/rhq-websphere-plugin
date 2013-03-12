@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,5 +30,5 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * Proxy interface for the XM4WAS ThreadMonitor MBean.
  */
 public interface ThreadMonitor {
-    String dumpThreads(String threadPoolName, boolean log) throws JMException, ConnectorException;
+    String dumpThreads(String threadPoolName, boolean log, boolean shorten) throws JMException, ConnectorException;
 }

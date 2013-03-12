@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -94,7 +94,8 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
     @Override
     protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("dump")) {
-            threadMonitor.dumpThreads(getResourceContext().getResourceKey(), true);
+            threadMonitor.dumpThreads(getResourceContext().getResourceKey(), true,
+                    Boolean.valueOf(parameters.getSimpleValue("shorten")));
             return null;
         } else {
             return super.doInvokeOperation(name, parameters);
