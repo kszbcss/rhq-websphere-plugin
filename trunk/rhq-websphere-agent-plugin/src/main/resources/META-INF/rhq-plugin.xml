@@ -309,7 +309,11 @@
                  description="WebSphere Thread Pool">
             
             &isConfigured-operation;
-            <operation name="dump" description="Create a summarized thread dump and write it to SystemOut.log."/>
+            <operation name="dump" description="Create a summarized thread dump and write it to SystemOut.log.">
+                <parameters>
+                    <c:simple-property name="shorten" type="boolean" required="true"/>
+                </parameters>
+            </operation>
             
             &threadpool-metrics;
             &threadpool-configuration;
