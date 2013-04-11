@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,13 +22,19 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.StringWriter;
+import java.lang.management.ManagementFactory;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import javax.management.ObjectInstance;
+import javax.management.ObjectName;
 
 import net.sf.ehcache.CacheManager;
 
@@ -45,7 +51,7 @@ import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
 
 import com.ibm.websphere.management.repository.ConfigEpoch;
 
-public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable {
+public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, ConfigQueryServiceImplMBean {
     private static final Log log = LogFactory.getLog(ConfigQueryServiceImpl.class);
     
     private final CacheManager cacheManager;
@@ -57,9 +63,11 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable {
     private final ExecutorService queryExecutorService;
     private final DelayedRefreshCache<ConfigQuery<?>,ConfigQueryResult> queryCache;
     private final ScheduledExecutorService epochPollExecutorService;
+    private ObjectInstance mbean;
     private ConfigEpoch epoch;
     private boolean polled;
     private boolean waitForConnection = true;
+    private Exception lastException;
 
     public ConfigQueryServiceImpl(CacheManager cacheManager, String cacheName, WebSphereServer server, String cell) {
         this.cacheManager = cacheManager;
@@ -75,6 +83,11 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable {
         queryCache = new DelayedRefreshCache<ConfigQuery<?>,ConfigQueryResult>(cacheManager.getEhcache(cacheName), queryExecutorService, new ConfigQueryResultFactory(this));
         epochPollExecutorService = Executors.newScheduledThreadPool(1, new NamedThreadFactory(cacheName + "-epoch-poll"));
         future = epochPollExecutorService.scheduleWithFixedDelay(this, 0, 30, TimeUnit.SECONDS);
+        try {
+            mbean = ManagementFactory.getPlatformMBeanServer().registerMBean(this, ObjectName.getInstance("rhq.websphere:type=ConfigQueryService,cell=" + cell + ",cacheName=" + cacheName));
+        } catch (Throwable ex) {
+            log.error("MBean registration failed", ex);
+        }
     }
 
     public void run() {
@@ -108,6 +121,7 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable {
                 config.refresh();
             }
             this.epoch = epoch;
+            lastException = exception;
             if (!polled) {
                 polled = true;
                 notifyAll();
@@ -167,10 +181,27 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable {
     }
 
     public void release() {
+        try {
+            ManagementFactory.getPlatformMBeanServer().unregisterMBean(mbean.getObjectName());
+        } catch (Throwable ex) {
+            log.error("MBean unregistration failed", ex);
+        }
         config.destroy();
         future.cancel(false);
         epochPollExecutorService.shutdownNow();
         queryExecutorService.shutdownNow();
         cacheManager.removeCache(cacheName);
+    }
+
+    public synchronized String dumpLastException() {
+        if (lastException == null) {
+            return null;
+        } else {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw, false);
+            lastException.printStackTrace(pw);
+            pw.flush();
+            return sw.toString();
+        }
     }
 }
