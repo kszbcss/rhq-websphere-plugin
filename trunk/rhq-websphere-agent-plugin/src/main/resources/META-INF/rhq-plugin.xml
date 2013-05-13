@@ -813,6 +813,9 @@
                 <metric property="stats.UnavailableMessageCount" displayName="Unavail. Msg. Count"
                         category="utilization" displayType="summary" defaultInterval="600000"
                         description="Number of messages on this queue but not available for consumption."/>
+                <metric property="stats.LocalOldestMessageAge" displayName="Oldest Msg. Age"
+                        category="performance" defaultInterval="600000" units="milliseconds"
+                        description="Amount of time spent on this queue by the message available longest from this queue."/>
             </service>
             
             <service name="Gateway Link"
