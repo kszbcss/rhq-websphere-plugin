@@ -848,6 +848,12 @@
             <parent-resource-type name="RHQ Agent" plugin="RHQAgent"/>
         </runs-inside>
         
+        <operation name="importCertificateFromFile" description="Import a certficiate from a file in PEM or DER format local to the agent.">
+            <parameters>
+                <c:simple-property name="file"/>
+                <c:simple-property name="alias"/>
+            </parameters>
+        </operation>
         <operation name="retrieveCellCertificate" description="Retrieve a cell root certificate from a deployment manager and add it to the trust store.">
             <parameters>
                 &login-configuration;

@@ -22,12 +22,16 @@
  */
 package be.fgov.kszbcss.rhq.websphere.connector.agent;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -104,7 +108,21 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
     }
 
     public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
-        if (name.equals("retrieveCellCertificate")) {
+        if (name.equals("importCertificateFromFile")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            InputStream in = new FileInputStream(parameters.getSimple("file").getStringValue());
+            try {
+                Iterator<? extends Certificate> it = cf.generateCertificates(in).iterator();
+                if (it.hasNext()) {
+                    TrustStoreManager.getInstance().addCertificate(parameters.getSimple("alias").getStringValue(), (X509Certificate)it.next());
+                } else {
+                    throw new Exception("No certificate found");
+                }
+            } finally {
+                in.close();
+            }
+            return null;
+        } else if (name.equals("retrieveCellCertificate")) {
             DeploymentManager dm = new DeploymentManager(null, new ConfigurationBasedProcessLocator(parameters));
             String cell = dm.getCell();
             ConfigQueryService configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryServiceWithoutCaching(dm);
