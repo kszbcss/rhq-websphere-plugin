@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -47,8 +47,7 @@ public class CellRootCertificateQuery implements ConfigQuery<X509Certificate> {
             if (keyStoreConfig.getAttribute("name").equals("CellDefaultTrustStore")) {
                 String location = (String)keyStoreConfig.getAttribute("location");
                 if (!location.startsWith("${CONFIG_ROOT}/")) {
-                    // TODO: use proper exception here
-                    throw new JMException("Cannot extract cell default trust store because it is not located in the configuration repository");
+                    throw new ConfigQueryException("Cannot extract cell default trust store because it is not located in the configuration repository");
                 }
                 byte[] cellDefaultTrustStore = config.extract(location.substring(location.indexOf('/')+1));
                 try {
@@ -56,18 +55,15 @@ public class CellRootCertificateQuery implements ConfigQuery<X509Certificate> {
                     ks.load(new ByteArrayInputStream(cellDefaultTrustStore), ((String)keyStoreConfig.getAttribute("password")).toCharArray());
                     X509Certificate cert = (X509Certificate)ks.getCertificate("root");
                     if (cert == null) {
-                        // TODO: use proper exception here
-                        throw new JMException("Root certificate not found in CellDefaultTrustStore");
+                        throw new ConfigQueryException("Root certificate not found in CellDefaultTrustStore");
                     }
                     return cert;
                 } catch (Exception ex) {
-                    // TODO: use proper exception here
-                    throw new JMException("Failed to extract certificate: " + ex.getMessage());
+                    throw new ConfigQueryException("Failed to extract certificate: " + ex.getMessage());
                 }
             }
         }
-        // TODO: use proper exception here
-        throw new JMException("CellDefaultTrustStore not found");
+        throw new ConfigQueryException("CellDefaultTrustStore not found");
     }
     
     @Override
