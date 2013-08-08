@@ -23,6 +23,8 @@
 package be.fgov.kszbcss.rhq.websphere.connector.agent;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 
@@ -50,17 +52,21 @@ public class CellRootCertificateQuery implements ConfigQuery<X509Certificate> {
                     throw new ConfigQueryException("Cannot extract cell default trust store because it is not located in the configuration repository");
                 }
                 byte[] cellDefaultTrustStore = config.extract(location.substring(location.indexOf('/')+1));
+                X509Certificate cert;
                 try {
                     KeyStore ks = KeyStore.getInstance((String)keyStoreConfig.getAttribute("type"), (String)keyStoreConfig.getAttribute("provider"));
                     ks.load(new ByteArrayInputStream(cellDefaultTrustStore), ((String)keyStoreConfig.getAttribute("password")).toCharArray());
-                    X509Certificate cert = (X509Certificate)ks.getCertificate("root");
-                    if (cert == null) {
-                        throw new ConfigQueryException("Root certificate not found in CellDefaultTrustStore");
-                    }
-                    return cert;
-                } catch (Exception ex) {
+                    cert = (X509Certificate)ks.getCertificate("root");
+                } catch (GeneralSecurityException ex) {
                     throw new ConfigQueryException("Failed to extract certificate: " + ex.getMessage());
+                } catch (IOException ex) {
+                    // Since we use a ByteArrayInputStream, we should never get here
+                    throw new RuntimeException(ex);
                 }
+                if (cert == null) {
+                    throw new ConfigQueryException("Root certificate not found in CellDefaultTrustStore");
+                }
+                return cert;
             }
         }
         throw new ConfigQueryException("CellDefaultTrustStore not found");
