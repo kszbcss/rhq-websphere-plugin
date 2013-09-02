@@ -26,7 +26,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
+import java.util.Enumeration;
 
 import javax.management.JMException;
 
@@ -56,7 +58,11 @@ public class CellRootCertificateQuery implements ConfigQuery<X509Certificate> {
                 try {
                     KeyStore ks = KeyStore.getInstance((String)keyStoreConfig.getAttribute("type"), (String)keyStoreConfig.getAttribute("provider"));
                     ks.load(new ByteArrayInputStream(cellDefaultTrustStore), ((String)keyStoreConfig.getAttribute("password")).toCharArray());
-                    cert = (X509Certificate)ks.getCertificate("root");
+                    String rootAlias = getRootAlias(ks);
+                    if (rootAlias == null) {
+                        throw new ConfigQueryException("No cell root certificate found");
+                    }
+                    cert = (X509Certificate)ks.getCertificate(rootAlias);
                 } catch (GeneralSecurityException ex) {
                     throw new ConfigQueryException("Failed to extract certificate: " + ex.getMessage());
                 } catch (IOException ex) {
@@ -70,6 +76,29 @@ public class CellRootCertificateQuery implements ConfigQuery<X509Certificate> {
             }
         }
         throw new ConfigQueryException("CellDefaultTrustStore not found");
+    }
+    
+    private String getRootAlias(KeyStore ks) throws KeyStoreException {
+        String rootAlias = null;
+        int generation = -1;
+        for (Enumeration<String> e = ks.aliases(); e.hasMoreElements(); ) {
+            String alias = e.nextElement();
+            int tmpGeneration = -1;
+            if (alias.equals("root")) {
+                tmpGeneration = 0;
+            } else if (alias.startsWith("root_")) {
+                try {
+                    tmpGeneration = Integer.parseInt(alias.substring(5));
+                } catch (NumberFormatException ex) {
+                    continue;
+                }
+            }
+            if (tmpGeneration > generation) {
+                generation = tmpGeneration;
+                rootAlias = alias;
+            }
+        }
+        return rootAlias;
     }
     
     @Override
