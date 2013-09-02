@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -130,7 +130,7 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
             }
             int dataId = pmiModuleConfig.getDataId(statisticName);
             if (dataId == -1) {
-                log.error("Could not find statistic with name " + statisticName + " in the PMI module configuration");
+                log.error("Could not find statistic with name " + statisticName + " (stats type " + stats.getStatsType() + ") in the PMI module configuration");
                 continue;
             }
             // For some WSStats objects, the statistic names don't match the names used by PMI.
