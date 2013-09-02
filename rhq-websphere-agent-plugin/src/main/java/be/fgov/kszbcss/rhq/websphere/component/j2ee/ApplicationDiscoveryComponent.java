@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -47,7 +47,15 @@ public class ApplicationDiscoveryComponent implements ResourceDiscoveryComponent
             log.debug("Discovered the following applications on " + context.getParentResourceComponent().getResourceContext().getResourceKey() + ": " + Arrays.asList(applicationNames));
         }
         for (String applicationName : applicationNames) {
-            result.add(new DiscoveredResourceDetails(context.getResourceType(), applicationName, applicationName, null, "An enterprise application.", null, null));
+            // commsvc is an internal application (in WAS 8.x) mapped by default to all servers/clusters, but it is not necessarily
+            // started. Ignore it to avoid polluting the inventory.
+            if (applicationName.equals("commsvc")) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Skipped internal application " + applicationName);
+                }
+            } else {
+                result.add(new DiscoveredResourceDetails(context.getResourceType(), applicationName, applicationName, null, "An enterprise application.", null, null));
+            }
         }
         return result;
     }
