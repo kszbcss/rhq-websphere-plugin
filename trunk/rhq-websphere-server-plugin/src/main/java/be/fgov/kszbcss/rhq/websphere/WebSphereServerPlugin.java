@@ -173,6 +173,7 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
                 // useless since we are using PageControl.getUnlimitedInstance()). If the operation history is created
                 // just between these two queries, then there is a mismatch and an exception is triggered
                 // ("PageList was passed an empty collection but 'totalSize' was 1, PageControl[page=0, size=-1]").
+                // See https://bugzilla.redhat.com/show_bug.cgi?id=855674 for another description of this problem.
                 boolean isRetry = false;
                 while (true) {
                     try {
