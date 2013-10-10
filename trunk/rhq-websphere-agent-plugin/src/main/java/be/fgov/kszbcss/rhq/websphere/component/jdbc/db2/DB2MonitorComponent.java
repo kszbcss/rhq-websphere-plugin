@@ -101,6 +101,9 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
         if (context == null || !context.getDataSourceProperties().equals(dataSourceProperties)) {
             if (context != null) {
                 context.destroy();
+                // Set context to null so that we remain in a consistent state even if something goes
+                // wrong before we create the new context.
+                context = null;
             }
             String effectivePrincipal = null;
             String effectiveCredentials = null;
