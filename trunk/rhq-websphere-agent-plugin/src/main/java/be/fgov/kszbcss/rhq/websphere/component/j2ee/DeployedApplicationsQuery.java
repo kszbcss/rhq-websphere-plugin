@@ -45,9 +45,6 @@ public class DeployedApplicationsQuery implements ConfigQuery<String[]> {
     }
 
     public String[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        // AdminConfig.getid("/Node:twas02/ServerIndex:/ServerEntry:TENVCBSS.AppCluster.twas02.1/")
-        // AdminConfig.showAttribute("TENVCBSS.AppCluster.twas02.1(cells/tcell/nodes/twas02|serverindex.xml#ServerEntry_1306410389272)", "deployedApplications")
-        
         ConfigObject serverEntry = config.node(node).path("ServerIndex").path("ServerEntry", server).resolveSingle();
         List<?> deployedApplications = (List<?>)serverEntry.getAttribute("deployedApplications");
         String[] applicationNames = new String[deployedApplications.size()];
