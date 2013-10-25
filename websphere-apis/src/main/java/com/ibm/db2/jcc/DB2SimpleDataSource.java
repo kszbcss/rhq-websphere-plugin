@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,8 @@ package com.ibm.db2.jcc;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.logging.Logger;
 
 import javax.sql.DataSource;
 
@@ -41,6 +43,10 @@ public class DB2SimpleDataSource extends DB2BaseDataSource implements DataSource
     }
 
     public <T> T unwrap(Class<T> iface) throws SQLException {
+        return null;
+    }
+
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
         return null;
     }
 }
