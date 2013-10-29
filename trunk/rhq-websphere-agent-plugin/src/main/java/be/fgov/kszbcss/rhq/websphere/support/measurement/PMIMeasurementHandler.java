@@ -41,6 +41,7 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 
+import com.ibm.websphere.pmi.PmiDataInfo;
 import com.ibm.websphere.pmi.PmiModuleConfig;
 import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
 import com.ibm.websphere.pmi.stat.StatDescriptor;
@@ -129,6 +130,20 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
                 log.debug("Starting to get value for " + name);
             }
             int dataId = pmiModuleConfig.getDataId(statisticName);
+            if (dataId == -1) {
+                log.warn("Could not find statistic with name " + statisticName + " as is (stats type " + stats.getStatsType() + ") in the PMI module configuration; attempting to find a matching prefixed name among the existing statistics");
+                // WebSphere 8.5 prefixes some stat names with a given string within a given type;
+                // most of the time, this prefix will be the shortened type name (i.e. QueueStats),
+                // but sometimes it isn't, which makes generalization impossible. The prefixed format being
+                // a stable <Prefix>.<StatisticName>, we will seek for a ".statisticName" in all
+                // available PmiDataInfo in the considered pmiConfigModule.
+                for (PmiDataInfo pdi : pmiModuleConfig.listAllData()) {
+                	if (pdi.getName().endsWith("." + statisticName)) {
+                		dataId = pdi.getId();
+                		break;
+                	}
+                }
+            }
             if (dataId == -1) {
                 log.error("Could not find statistic with name " + statisticName + " (stats type " + stats.getStatsType() + ") in the PMI module configuration");
                 continue;
