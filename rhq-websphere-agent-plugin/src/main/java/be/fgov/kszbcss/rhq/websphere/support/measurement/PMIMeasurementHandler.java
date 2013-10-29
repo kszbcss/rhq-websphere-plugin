@@ -131,7 +131,9 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
             }
             int dataId = pmiModuleConfig.getDataId(statisticName);
             if (dataId == -1) {
-                log.warn("Could not find statistic with name " + statisticName + " as is (stats type " + stats.getStatsType() + ") in the PMI module configuration; attempting to find a matching prefixed name among the existing statistics");
+                if (log.isDebugEnabled()) {
+                	log.debug("Could not find statistic with name " + statisticName + " as is (stats type " + stats.getStatsType() + ") in the PMI module configuration; attempting to find a matching prefixed name among the existing statistics");
+                }
                 // WebSphere 8.5 prefixes some stat names with a given string within a given type;
                 // most of the time, this prefix will be the shortened type name (i.e. QueueStats),
                 // but sometimes it isn't, which makes generalization impossible. The prefixed format being
