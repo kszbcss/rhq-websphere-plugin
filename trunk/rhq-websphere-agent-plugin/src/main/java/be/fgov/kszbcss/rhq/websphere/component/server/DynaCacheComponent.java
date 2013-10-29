@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,7 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.server;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -32,41 +33,56 @@ import org.rhq.core.domain.measurement.MeasurementDataNumeric;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
-import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.proxy.DynaCache;
 
-public class DynaCacheComponent implements ResourceComponent<WebSphereServerComponent>, MeasurementFacet, OperationFacet {
+public class DynaCacheComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, OperationFacet {
     private static final Log log = LogFactory.getLog(DynaCacheComponent.class);
     
     private DynaCache cache;
     private String instanceName;
 
-    public void start(ResourceContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
+    @Override
+    protected void start() throws InvalidPluginConfigurationException, Exception {
+        ResourceContext<WebSphereServerComponent> context = getResourceContext();
         cache = context.getParentResourceComponent().getServer().getMBeanClient("WebSphere:type=DynaCache,*").getProxy(DynaCache.class);
         instanceName = context.getResourceKey();
     }
 
-    public AvailabilityType getAvailability() {
-        String[] instanceNames;
-        try {
-            instanceNames = cache.getCacheInstanceNames();
-        } catch (Exception ex) {
-            log.error("Unable to get cache instance names", ex);
-            return AvailabilityType.DOWN;
+    @Override
+    protected boolean isConfigured() throws Exception {
+        ApplicationServer server = getServer();
+        String[] instanceNames = server.queryConfig(new ObjectCacheInstanceQuery(server.getNode(), server.getServer()));
+        if (log.isDebugEnabled()) {
+            log.debug("Dyna caches existing on server: " + Arrays.asList(instanceNames));
         }
         for (String name : instanceNames) {
             if (name.equals(instanceName)) {
-                return AvailabilityType.UP;
+                if (log.isDebugEnabled()) {
+                    log.debug("Found " + instanceName);
+                }
+                log.debug("");
+                return true;
             }
         }
-        return AvailabilityType.DOWN;
+        if (log.isDebugEnabled()) {
+            log.debug(instanceName + " not found");
+        }
+        return false;
     }
 
+    @Override
+    protected AvailabilityType doGetAvailability() {
+        // At runtime, DynaCaches are created lazily; therefore we cannot really determine their statuses
+        return AvailabilityType.UP;
+    }
+    
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
         String[] stats = cache.getAllCacheStatistics(instanceName);
         for (MeasurementScheduleRequest request : requests) {
@@ -84,7 +100,8 @@ public class DynaCacheComponent implements ResourceComponent<WebSphereServerComp
         }
     }
 
-    public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+    @Override
+    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("clearCache")) {
             cache.clearCache(instanceName);
         }

@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,20 +32,23 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-import be.fgov.kszbcss.rhq.websphere.proxy.DynaCache;
+import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 
 public class DynaCacheDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
     private static final Log log = LogFactory.getLog(DynaCacheDiscoveryComponent.class); 
     
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        DynaCache cache = context.getParentResourceComponent().getServer().getMBeanClient("WebSphere:type=DynaCache,*").getProxy(DynaCache.class);
-        for (String instanceName : cache.getCacheInstanceNames()) {
+        ApplicationServer server = context.getParentResourceComponent().getServer();
+        for (String instanceName : server.queryConfig(new ObjectCacheInstanceQuery(server.getNode(), server.getServer()))) {
             if (instanceName.equals("baseCache") || instanceName.startsWith("ws/")) {
                 if (log.isDebugEnabled()) {
                     log.debug("Ignoring DynaCache " + instanceName);
                 }
             } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Discovered DynaCache " + instanceName);
+                }
                 result.add(new DiscoveredResourceDetails(context.getResourceType(), instanceName, instanceName, null, instanceName, null, null));
             }
         }
