@@ -34,4 +34,10 @@ public class PmiModuleConfig {
     public int getNumData() {
         return 0;
     }
+    public PmiDataInfo[] listAllData() {
+    	PmiDataInfo[] pdis = {
+    			new PmiDataInfo()
+    			};
+    	return pdis;
+    }
 }
