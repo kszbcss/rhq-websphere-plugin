@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,15 +30,26 @@ import java.util.List;
  * deployment descriptors.
  */
 public class ApplicationInfo extends DeployedObject {
-    private static final long serialVersionUID = 1917055988168366633L;
+    private static final long serialVersionUID = 2L;
     
+    private final boolean looseConfig;
     private final ModuleInfo[] modules;
     
-    public ApplicationInfo(byte[] deploymentDescriptor, TargetMapping[] targetMappings, ModuleInfo[] modules) {
+    public ApplicationInfo(boolean looseConfig, byte[] deploymentDescriptor, TargetMapping[] targetMappings, ModuleInfo[] modules) {
         super(deploymentDescriptor, targetMappings);
+        this.looseConfig = looseConfig;
         this.modules = modules;
     }
     
+    /**
+     * Indicates whether this is an application deployed by RAD with resources in the workspace.
+     * 
+     * @return <code>true</code> if this application is deployed by RAD with resources in the workspace
+     */
+    public boolean isLooseConfig() {
+        return looseConfig;
+    }
+
     public List<ModuleInfo> getModules(ModuleType type) {
         List<ModuleInfo> result = new ArrayList<ModuleInfo>();
         for (ModuleInfo module : modules) {

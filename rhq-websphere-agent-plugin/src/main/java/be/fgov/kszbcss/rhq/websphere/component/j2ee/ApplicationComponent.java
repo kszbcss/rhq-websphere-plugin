@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -92,7 +92,7 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     @Override
     protected boolean isConfigured() throws Exception {
         ApplicationServer server = getServer();
-        return Arrays.asList(server.queryConfig(new DeployedApplicationsQuery(server.getNode(), server.getServer()))).contains(getApplicationName());
+        return Arrays.asList(server.queryConfig(new DeployedApplicationsQuery(server.getNode(), server.getServer()))).contains(getApplicationName()) && !getApplicationInfo().isLooseConfig();
     }
 
     protected AvailabilityType doGetAvailability() {

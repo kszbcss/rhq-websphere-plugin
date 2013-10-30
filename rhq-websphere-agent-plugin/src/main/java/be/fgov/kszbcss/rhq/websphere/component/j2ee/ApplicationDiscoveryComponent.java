@@ -53,6 +53,10 @@ public class ApplicationDiscoveryComponent implements ResourceDiscoveryComponent
                 if (log.isDebugEnabled()) {
                     log.debug("Skipped internal application " + applicationName);
                 }
+            } else if (server.queryConfig(new ApplicationInfoQuery(applicationName)).isLooseConfig()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Skipped application deployed by RAD");
+                }
             } else {
                 result.add(new DiscoveredResourceDetails(context.getResourceType(), applicationName, applicationName, null, "An enterprise application.", null, null));
             }
