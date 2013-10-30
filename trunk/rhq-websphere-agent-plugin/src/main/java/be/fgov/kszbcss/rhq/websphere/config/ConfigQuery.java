@@ -44,5 +44,13 @@ import com.ibm.websphere.management.exception.ConnectorException;
  *            the return type of the configuration data query
  */
 public interface ConfigQuery<T extends Serializable> extends Serializable {
+    // TODO: Allowing the method to throw JMException is suboptimal.
+    //       The reason is that in some cases, an JMException thrown by the connector
+    //       is actually constructed by deserializing an exception from the server. In
+    //       that case, the stack trace is from the server as well and doesn't contain
+    //       the location in the plug-in code where the exception occurred. By not
+    //       declaring JMException we would force the code to catch it and to wrap it
+    //       in another exception, the stack trace of which would contain additional
+    //       information about the location in the plug-in code where the exception occurred.
     T execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException;
 }
