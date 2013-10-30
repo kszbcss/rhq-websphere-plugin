@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.management.exception.DocumentNotFoundException;
 
 public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
-    private static final long serialVersionUID = -5051704435449788314L;
+    private static final long serialVersionUID = 2L;
 
     private static final Log log = LogFactory.getLog(ApplicationInfoQuery.class);
     
@@ -51,38 +51,61 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
 
     public ApplicationInfo execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         ConfigObject applicationDeployment = config.path("Deployment", applicationName).path("ApplicationDeployment").resolveSingle();
-        String dataId = applicationDeployment.getId();
-        String baseURI = dataId.substring(0, dataId.indexOf('|'));
-        List<ModuleInfo> moduleInfos = new ArrayList<ModuleInfo>();
-        for (ConfigObject module : applicationDeployment.getChildren("modules")) {
-            String configDataType = module.getType();
-            String uri = (String)module.getAttribute("uri");
-            if (log.isDebugEnabled()) {
-                log.debug("Processing module " + uri + ", type " + configDataType);
+        if (isLooseConfig(applicationDeployment)) {
+            return new ApplicationInfo(true, null, null, null);
+        } else {
+            String dataId = applicationDeployment.getId();
+            String baseURI = dataId.substring(0, dataId.indexOf('|'));
+            List<ModuleInfo> moduleInfos = new ArrayList<ModuleInfo>();
+            for (ConfigObject module : applicationDeployment.getChildren("modules")) {
+                String configDataType = module.getType();
+                String uri = (String)module.getAttribute("uri");
+                if (log.isDebugEnabled()) {
+                    log.debug("Processing module " + uri + ", type " + configDataType);
+                }
+                ModuleInfoFactory factory = ModuleInfoFactory.getInstance(configDataType);
+                if (factory == null) {
+                    log.error("Unknown module type " + configDataType);
+                    continue;
+                }
+                String deploymentDescriptorURI = factory.locateDeploymentDescriptor(config, baseURI + "/" + uri);
+                if (log.isDebugEnabled()) {
+                    log.debug("Loading deployment descriptor " + deploymentDescriptorURI);
+                }
+                moduleInfos.add(factory.create(uri, config.extract(deploymentDescriptorURI), loadTargetMappings(module)));
             }
-            ModuleInfoFactory factory = ModuleInfoFactory.getInstance(configDataType);
-            if (factory == null) {
-                log.error("Unknown module type " + configDataType);
-                continue;
+            byte[] deploymentDescriptor;
+            try {
+                deploymentDescriptor = config.extract(baseURI + "/META-INF/application.xml");
+            } catch (JMException ex) {
+                if (ex.getCause() instanceof DocumentNotFoundException) {
+                    deploymentDescriptor = null;
+                } else {
+                    throw ex;
+                }
             }
-            String deploymentDescriptorURI = factory.locateDeploymentDescriptor(config, baseURI + "/" + uri);
-            if (log.isDebugEnabled()) {
-                log.debug("Loading deployment descriptor " + deploymentDescriptorURI);
-            }
-            moduleInfos.add(factory.create(uri, config.extract(deploymentDescriptorURI), loadTargetMappings(module)));
+            return new ApplicationInfo(false, deploymentDescriptor, loadTargetMappings(applicationDeployment),
+                    moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
         }
-        byte[] deploymentDescriptor;
-        try {
-            deploymentDescriptor = config.extract(baseURI + "/META-INF/application.xml");
-        } catch (JMException ex) {
-            if (ex.getCause() instanceof DocumentNotFoundException) {
-                deploymentDescriptor = null;
-            } else {
-                throw ex;
+    }
+    
+    /**
+     * Determines if the given <tt>ApplicationDeployment</tt> object has a <tt>was.loose.config</tt> property.
+     * This is the case for applications deployed by RAD with resources in the workspace.
+     * 
+     * @param applicationDeployment
+     * @return <code>true</code> if the <tt>was.loose.config</tt> property is set
+     * @throws JMException
+     * @throws ConnectorException
+     * @throws InterruptedException
+     */
+    private boolean isLooseConfig(ConfigObject applicationDeployment) throws JMException, ConnectorException, InterruptedException {
+        for (ConfigObject property : applicationDeployment.getChildren("properties")) {
+            if (property.getAttribute("name").equals("was.loose.config")) {
+                return true;
             }
         }
-        return new ApplicationInfo(deploymentDescriptor, loadTargetMappings(applicationDeployment),
-                moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
+        return false;
     }
     
     private TargetMapping[] loadTargetMappings(ConfigObject object) throws JMException, ConnectorException, InterruptedException {
