@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,10 +27,13 @@ import java.util.List;
 
 import javax.management.JMException;
 
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.config.types.SIBGatewayLinkCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.SIBLocalizationPointCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.SIBMessagingEngineCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.SIBQueueLocalizationPointCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -47,19 +50,19 @@ public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineIn
 
     public SIBMessagingEngineInfo[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         List<SIBMessagingEngineInfo> result = new ArrayList<SIBMessagingEngineInfo>();
-        for (ConfigObject me : config.allScopes(node, server).path("SIBMessagingEngine").resolve()) {
+        for (SIBMessagingEngineCO me : config.allScopes(node, server).path(SIBMessagingEngineCO.class).resolve()) {
             List<SIBLocalizationPointInfo> localizationPoints = new ArrayList<SIBLocalizationPointInfo>();
-            for (ConfigObject localizationPoint : me.getChildren("localizationPoints")) {
-                String identifier = (String)localizationPoint.getAttribute("identifier");
+            for (SIBLocalizationPointCO localizationPoint : me.getLocalizationPoints()) {
+                String identifier = localizationPoint.getIdentifier();
                 localizationPoints.add(new SIBLocalizationPointInfo(
-                        localizationPoint.getType().equals("SIBQueueLocalizationPoint") ? SIBLocalizationPointType.QUEUE : SIBLocalizationPointType.TOPIC,
+                        localizationPoint instanceof SIBQueueLocalizationPointCO ? SIBLocalizationPointType.QUEUE : SIBLocalizationPointType.TOPIC,
                         identifier.substring(0, identifier.indexOf('@'))));
             }
             List<SIBGatewayLinkInfo> gatewayLinks = new ArrayList<SIBGatewayLinkInfo>();
-            for (ConfigObject gatewayLink : me.getChildren("gatewayLink")) {
-                gatewayLinks.add(new SIBGatewayLinkInfo(gatewayLink.getId(), (String)gatewayLink.getAttribute("name"), (String)gatewayLink.getAttribute("targetUuid")));
+            for (SIBGatewayLinkCO gatewayLink : me.getGatewayLink()) {
+                gatewayLinks.add(new SIBGatewayLinkInfo(gatewayLink.getId(), gatewayLink.getName(), gatewayLink.getTargetUuid()));
             }
-            result.add(new SIBMessagingEngineInfo((String)me.getAttribute("name"), (String)me.getAttribute("busName"),
+            result.add(new SIBMessagingEngineInfo(me.getName(), me.getBusName(),
                     localizationPoints.toArray(new SIBLocalizationPointInfo[localizationPoints.size()]),
                     gatewayLinks.toArray(new SIBGatewayLinkInfo[gatewayLinks.size()])));
         }

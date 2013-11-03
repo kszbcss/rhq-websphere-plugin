@@ -28,9 +28,10 @@ import java.util.List;
 import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.config.types.CacheProviderCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.ObjectCacheInstanceCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -47,8 +48,8 @@ public class ObjectCacheInstanceQuery implements ConfigQuery<String[]> {
 
     public String[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         List<String> result = new ArrayList<String>();
-        for (ConfigObject cache : config.allScopes(node, server).path("CacheProvider").path("ObjectCacheInstance").resolve()) {
-            result.add((String)cache.getAttribute("jndiName"));
+        for (ObjectCacheInstanceCO cache : config.allScopes(node, server).path(CacheProviderCO.class).path(ObjectCacheInstanceCO.class).resolve()) {
+            result.add(cache.getJndiName());
         }
         return result.toArray(new String[result.size()]);
     }

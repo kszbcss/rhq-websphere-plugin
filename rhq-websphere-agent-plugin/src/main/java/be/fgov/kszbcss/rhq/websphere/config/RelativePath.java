@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,25 +22,34 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
+import java.util.Collection;
+
 import javax.management.JMException;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-class RelativePath extends Path {
-    private final Path parent;
+final class RelativePath<T extends ConfigObject> extends Path<T> {
+    private final Path<?> parent;
+    private final Class<T> type;
     private final String path;
     
-    RelativePath(Path parent, String path) {
+    RelativePath(Path<?> parent, Class<T> type, String name) {
         this.parent = parent;
-        this.path = path;
+        this.type = type;
+        path = ConfigObjectTypeRegistry.getDescriptor(type).getName() + "=" + name;
     }
 
     @Override
-    ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException, InterruptedException {
+    Class<T> getType() {
+        return type;
+    }
+
+    @Override
+    <S extends ConfigObject> Collection<S> resolveRelative(String relativePath, Class<S> type) throws JMException, ConnectorException, InterruptedException {
         if (relativePath == null) {
-            return parent.resolveRelative(path);
+            return parent.resolveRelative(path, type);
         } else {
-            return parent.resolveRelative(path + ":" + relativePath);
+            return parent.resolveRelative(path + ":" + relativePath, type);
         }
     }
 }

@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,7 @@ package be.fgov.kszbcss.rhq.websphere.config;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -41,6 +42,10 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import be.fgov.kszbcss.rhq.websphere.config.types.CellCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.NodeCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.ServerCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.ServerClusterCO;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientProxy;
 import be.fgov.kszbcss.rhq.websphere.proxy.AppManagement;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigRepository;
@@ -66,7 +71,7 @@ public class CellConfiguration {
     private final ConfigService configService;
     private final ConfigRepository configRepository;
     private final AppManagement appManagement;
-    private final Path root;
+    private final RootPath root;
     private final ReadWriteLock sessionLock = new ReentrantReadWriteLock();
     private boolean destroyed;
     private Session session;
@@ -123,45 +128,46 @@ public class CellConfiguration {
         }
     }
     
-    public Path path(String type, String name) {
+    public <T extends ConfigObject> Path<T> path(Class<T> type, String name) {
         return root.path(type, name);
     }
     
-    public Path path(String type) {
+    public <T extends ConfigObject> Path<T> path(Class<T> type) {
         return root.path(type);
     }
     
-    public Path cell() {
-        return path("Cell", cell);
+    public Path<CellCO> cell() {
+        return path(CellCO.class, cell);
     }
     
-    public Path node(String nodeName) {
-        return cell().path("Node", nodeName);
+    public Path<NodeCO> node(String nodeName) {
+        return cell().path(NodeCO.class, nodeName);
     }
     
-    public Path server(String nodeName, String serverName) {
-        return node(nodeName).path("Server", serverName);
+    public Path<ServerCO> server(String nodeName, String serverName) {
+        return node(nodeName).path(ServerCO.class, serverName);
     }
     
-    public Path allScopes(String nodeName, String serverName) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        Path cell = cell();
-        Path node = cell.path("Node", nodeName);
-        Path server = node.path("Server", serverName);
-        ConfigObject serverObject = server.resolveSingle();
-        Path cluster = cell.path("ServerCluster", (String)serverObject.getAttribute("clusterName"));
+    public Path<Scope> allScopes(String nodeName, String serverName) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+        Path<CellCO> cell = cell();
+        Path<NodeCO> node = cell.path(NodeCO.class, nodeName);
+        Path<ServerCO> server = node.path(ServerCO.class, serverName);
+        ServerCO serverObject = server.resolveSingle();
+        Path<ServerClusterCO> cluster = cell.path(ServerClusterCO.class, serverObject.getClusterName());
         // Order is important here: we return objects with higher precedence first
-        return new PathGroup(server, cluster, node, cell);
+        return new PathGroup<Scope>(Scope.class, server, cluster, node, cell);
     }
     
-    ConfigObject[] resolve(final String containmentPath) throws JMException, ConnectorException, InterruptedException {
+    <T extends ConfigObject> Collection<T> resolve(final String containmentPath, Class<T> type) throws JMException, ConnectorException, InterruptedException {
         ObjectName[] objectNames = execute(new SessionAction<ObjectName[]>() {
             public ObjectName[] execute(ConfigService configService, AppManagement appManagement, Session session) throws JMException, ConnectorException {
                 return configService.resolve(session, containmentPath);
             }
         });
-        ConfigObject[] result = new ConfigObject[objectNames.length];
-        for (int i=0; i<objectNames.length; i++) {
-            result[i] = new ConfigObject(this, objectNames[i]);
+        ConfigObjectTypeDesc desc = ConfigObjectTypeRegistry.getDescriptor(type);
+        Collection<T> result = new ArrayList<T>(objectNames.length);
+        for (ObjectName objectName : objectNames) {
+            result.add(type.cast(desc.createInstance(this, objectName)));
         }
         return result;
     }

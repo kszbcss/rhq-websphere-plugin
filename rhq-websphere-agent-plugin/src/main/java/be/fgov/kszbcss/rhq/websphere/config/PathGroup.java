@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,26 +23,33 @@
 package be.fgov.kszbcss.rhq.websphere.config;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.management.JMException;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-class PathGroup extends Path {
-    private final Path[] paths;
+final class PathGroup<T extends ConfigObject> extends Path<T> {
+    private final Class<T> type;
+    private final Path<? extends T>[] paths;
     
-    PathGroup(Path... paths) {
+    PathGroup(Class<T> type, Path<? extends T>... paths) {
+        this.type = type;
         this.paths = paths;
     }
 
     @Override
-    ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException, InterruptedException {
-        List<ConfigObject> result = new ArrayList<ConfigObject>();
-        for (Path path : paths) {
-            result.addAll(Arrays.asList(path.resolveRelative(relativePath)));
+    Class<T> getType() {
+        return type;
+    }
+
+    @Override
+    <S extends ConfigObject> Collection<S> resolveRelative(String relativePath, Class<S> type) throws JMException, ConnectorException, InterruptedException {
+        List<S> result = new ArrayList<S>();
+        for (Path<? extends T> path : paths) {
+            result.addAll(path.resolveRelative(relativePath, type));
         }
-        return result.toArray(new ConfigObject[result.size()]);
+        return result;
     }
 }

@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,8 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
+import java.util.Collection;
+
 import javax.management.JMException;
 
 import org.apache.commons.logging.Log;
@@ -29,23 +31,24 @@ import org.apache.commons.logging.LogFactory;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public abstract class Path {
+public abstract class Path<T extends ConfigObject> {
     private static final Log log = LogFactory.getLog(Path.class);
     
-    abstract ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException, InterruptedException;
+    abstract Class<T> getType();
+    abstract <S extends ConfigObject> Collection<S> resolveRelative(String relativePath, Class<S> type) throws JMException, ConnectorException, InterruptedException;
     
-    public final Path path(String type, String name) {
-        return new RelativePath(this, type + "=" + name);
+    public final <S extends ConfigObject> Path<S> path(Class<S> type, String name) {
+        return new RelativePath<S>(this, type, name);
     }
     
-    public final Path path(String type) {
+    public final <S extends ConfigObject> Path<S> path(Class<S> type) {
         return path(type, "");
     }
     
-    public ConfigObject[] resolve() throws JMException, ConnectorException, InterruptedException {
-        ConfigObject[] configObjects = resolveRelative(null);
+    public Collection<T> resolve() throws JMException, ConnectorException, InterruptedException {
+        Collection<T> configObjects = resolveRelative(null, getType());
         if (log.isDebugEnabled()) {
-            if (configObjects.length == 0) {
+            if (configObjects.isEmpty()) {
                 log.debug("No configuration data found");
             } else {
                 StringBuilder buffer = new StringBuilder("Configuration data found:");
@@ -59,11 +62,11 @@ public abstract class Path {
         return configObjects;
     }
     
-    public ConfigObject resolveSingle() throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        ConfigObject[] configObjects = resolve();
-        if (configObjects.length == 1) {
-            return configObjects[0];
-        } else if (configObjects.length == 0) {
+    public T resolveSingle() throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+        Collection<T> configObjects = resolve();
+        if (configObjects.size() == 1) {
+            return configObjects.iterator().next();
+        } else if (configObjects.isEmpty()) {
             throw new ConfigObjectNotFoundException("Configuration object not found");
         } else {
             // TODO: proper exception type

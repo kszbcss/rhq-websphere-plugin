@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,10 +26,11 @@ import java.util.List;
 
 import javax.management.JMException;
 
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolManagerCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -49,12 +50,12 @@ public class ThreadPoolQuery implements ConfigQuery<ThreadPoolConfiguration[]> {
     }
 
     public ThreadPoolConfiguration[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        ConfigObject threadPoolManager = config.server(node, server).path("ThreadPoolManager").resolveSingle();
-        List<ConfigObject> threadPools = threadPoolManager.getChildren("threadPools");
+        ThreadPoolManagerCO threadPoolManager = config.server(node, server).path(ThreadPoolManagerCO.class).resolveSingle();
+        List<ThreadPoolCO> threadPools = threadPoolManager.getThreadPools();
         ThreadPoolConfiguration[] configs = new ThreadPoolConfiguration[threadPools.size()];
         int i = 0;
-        for (ConfigObject threadPool : threadPools) {
-            configs[i++] = new ThreadPoolConfiguration((String)threadPool.getAttribute("name") /*,
+        for (ThreadPoolCO threadPool : threadPools) {
+            configs[i++] = new ThreadPoolConfiguration(threadPool.getName() /*,
                     (String)ConfigServiceHelper.getAttributeValue(threadPool, SystemAttributes._WEBSPHERE_CONFIG_DATA_ID) */);
         }
         return configs;

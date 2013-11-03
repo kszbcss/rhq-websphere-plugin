@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -60,7 +60,7 @@ public final class ConnectionFactoryMBeanLocator extends DynamicMBeanObjectNameP
         if (cf == null) {
             throw new JMException("A " + type.getConfigurationObjectType() + " with JNDI name " + jndiName + " doesn't exist in the configuration");
         }
-        props.put("type", type.getConfigurationObjectType());
+        props.put("type", type.getMBeanType());
         props.put("mbeanIdentifier", cf.getId().replace('|', '/'));
     }
     

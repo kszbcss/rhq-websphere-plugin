@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,9 +30,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.config.types.TimerManagerInfoCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.TimerManagerProviderCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -51,10 +52,10 @@ public class TimerManagerMapQuery implements ConfigQuery<HashMap<String,String>>
 
     public HashMap<String,String> execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         HashMap<String,String> map = new HashMap<String,String>();
-        for (ConfigObject wm : config.allScopes(node, server).path("TimerManagerProvider").path("TimerManagerInfo").resolve()) {
-            String jndiName = (String)wm.getAttribute("jndiName");
+        for (TimerManagerInfoCO wm : config.allScopes(node, server).path(TimerManagerProviderCO.class).path(TimerManagerInfoCO.class).resolve()) {
+            String jndiName = wm.getJndiName();
             if (!map.containsKey(jndiName)) {
-                map.put(jndiName, (String)wm.getAttribute("name"));
+                map.put(jndiName, wm.getName());
             }
         }
         if (log.isDebugEnabled()) {

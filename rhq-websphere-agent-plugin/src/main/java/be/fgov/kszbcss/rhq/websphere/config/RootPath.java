@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,8 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
+import java.util.Collection;
+
 import javax.management.JMException;
 
 import org.apache.commons.logging.Log;
@@ -29,7 +31,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-class RootPath extends Path {
+final class RootPath extends Path<ConfigObject> {
     private static final Log log = LogFactory.getLog(RootPath.class);
     
     private final CellConfiguration config;
@@ -39,14 +41,18 @@ class RootPath extends Path {
     }
 
     @Override
-    ConfigObject[] resolveRelative(String relativePath) throws JMException, ConnectorException, InterruptedException {
+    Class<ConfigObject> getType() {
+        return ConfigObject.class;
+    }
+
+    @Override
+    <S extends ConfigObject> Collection<S> resolveRelative(String relativePath, Class<S> type) throws JMException, ConnectorException, InterruptedException {
         if (relativePath == null) {
             throw new IllegalArgumentException("relativePath can't be null");
         }
         if (log.isDebugEnabled()) {
             log.debug("Resolving " + relativePath);
         }
-        return config.resolve(relativePath);
+        return config.resolve(relativePath, type);
     }
-    
 }
