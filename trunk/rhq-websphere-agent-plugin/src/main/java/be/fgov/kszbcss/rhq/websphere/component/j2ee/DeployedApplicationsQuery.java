@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,10 +26,11 @@ import java.util.List;
 
 import javax.management.JMException;
 
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.config.types.ServerEntryCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.ServerIndexCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -45,12 +46,11 @@ public class DeployedApplicationsQuery implements ConfigQuery<String[]> {
     }
 
     public String[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        ConfigObject serverEntry = config.node(node).path("ServerIndex").path("ServerEntry", server).resolveSingle();
-        List<?> deployedApplications = (List<?>)serverEntry.getAttribute("deployedApplications");
+        ServerEntryCO serverEntry = config.node(node).path(ServerIndexCO.class).path(ServerEntryCO.class, server).resolveSingle();
+        List<String> deployedApplications = serverEntry.getDeployedApplications();
         String[] applicationNames = new String[deployedApplications.size()];
         int i = 0;
-        for (Object deployedApplication : deployedApplications) {
-            String deployment = (String)deployedApplication;
+        for (String deployment : deployedApplications) {
             applicationNames[i++] = deployment.substring(deployment.lastIndexOf('/') + 1);
         }
         return applicationNames;

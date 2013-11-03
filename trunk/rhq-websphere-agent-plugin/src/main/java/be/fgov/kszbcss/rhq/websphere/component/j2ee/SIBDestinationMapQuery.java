@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,9 +31,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.config.types.J2CAdminObjectCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.J2CResourceAdapterCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.J2EEResourcePropertyCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -52,18 +54,18 @@ public class SIBDestinationMapQuery implements ConfigQuery<SIBDestinationMap> {
 
     public SIBDestinationMap execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         Map<String,SIBDestination> map = new HashMap<String,SIBDestination>();
-        for (ConfigObject ra : config.allScopes(node, server).path("J2CResourceAdapter").resolve()) {
-            for (ConfigObject adminObject : ra.getChildren("j2cAdminObjects")) {
-                String jndiName = (String)adminObject.getAttribute("jndiName");
+        for (J2CResourceAdapterCO ra : config.allScopes(node, server).path(J2CResourceAdapterCO.class).resolve()) {
+            for (J2CAdminObjectCO adminObject : ra.getJ2cAdminObjects()) {
+                String jndiName = adminObject.getJndiName();
                 if (!map.containsKey(jndiName)) {
                     String busName = null;
                     String destinationName = null;
-                    for (ConfigObject property : adminObject.getChildren("properties")) {
-                        String propName = (String)property.getAttribute("name");
+                    for (J2EEResourcePropertyCO property : adminObject.getProperties()) {
+                        String propName = property.getName();
                         if (propName.equals("BusName")) {
-                            busName = (String)property.getAttribute("value");
+                            busName = property.getValue();
                         } else if (propName.equals("QueueName")) {
-                            destinationName = (String)property.getAttribute("value");
+                            destinationName = property.getValue();
                         }
                     }
                     map.put(jndiName, new SIBDestination(busName, destinationName));

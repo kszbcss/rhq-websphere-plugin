@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,8 +28,8 @@ import java.util.Map;
 import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
+import be.fgov.kszbcss.rhq.websphere.config.types.JAASAuthDataCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -38,8 +38,8 @@ public class JAASAuthDataQuery implements ConfigQuery<JAASAuthDataMap> {
 
     public JAASAuthDataMap execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
         Map<String,JAASAuthData> map = new HashMap<String,JAASAuthData>();
-        for (ConfigObject co : config.path("JAASAuthData").resolve()) {
-            map.put((String)co.getAttribute("alias"), new JAASAuthData((String)co.getAttribute("userId"), (String)co.getAttribute("password")));
+        for (JAASAuthDataCO co : config.path(JAASAuthDataCO.class).resolve()) {
+            map.put(co.getAlias(), new JAASAuthData(co.getUserId(), co.getPassword()));
         }
         return new JAASAuthDataMap(map);
     }

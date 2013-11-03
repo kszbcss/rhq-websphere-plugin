@@ -33,9 +33,10 @@ import java.util.Enumeration;
 import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.config.types.KeyStoreCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.SecurityCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -47,17 +48,17 @@ public class CellRootCertificateQuery implements ConfigQuery<X509Certificate> {
     private CellRootCertificateQuery() {}
     
     public X509Certificate execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        for (ConfigObject keyStoreConfig : config.cell().path("Security").resolveSingle().getChildren("keyStores")) {
-            if (keyStoreConfig.getAttribute("name").equals("CellDefaultTrustStore")) {
-                String location = (String)keyStoreConfig.getAttribute("location");
+        for (KeyStoreCO keyStoreConfig : config.cell().path(SecurityCO.class).resolveSingle().getKeyStores()) {
+            if (keyStoreConfig.getName().equals("CellDefaultTrustStore")) {
+                String location = keyStoreConfig.getLocation();
                 if (!location.startsWith("${CONFIG_ROOT}/")) {
                     throw new ConfigQueryException("Cannot extract cell default trust store because it is not located in the configuration repository");
                 }
                 byte[] cellDefaultTrustStore = config.extract(location.substring(location.indexOf('/')+1));
                 X509Certificate cert;
                 try {
-                    KeyStore ks = KeyStore.getInstance((String)keyStoreConfig.getAttribute("type"), (String)keyStoreConfig.getAttribute("provider"));
-                    ks.load(new ByteArrayInputStream(cellDefaultTrustStore), ((String)keyStoreConfig.getAttribute("password")).toCharArray());
+                    KeyStore ks = KeyStore.getInstance(keyStoreConfig.getType(), keyStoreConfig.getProvider());
+                    ks.load(new ByteArrayInputStream(cellDefaultTrustStore), keyStoreConfig.getPassword().toCharArray());
                     String rootAlias = getRootAlias(ks);
                     if (rootAlias == null) {
                         throw new ConfigQueryException("No cell root certificate found");

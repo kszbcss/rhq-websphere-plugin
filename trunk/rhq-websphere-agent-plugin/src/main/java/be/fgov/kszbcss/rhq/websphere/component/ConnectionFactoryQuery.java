@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,10 +32,13 @@ import javax.management.JMException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.config.types.ConnectionFactoryCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.DataSourceCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.J2EEResourcePropertyCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.J2EEResourceProviderCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -56,18 +59,18 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
 
     public ConnectionFactories execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         List<ConnectionFactoryInfo> result = new ArrayList<ConnectionFactoryInfo>();
-        for (ConfigObject cf : config.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve()) {
-            String jndiName = (String)cf.getAttribute("jndiName");
+        for (ConnectionFactoryCO cf : config.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve()) {
+            String jndiName = cf.getJndiName();
             // If no JNDI name is defined, then it's probably a J2CConnectionFactory corresponding to a JDBC data source
             if (jndiName != null) {
                 if (log.isDebugEnabled()) {
                     log.debug("Retrieving properties for " + jndiName);
                 }
                 Map<String,Object> properties = new HashMap<String,Object>();
-                for (ConfigObject resourceProperty : ((ConfigObject)cf.getAttribute("propertySet")).getChildren("resourceProperties")) {
-                    String name = (String)resourceProperty.getAttribute("name");
-                    String stringValue = (String)resourceProperty.getAttribute("value");
-                    String type = (String)resourceProperty.getAttribute("type");
+                for (J2EEResourcePropertyCO resourceProperty : cf.getPropertySet().getResourceProperties()) {
+                    String name = resourceProperty.getName();
+                    String stringValue = resourceProperty.getValue();
+                    String type = resourceProperty.getType();
                     Object value;
                     // TODO: add support for other types
                     if (stringValue == null || stringValue.length() == 0 && !type.equals("java.lang.String")) {
@@ -85,15 +88,15 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
                     }
                     properties.put(name, value);
                 }
-                ConfigObject provider = (ConfigObject)cf.getAttribute("provider");
+                J2EEResourceProviderCO provider = cf.getProvider();
                 // TODO: remove duplicate jndi names!
                 result.add(new ConnectionFactoryInfo(
                         cf.getId(),
-                        (String)provider.getAttribute("name"),
-                        (String)cf.getAttribute("name"),
+                        provider.getName(),
+                        cf.getName(),
                         jndiName,
-                        type == ConnectionFactoryType.JDBC ? (String)cf.getAttribute("datasourceHelperClassname") : null,
-                        (String)cf.getAttribute("authDataAlias"),
+                        cf instanceof DataSourceCO ? ((DataSourceCO)cf).getDatasourceHelperClassname() : null,
+                        cf.getAuthDataAlias(),
                         properties));
             }
         }

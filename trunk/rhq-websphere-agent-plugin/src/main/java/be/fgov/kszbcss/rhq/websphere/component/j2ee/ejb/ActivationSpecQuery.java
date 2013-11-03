@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,9 +31,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.config.types.J2CActivationSpecCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.J2CResourceAdapterCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.J2EEResourcePropertyCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -52,17 +54,17 @@ public class ActivationSpecQuery implements ConfigQuery<ActivationSpecs> {
 
     public ActivationSpecs execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         Map<String,ActivationSpecInfo> map = new HashMap<String,ActivationSpecInfo>();
-        for (ConfigObject ra : config.allScopes(node, server).path("J2CResourceAdapter").resolve()) {
-            for (ConfigObject activationSpec : ra.getChildren("j2cActivationSpec")) {
-                String jndiName = (String)activationSpec.getAttribute("jndiName");
+        for (J2CResourceAdapterCO ra : config.allScopes(node, server).path(J2CResourceAdapterCO.class).resolve()) {
+            for (J2CActivationSpecCO activationSpec : ra.getJ2cActivationSpec()) {
+                String jndiName = activationSpec.getJndiName();
                 if (!map.containsKey(jndiName)) {
-                    String destinationJndiName = (String)activationSpec.getAttribute("destinationJndiName");
+                    String destinationJndiName = activationSpec.getDestinationJndiName();
                     if (destinationJndiName != null && destinationJndiName.length() == 0) {
                         destinationJndiName = null;
                     }
                     Map<String,Object> properties = new HashMap<String,Object>();
-                    for (ConfigObject property : activationSpec.getChildren("resourceProperties")) {
-                        properties.put((String)property.getAttribute("name"), property.getAttribute("value"));
+                    for (J2EEResourcePropertyCO property : activationSpec.getResourceProperties()) {
+                        properties.put(property.getName(), property.getValue());
                     }
                     map.put(jndiName, new ActivationSpecInfo(destinationJndiName, properties));
                 }
