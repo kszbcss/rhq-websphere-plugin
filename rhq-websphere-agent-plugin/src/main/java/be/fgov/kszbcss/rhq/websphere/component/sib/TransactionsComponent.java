@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,9 +36,9 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.InDoubtTransactionsMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
+import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientProxy;
 import be.fgov.kszbcss.rhq.websphere.proxy.SIBMessagingEngine;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
@@ -48,10 +48,10 @@ public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagin
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
-        ApplicationServer server = getServer();
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(server.getServerMBean(),
-                "SIB Service", "SIB Messaging Engines", getResourceContext().getParentResourceComponent().getName(),
+        // Need to start from the SIBMessagingEngine MBean here because the PMI module names for SIB were changed by PM60540
+        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(
+                ((MBeanClientProxy)getResourceContext().getParentResourceComponent().getSibMessagingEngine()).getMBeanClient(),
                 "Storage Management", "Transactions"));
         final SIBMessagingEngine sibMessagingEngine = getResourceContext().getParentResourceComponent().getSibMessagingEngine();
         measurementFacetSupport.addHandler("IndoubtTransactions", new InDoubtTransactionsMeasurementHandler() {
