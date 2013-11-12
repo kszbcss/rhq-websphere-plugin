@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,12 +31,13 @@ import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolCO;
 
 public class ThreadPoolDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         ApplicationServer server = context.getParentResourceComponent().getServer();
-        for (ThreadPoolConfiguration threadPool : server.queryConfig(new ThreadPoolQuery(server.getNode(), server.getServer()))) {
+        for (ThreadPoolCO threadPool : server.queryConfig(new ThreadPoolManagerQuery(server.getNode(), server.getServer())).getThreadPools()) {
             String name = threadPool.getName();
             // The "server.startup" thread pool is not interesting, and there is also no MBean available
             if (!name.equals("server.startup")) {

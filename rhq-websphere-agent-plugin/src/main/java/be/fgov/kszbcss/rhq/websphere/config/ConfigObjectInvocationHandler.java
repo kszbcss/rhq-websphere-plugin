@@ -22,6 +22,8 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -45,13 +47,15 @@ import com.ibm.websphere.management.configservice.SystemAttributes;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigObject {
+    private static final long serialVersionUID = 1L;
+
     private static final Log log = LogFactory.getLog(ConfigObjectInvocationHandler.class);
     
     private final ConfigObjectTypeDesc type;
-    private final CellConfiguration config;
+    private CellConfiguration config;
     private final ObjectName objectName;
     private AttributeList attributes;
-    private Map<Method,Object> references;
+    private Map<String,Object> references;
 
     ConfigObjectInvocationHandler(ConfigObjectTypeDesc type, CellConfiguration config, ObjectName objectName) {
         this.type = type;
@@ -67,12 +71,31 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
         return objectName.getKeyProperty(SystemAttributes._WEBSPHERE_CONFIG_DATA_TYPE);
     }
     
+    public void detach() throws JMException, ConnectorException, InterruptedException {
+        for (ConfigObjectAttributeDesc desc : type.getAttributeDescriptors()) {
+            Object value = getAttributeValue(desc);
+            if (desc.isReference()) {
+                if (value instanceof List) {
+                    for (Object item : (List<?>)value) {
+                        ((ConfigObject)item).detach();
+                    }
+                } else {
+                    ((ConfigObject)value).detach();
+                }
+            }
+        }
+        config = null;
+    }
+
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (method.getDeclaringClass() == ConfigObject.class) {
             return method.invoke(this, args);
         }
         // TODO: method may also be declared by Object (e.g. equals and hashCode)
-        ConfigObjectAttributeDesc desc = type.getAttributeDescriptor(method);
+        return getAttributeValue(type.getAttributeDescriptor(method));
+    }
+    
+    private Object getAttributeValue(ConfigObjectAttributeDesc desc) throws JMException, ConnectorException, InterruptedException {
         if (attributes == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Loading attributes for configuration object " + objectName + " ...");
@@ -87,17 +110,18 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
                 log.debug("Result: " + attributes);
             }
         }
+        String attributeName = desc.getName();
         if (desc.isReference()) {
             Object result;
             if (references == null) {
-                references = new HashMap<Method,Object>();
+                references = new HashMap<String,Object>();
                 result = null;
             } else {
-                result = references.get(method);
+                result = references.get(attributeName);
             }
             if (result == null) {
                 ConfigObjectTypeDesc referenceDesc = desc.getDescriptor();
-                Object value = ConfigServiceHelper.getAttributeValue(attributes, desc.getName());
+                Object value = ConfigServiceHelper.getAttributeValue(attributes, attributeName);
                 if (desc.isCollection()) {
                     List<?> list = (List<?>)value;
                     List<ConfigObject> resultList = new ArrayList<ConfigObject>(list.size());
@@ -108,11 +132,18 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
                 } else {
                     result = referenceDesc.createInstance(config, (ObjectName)value);
                 }
-                references.put(method, result);
+                references.put(attributeName, result);
             }
             return result;
         } else {
-            return ConfigServiceHelper.getAttributeValue(attributes, desc.getName());
+            return ConfigServiceHelper.getAttributeValue(attributes, attributeName);
         }
+    }
+    
+    private void writeObject(ObjectOutputStream stream) throws IOException {
+        if (config != null) {
+            throw new IllegalStateException("Configuration object has not been detached");
+        }
+        stream.defaultWriteObject();
     }
 }

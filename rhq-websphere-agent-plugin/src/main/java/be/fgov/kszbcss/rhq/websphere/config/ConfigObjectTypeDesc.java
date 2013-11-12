@@ -22,6 +22,8 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
@@ -35,13 +37,13 @@ import javax.management.ObjectName;
 
 import com.ibm.websphere.management.configservice.SystemAttributes;
 
-final class ConfigObjectTypeDesc {
-    private final Class<?> iface;
+final class ConfigObjectTypeDesc implements Serializable {
+    private final Class<? extends ConfigObject> iface;
     private final String name;
     private final Map<Method,ConfigObjectAttributeDesc> attributes = new HashMap<Method,ConfigObjectAttributeDesc>();
     private final List<ConfigObjectTypeDesc> extensions = new ArrayList<ConfigObjectTypeDesc>();
     
-    ConfigObjectTypeDesc(Class<?> iface) {
+    ConfigObjectTypeDesc(Class<? extends ConfigObject> iface) {
         this.iface = iface;
         ConfigObjectType ann = iface.getAnnotation(ConfigObjectType.class);
         name = ann.name();
@@ -89,6 +91,10 @@ final class ConfigObjectTypeDesc {
         return attributeNames.toArray(new String[attributeNames.size()]);
     }
     
+    ConfigObjectAttributeDesc[] getAttributeDescriptors() {
+        return attributes.values().toArray(new ConfigObjectAttributeDesc[attributes.size()]);
+    }
+    
     ConfigObjectAttributeDesc getAttributeDescriptor(Method method) {
         return attributes.get(method);
     }
@@ -120,5 +126,9 @@ final class ConfigObjectTypeDesc {
             }
         }
         return (ConfigObject)Proxy.newProxyInstance(desc.iface.getClassLoader(), new Class<?>[] { desc.iface }, new ConfigObjectInvocationHandler(desc, cellConfiguration, objectName));
+    }
+    
+    private Object writeReplace() throws ObjectStreamException {
+        return new ConfigObjectTypeDescRef(iface);
     }
 }

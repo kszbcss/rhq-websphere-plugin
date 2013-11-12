@@ -38,6 +38,7 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.ThreadPoolPMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
+import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolCO;
 import be.fgov.kszbcss.rhq.websphere.proxy.ThreadMonitor;
 import be.fgov.kszbcss.rhq.websphere.support.configuration.ConfigurationFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
@@ -78,7 +79,7 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
     @Override
     protected boolean isConfigured() throws Exception {
         ApplicationServer server = getServer();
-        for (ThreadPoolConfiguration threadPool : server.queryConfig(new ThreadPoolQuery(server.getNode(), server.getServer()))) {
+        for (ThreadPoolCO threadPool : server.queryConfig(new ThreadPoolManagerQuery(server.getNode(), server.getServer())).getThreadPools()) {
             if (threadPool.getName().equals(getResourceContext().getResourceKey())) {
                 return true;
             }
