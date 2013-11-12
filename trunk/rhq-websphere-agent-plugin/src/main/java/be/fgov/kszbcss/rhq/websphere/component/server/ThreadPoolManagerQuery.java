@@ -22,14 +22,11 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.server;
 
-import java.util.List;
-
 import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
-import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolManagerCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -38,27 +35,21 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * Query to retrieve the <tt>ThreadPool</tt> configuration objects from the
  * <tt>ThreadPoolManager</tt>.
  */
-public class ThreadPoolQuery implements ConfigQuery<ThreadPoolConfiguration[]> {
-    private static final long serialVersionUID = -7203291446803851440L;
+public class ThreadPoolManagerQuery implements ConfigQuery<ThreadPoolManagerCO> {
+    private static final long serialVersionUID = 1L;
     
     private final String node;
     private final String server;
 
-    public ThreadPoolQuery(String node, String server) {
+    public ThreadPoolManagerQuery(String node, String server) {
         this.node = node;
         this.server = server;
     }
 
-    public ThreadPoolConfiguration[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public ThreadPoolManagerCO execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         ThreadPoolManagerCO threadPoolManager = config.server(node, server).path(ThreadPoolManagerCO.class).resolveSingle();
-        List<ThreadPoolCO> threadPools = threadPoolManager.getThreadPools();
-        ThreadPoolConfiguration[] configs = new ThreadPoolConfiguration[threadPools.size()];
-        int i = 0;
-        for (ThreadPoolCO threadPool : threadPools) {
-            configs[i++] = new ThreadPoolConfiguration(threadPool.getName() /*,
-                    (String)ConfigServiceHelper.getAttributeValue(threadPool, SystemAttributes._WEBSPHERE_CONFIG_DATA_ID) */);
-        }
-        return configs;
+        threadPoolManager.detach();
+        return threadPoolManager;
     }
 
 
@@ -69,8 +60,8 @@ public class ThreadPoolQuery implements ConfigQuery<ThreadPoolConfiguration[]> {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof ThreadPoolQuery) {
-            ThreadPoolQuery other = (ThreadPoolQuery)obj;
+        if (obj instanceof ThreadPoolManagerQuery) {
+            ThreadPoolManagerQuery other = (ThreadPoolManagerQuery)obj;
             return other.node.equals(node) && other.server.equals(server);
         } else {
             return false;

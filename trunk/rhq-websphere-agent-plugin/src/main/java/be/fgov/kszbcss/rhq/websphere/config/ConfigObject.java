@@ -22,13 +22,30 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
+import java.io.Serializable;
+
+import javax.management.JMException;
+
+import com.ibm.websphere.management.exception.ConnectorException;
+
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
 
 /**
  * Represents an object in the WebSphere configuration. This class provides a more convenient API
  * than {@link ConfigService}.
  */
-public interface ConfigObject {
+public interface ConfigObject extends Serializable {
     String getId();
     String getConfigObjectType();
+    
+    /**
+     * Detaches this configuration object from the underlying {@link CellConfiguration} object. This
+     * will recursively fetch all attributes. An invocation of this method makes the configuration
+     * serializable and thread safe.
+     * 
+     * @throws InterruptedException 
+     * @throws ConnectorException 
+     * @throws JMException 
+     */
+    void detach() throws JMException, ConnectorException, InterruptedException;
 }
