@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.measurement.AvailabilityType;
+import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.operation.OperationFacet;
@@ -38,7 +39,19 @@ import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 public abstract class WebSphereComponent<T extends ResourceComponent<?>> implements JMXComponent<T>, OperationFacet {
     private static final Log log = LogFactory.getLog(WebSphereComponent.class);
     
-    public abstract ResourceContext<T> getResourceContext();
+    private ResourceContext<T> resourceContext;
+
+    public final void start(ResourceContext<T> context) throws InvalidPluginConfigurationException, Exception {
+        this.resourceContext = context;
+        start();
+    }
+    
+    public final ResourceContext<T> getResourceContext() {
+        return resourceContext;
+    }
+
+    protected abstract void start() throws InvalidPluginConfigurationException, Exception;
+    
     public abstract ApplicationServer getServer();
     
     /**
