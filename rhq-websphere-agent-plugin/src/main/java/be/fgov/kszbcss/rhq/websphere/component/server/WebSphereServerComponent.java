@@ -80,7 +80,7 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class WebSphereServerComponent extends WebSphereComponent<ResourceComponent<?>> implements MeasurementFacet, ConfigurationFacet {
+public final class WebSphereServerComponent extends WebSphereComponent<ResourceComponent<?>> implements MeasurementFacet, ConfigurationFacet {
     private static final Log log = LogFactory.getLog(WebSphereServerComponent.class);
     
     private static final Map<String,Class<? extends LoggingProvider>> loggingProviderClasses;
@@ -95,7 +95,6 @@ public class WebSphereServerComponent extends WebSphereComponent<ResourceCompone
     private String cell;
     private String node;
     private String serverName;
-    private ResourceContext<ResourceComponent<?>> resourceContext;
     private File stateDir;
     private ApplicationServer server;
     private EmsConnection connection;
@@ -106,8 +105,8 @@ public class WebSphereServerComponent extends WebSphereComponent<ResourceCompone
     private XM4WASJVM xm4wasJvm;
     private EJBMonitor ejbMonitor;
     
-    public void start(ResourceContext<ResourceComponent<?>> context) throws InvalidPluginConfigurationException, Exception {
-        this.resourceContext = context;
+    public void start() throws InvalidPluginConfigurationException, Exception {
+        ResourceContext<ResourceComponent<?>> context = getResourceContext();
         
         Configuration pluginConfiguration = context.getPluginConfiguration();
         
@@ -148,17 +147,13 @@ public class WebSphereServerComponent extends WebSphereComponent<ResourceCompone
         ejbMonitor = server.getMBeanClient("XM4WAS:type=EJBMonitor,*").getProxy(EJBMonitor.class);
     }
 
-    public ResourceContext<ResourceComponent<?>> getResourceContext() {
-        return resourceContext;
-    }
-
     public ApplicationServer getServer() {
         return server;
     }
 
     public synchronized EmsConnection getEmsConnection() {
         if (connection == null) {
-            Configuration pluginConfig = resourceContext.getPluginConfiguration();
+            Configuration pluginConfig = getResourceContext().getPluginConfiguration();
             ConnectionSettings connectionSettings = new ConnectionSettings();
             connectionSettings.setServerUrl(pluginConfig.getSimpleValue("host", null) + ":" + pluginConfig.getSimpleValue("port", null));
             ConnectionProvider connectionProvider = new WebsphereConnectionProvider(server.getAdminClient());
