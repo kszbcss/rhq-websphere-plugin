@@ -45,6 +45,15 @@ public abstract class Path<T extends ConfigObject> {
         return path(type, "");
     }
     
+    /**
+     * Resolve this path.
+     * 
+     * @return the collection of configuration objects found for this path; if no configuration
+     *         objects are found, an empty collection is returned
+     * @throws JMException
+     * @throws ConnectorException
+     * @throws InterruptedException
+     */
     public Collection<T> resolve() throws JMException, ConnectorException, InterruptedException {
         Collection<T> configObjects = resolveRelative(null, getType());
         if (log.isDebugEnabled()) {
@@ -62,6 +71,18 @@ public abstract class Path<T extends ConfigObject> {
         return configObjects;
     }
     
+    /**
+     * Resolve this path to a single configuration object.
+     * 
+     * @return the configuration object; never <code>null</code>
+     * @throws JMException
+     * @throws ConnectorException
+     * @throws InterruptedException
+     * @throws ConfigObjectNotFoundException
+     *             if no configuration object for this path was found
+     * @throws MultipleConfigObjectsFoundException
+     *             if multiple configuration objects for this path exist
+     */
     public T resolveSingle() throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         Collection<T> configObjects = resolve();
         if (configObjects.size() == 1) {
