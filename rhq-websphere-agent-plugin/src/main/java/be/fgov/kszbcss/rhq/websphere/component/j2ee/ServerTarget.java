@@ -24,7 +24,7 @@ package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 public class ServerTarget extends Target {
     private static final long serialVersionUID = 4315746012424558339L;

@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,7 @@
  * if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package be.fgov.kszbcss.rhq.websphere;
+package be.fgov.kszbcss.rhq.websphere.process;
 
 import javax.management.ObjectName;
 
@@ -32,7 +32,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientProvider;
 
-class ProcessIdentityValidator implements AdminClientProvider {
+final class ProcessIdentityValidator implements AdminClientProvider {
     private static final Log log = LogFactory.getLog(ProcessIdentityValidator.class);
     
     private final AdminClientProvider parent;

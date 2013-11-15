@@ -57,9 +57,6 @@ import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
-import be.fgov.kszbcss.rhq.websphere.ManagedServer;
-import be.fgov.kszbcss.rhq.websphere.UnmanagedServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
@@ -68,6 +65,9 @@ import be.fgov.kszbcss.rhq.websphere.component.server.log.ras.RasLoggingProvider
 import be.fgov.kszbcss.rhq.websphere.component.server.log.xm4was.XM4WASLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObjectNotFoundException;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.process.ManagedServer;
+import be.fgov.kszbcss.rhq.websphere.process.UnmanagedServer;
 import be.fgov.kszbcss.rhq.websphere.proxy.EJBMonitor;
 import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
 import be.fgov.kszbcss.rhq.websphere.proxy.WebSphereJVM;

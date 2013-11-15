@@ -27,8 +27,8 @@ import javax.management.JMException;
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.PmiConstants;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIModuleSelector;
 
 public class WorkManagerThreadPoolPMIModuleSelector implements PMIModuleSelector {

@@ -20,7 +20,7 @@
  * if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package be.fgov.kszbcss.rhq.websphere;
+package be.fgov.kszbcss.rhq.websphere.process;
 
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
@@ -37,6 +37,8 @@ import javax.management.ObjectName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import be.fgov.kszbcss.rhq.websphere.PIDChangeTracker;
+import be.fgov.kszbcss.rhq.websphere.PIDWatcher;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.rhq.websphere.connector.FailFastAdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.LazyAdminClientInvocationHandler;
@@ -47,6 +49,7 @@ import be.fgov.kszbcss.rhq.websphere.connector.notification.NotificationListener
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientFactory;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanLocator;
+import be.fgov.kszbcss.rhq.websphere.process.locator.ProcessLocator;
 import be.fgov.kszbcss.rhq.websphere.proxy.Perf;
 
 import com.ibm.websphere.management.AdminClient;

@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,10 +20,23 @@
  * if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package be.fgov.kszbcss.rhq.websphere;
+package be.fgov.kszbcss.rhq.websphere.process;
 
-public class DeploymentManager extends WebSphereServer {
-    public DeploymentManager(String cell, ProcessLocator processLocator) {
-        super(cell, null, "dmgr", "DeploymentManager", processLocator);
+import be.fgov.kszbcss.rhq.websphere.process.locator.ProcessLocator;
+
+import com.ibm.websphere.management.exception.ConnectorException;
+
+public final class NodeAgent extends WebSphereServer {
+    private DeploymentManager deploymentManager;
+    
+    public NodeAgent(String cell, String node, ProcessLocator processLocator) {
+        super(cell, node, "nodeagent", "NodeAgent", processLocator);
+    }
+
+    public synchronized DeploymentManager getDeploymentManager() throws ConnectorException {
+        if (deploymentManager == null) {
+            deploymentManager = new DeploymentManager(getCell(), new ParentProcessLocator(this));
+        }
+        return deploymentManager;
     }
 }

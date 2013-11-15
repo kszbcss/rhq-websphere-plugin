@@ -28,9 +28,9 @@ import javax.management.JMException;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.DynamicMBeanObjectNamePatternLocator;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 public class SIBGatewayLinkMBeanLocator extends DynamicMBeanObjectNamePatternLocator {
     private final SIBMessagingEngineComponent me;
