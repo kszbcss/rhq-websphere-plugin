@@ -58,8 +58,6 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
-import be.fgov.kszbcss.rhq.websphere.ConfigurationBasedProcessLocator;
-import be.fgov.kszbcss.rhq.websphere.DeploymentManager;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStats;
@@ -67,6 +65,8 @@ import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsData;
 import be.fgov.kszbcss.rhq.websphere.connector.security.TrustStoreAction;
 import be.fgov.kszbcss.rhq.websphere.connector.security.TrustStoreManager;
+import be.fgov.kszbcss.rhq.websphere.process.DeploymentManager;
+import be.fgov.kszbcss.rhq.websphere.process.locator.ConfigurationBasedProcessLocator;
 
 public class ConnectorSubsystemComponent implements ResourceComponent<ResourceComponent<?>>, MeasurementFacet, OperationFacet {
     private static final Log log = LogFactory.getLog(ConnectorSubsystemComponent.class);

@@ -37,10 +37,10 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.stat.WSRangeStatistic;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIModuleSelector;

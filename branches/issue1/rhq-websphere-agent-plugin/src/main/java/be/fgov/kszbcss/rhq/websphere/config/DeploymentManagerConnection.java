@@ -27,7 +27,7 @@ import net.sf.ehcache.CacheManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.rhq.websphere.DeploymentManager;
+import be.fgov.kszbcss.rhq.websphere.process.DeploymentManager;
 
 /**
  * Manages the communication with the deployment manager of a given WebSphere cell. There will be

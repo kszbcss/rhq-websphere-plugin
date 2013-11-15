@@ -30,7 +30,7 @@ import org.rhq.core.domain.measurement.MeasurementDataTrait;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementGroupHandler;
 
 import com.ibm.db2.jcc.DB2ClientRerouteServerList;

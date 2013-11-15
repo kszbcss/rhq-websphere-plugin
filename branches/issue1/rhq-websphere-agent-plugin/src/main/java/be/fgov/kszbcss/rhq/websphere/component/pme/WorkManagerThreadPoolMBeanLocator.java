@@ -26,10 +26,10 @@ import java.util.Map;
 
 import javax.management.JMException;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.DynamicMBeanObjectNamePatternLocator;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 

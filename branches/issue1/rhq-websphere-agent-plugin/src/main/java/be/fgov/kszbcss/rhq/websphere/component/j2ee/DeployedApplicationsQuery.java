@@ -46,7 +46,7 @@ public class DeployedApplicationsQuery implements ConfigQuery<String[]> {
     }
 
     public String[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        ServerEntryCO serverEntry = config.node(node).path(ServerIndexCO.class).path(ServerEntryCO.class, server).resolveSingle();
+        ServerEntryCO serverEntry = config.node(node).path(ServerIndexCO.class).path(ServerEntryCO.class, server).resolveSingle(false);
         List<String> deployedApplications = serverEntry.getDeployedApplications();
         String[] applicationNames = new String[deployedApplications.size()];
         int i = 0;

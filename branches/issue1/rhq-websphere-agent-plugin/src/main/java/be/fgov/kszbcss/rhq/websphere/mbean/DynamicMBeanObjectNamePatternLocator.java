@@ -28,7 +28,7 @@ import java.util.Map;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 

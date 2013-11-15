@@ -38,9 +38,9 @@ import org.rhq.core.pluginapi.plugin.PluginContext;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.DeploymentManager;
-import be.fgov.kszbcss.rhq.websphere.UnmanagedServer;
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+import be.fgov.kszbcss.rhq.websphere.process.DeploymentManager;
+import be.fgov.kszbcss.rhq.websphere.process.UnmanagedServer;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 public class ConfigQueryServiceFactory {
     private static final Log log = LogFactory.getLog(ConfigQueryServiceFactory.class);

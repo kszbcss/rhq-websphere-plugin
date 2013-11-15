@@ -41,10 +41,10 @@ import net.sf.ehcache.CacheManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.config.cache.CacheRefreshException;
 import be.fgov.kszbcss.rhq.websphere.config.cache.DelayedRefreshCache;
 import be.fgov.kszbcss.rhq.websphere.config.cache.MutablePriorityQueue;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.proxy.AppManagement;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigRepository;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;

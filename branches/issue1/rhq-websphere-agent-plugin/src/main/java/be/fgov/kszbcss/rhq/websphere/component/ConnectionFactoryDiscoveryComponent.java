@@ -30,10 +30,10 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryQuery;
 import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryType;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 public abstract class ConnectionFactoryDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
     public final Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {

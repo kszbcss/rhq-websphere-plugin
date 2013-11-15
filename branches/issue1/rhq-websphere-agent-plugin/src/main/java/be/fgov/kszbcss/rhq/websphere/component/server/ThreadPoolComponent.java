@@ -35,10 +35,10 @@ import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.ThreadPoolPMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolCO;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.proxy.ThreadMonitor;
 import be.fgov.kszbcss.rhq.websphere.support.configuration.ConfigurationFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;

@@ -38,7 +38,7 @@ public class JAASAuthDataQuery implements ConfigQuery<JAASAuthDataMap> {
 
     public JAASAuthDataMap execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
         Map<String,JAASAuthData> map = new HashMap<String,JAASAuthData>();
-        for (JAASAuthDataCO co : config.path(JAASAuthDataCO.class).resolve()) {
+        for (JAASAuthDataCO co : config.path(JAASAuthDataCO.class).resolve(false)) {
             map.put(co.getAlias(), new JAASAuthData(co.getUserId(), co.getPassword()));
         }
         return new JAASAuthDataMap(map);

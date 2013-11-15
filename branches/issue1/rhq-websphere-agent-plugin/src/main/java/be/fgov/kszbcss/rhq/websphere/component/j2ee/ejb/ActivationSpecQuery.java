@@ -54,7 +54,7 @@ public class ActivationSpecQuery implements ConfigQuery<ActivationSpecs> {
 
     public ActivationSpecs execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         Map<String,ActivationSpecInfo> map = new HashMap<String,ActivationSpecInfo>();
-        for (J2CResourceAdapterCO ra : config.allScopes(node, server).path(J2CResourceAdapterCO.class).resolve()) {
+        for (J2CResourceAdapterCO ra : config.allScopes(node, server).path(J2CResourceAdapterCO.class).resolve(false)) {
             for (J2CActivationSpecCO activationSpec : ra.getJ2cActivationSpec()) {
                 String jndiName = activationSpec.getJndiName();
                 if (!map.containsKey(jndiName)) {

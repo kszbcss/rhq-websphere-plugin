@@ -36,11 +36,11 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.proxy.ApplicationManager;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;

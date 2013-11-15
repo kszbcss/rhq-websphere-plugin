@@ -59,7 +59,7 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
 
     public ConnectionFactories execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         List<ConnectionFactoryInfo> result = new ArrayList<ConnectionFactoryInfo>();
-        for (ConnectionFactoryCO cf : config.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve()) {
+        for (ConnectionFactoryCO cf : config.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve(false)) {
             String jndiName = cf.getJndiName();
             // If no JNDI name is defined, then it's probably a J2CConnectionFactory corresponding to a JDBC data source
             if (jndiName != null) {

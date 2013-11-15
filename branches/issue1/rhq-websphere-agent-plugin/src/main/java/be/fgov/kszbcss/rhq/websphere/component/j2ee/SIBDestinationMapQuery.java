@@ -54,7 +54,7 @@ public class SIBDestinationMapQuery implements ConfigQuery<SIBDestinationMap> {
 
     public SIBDestinationMap execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         Map<String,SIBDestination> map = new HashMap<String,SIBDestination>();
-        for (J2CResourceAdapterCO ra : config.allScopes(node, server).path(J2CResourceAdapterCO.class).resolve()) {
+        for (J2CResourceAdapterCO ra : config.allScopes(node, server).path(J2CResourceAdapterCO.class).resolve(false)) {
             for (J2CAdminObjectCO adminObject : ra.getJ2cAdminObjects()) {
                 String jndiName = adminObject.getJndiName();
                 if (!map.containsKey(jndiName)) {

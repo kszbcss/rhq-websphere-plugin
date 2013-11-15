@@ -45,7 +45,20 @@ public abstract class Path<T extends ConfigObject> {
         return path(type, "");
     }
     
-    public Collection<T> resolve() throws JMException, ConnectorException, InterruptedException {
+    /**
+     * Resolve this path.
+     * 
+     * @param detach
+     *            specifies whether the returned configuration objects should be
+     *            {@linkplain ConfigObject#detach() detached}
+     * 
+     * @return the collection of configuration objects found for this path; if no configuration
+     *         objects are found, an empty collection is returned
+     * @throws JMException
+     * @throws ConnectorException
+     * @throws InterruptedException
+     */
+    public Collection<T> resolve(boolean detach) throws JMException, ConnectorException, InterruptedException {
         Collection<T> configObjects = resolveRelative(null, getType());
         if (log.isDebugEnabled()) {
             if (configObjects.isEmpty()) {
@@ -59,18 +72,42 @@ public abstract class Path<T extends ConfigObject> {
                 log.debug(buffer.toString());
             }
         }
+        if (detach) {
+            for (T configObject : configObjects) {
+                configObject.detach();
+            }
+        }
         return configObjects;
     }
     
-    public T resolveSingle() throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        Collection<T> configObjects = resolve();
+    /**
+     * Resolve this path to a single configuration object.
+     * 
+     * @param detach
+     *            specifies whether the configuration object should be
+     *            {@linkplain ConfigObject#detach() detached}
+     * 
+     * @return the configuration object; never <code>null</code>
+     * @throws JMException
+     * @throws ConnectorException
+     * @throws InterruptedException
+     * @throws ConfigObjectNotFoundException
+     *             if no configuration object for this path was found
+     * @throws MultipleConfigObjectsFoundException
+     *             if multiple configuration objects for this path exist
+     */
+    public T resolveSingle(boolean detach) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+        Collection<T> configObjects = resolve(false);
         if (configObjects.size() == 1) {
-            return configObjects.iterator().next();
+            T configObject = configObjects.iterator().next();
+            if (detach) {
+                configObject.detach();
+            }
+            return configObject;
         } else if (configObjects.isEmpty()) {
             throw new ConfigObjectNotFoundException("Configuration object not found");
         } else {
-            // TODO: proper exception type
-            throw new RuntimeException("More than one configuration object found");
+            throw new MultipleConfigObjectsFoundException("More than one configuration object found");
         }
     }
 }

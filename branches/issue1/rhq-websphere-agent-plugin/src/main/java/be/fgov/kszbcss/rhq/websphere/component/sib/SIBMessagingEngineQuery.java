@@ -50,7 +50,7 @@ public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineIn
 
     public SIBMessagingEngineInfo[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         List<SIBMessagingEngineInfo> result = new ArrayList<SIBMessagingEngineInfo>();
-        for (SIBMessagingEngineCO me : config.allScopes(node, server).path(SIBMessagingEngineCO.class).resolve()) {
+        for (SIBMessagingEngineCO me : config.allScopes(node, server).path(SIBMessagingEngineCO.class).resolve(false)) {
             List<SIBLocalizationPointInfo> localizationPoints = new ArrayList<SIBLocalizationPointInfo>();
             for (SIBLocalizationPointCO localizationPoint : me.getLocalizationPoints()) {
                 String identifier = localizationPoint.getIdentifier();
