@@ -52,7 +52,7 @@ public class WorkManagerMapQuery implements ConfigQuery<HashMap<String,String>> 
 
     public HashMap<String,String> execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         HashMap<String,String> map = new HashMap<String,String>();
-        for (WorkManagerInfoCO wm : config.allScopes(node, server).path(WorkManagerProviderCO.class).path(WorkManagerInfoCO.class).resolve()) {
+        for (WorkManagerInfoCO wm : config.allScopes(node, server).path(WorkManagerProviderCO.class).path(WorkManagerInfoCO.class).resolve(false)) {
             String jndiName = wm.getJndiName();
             if (!map.containsKey(jndiName)) {
                 map.put(jndiName, wm.getName());

@@ -52,7 +52,7 @@ public class TimerManagerMapQuery implements ConfigQuery<HashMap<String,String>>
 
     public HashMap<String,String> execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         HashMap<String,String> map = new HashMap<String,String>();
-        for (TimerManagerInfoCO wm : config.allScopes(node, server).path(TimerManagerProviderCO.class).path(TimerManagerInfoCO.class).resolve()) {
+        for (TimerManagerInfoCO wm : config.allScopes(node, server).path(TimerManagerProviderCO.class).path(TimerManagerInfoCO.class).resolve(false)) {
             String jndiName = wm.getJndiName();
             if (!map.containsKey(jndiName)) {
                 map.put(jndiName, wm.getName());

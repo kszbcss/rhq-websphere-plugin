@@ -47,9 +47,7 @@ public class ThreadPoolManagerQuery implements ConfigQuery<ThreadPoolManagerCO> 
     }
 
     public ThreadPoolManagerCO execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        ThreadPoolManagerCO threadPoolManager = config.server(node, server).path(ThreadPoolManagerCO.class).resolveSingle();
-        threadPoolManager.detach();
-        return threadPoolManager;
+        return config.server(node, server).path(ThreadPoolManagerCO.class).resolveSingle(true);
     }
 
 

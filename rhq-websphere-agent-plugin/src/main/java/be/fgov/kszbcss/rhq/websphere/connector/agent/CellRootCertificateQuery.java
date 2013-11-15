@@ -48,7 +48,7 @@ public class CellRootCertificateQuery implements ConfigQuery<X509Certificate> {
     private CellRootCertificateQuery() {}
     
     public X509Certificate execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        for (KeyStoreCO keyStoreConfig : config.cell().path(SecurityCO.class).resolveSingle().getKeyStores()) {
+        for (KeyStoreCO keyStoreConfig : config.cell().path(SecurityCO.class).resolveSingle(false).getKeyStores()) {
             if (keyStoreConfig.getName().equals("CellDefaultTrustStore")) {
                 String location = keyStoreConfig.getLocation();
                 if (!location.startsWith("${CONFIG_ROOT}/")) {

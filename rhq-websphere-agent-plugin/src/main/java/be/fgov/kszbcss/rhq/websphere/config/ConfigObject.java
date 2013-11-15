@@ -42,10 +42,14 @@ public interface ConfigObject extends Serializable {
      * Detaches this configuration object from the underlying {@link CellConfiguration} object. This
      * will recursively fetch all attributes. An invocation of this method makes the configuration
      * serializable and thread safe.
+     * <p>
+     * Typically this method is not called directly by application code; instead configuration
+     * objects are detached by passing <code>true</code> to {@link Path#resolve(boolean)} or
+     * {@link Path#resolveSingle(boolean)}.
      * 
-     * @throws InterruptedException 
-     * @throws ConnectorException 
-     * @throws JMException 
+     * @throws InterruptedException
+     * @throws ConnectorException
+     * @throws JMException
      */
     void detach() throws JMException, ConnectorException, InterruptedException;
 }
