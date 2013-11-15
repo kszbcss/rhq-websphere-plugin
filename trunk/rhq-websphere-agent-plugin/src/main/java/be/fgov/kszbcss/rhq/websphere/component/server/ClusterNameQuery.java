@@ -42,7 +42,7 @@ public class ClusterNameQuery implements ConfigQuery<String> {
     }
 
     public String execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        return config.server(node, server).resolveSingle().getClusterName();
+        return config.server(node, server).resolveSingle(false).getClusterName();
     }
     
     @Override

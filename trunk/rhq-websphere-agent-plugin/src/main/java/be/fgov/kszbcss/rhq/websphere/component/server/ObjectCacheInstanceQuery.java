@@ -48,7 +48,7 @@ public class ObjectCacheInstanceQuery implements ConfigQuery<String[]> {
 
     public String[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         List<String> result = new ArrayList<String>();
-        for (ObjectCacheInstanceCO cache : config.allScopes(node, server).path(CacheProviderCO.class).path(ObjectCacheInstanceCO.class).resolve()) {
+        for (ObjectCacheInstanceCO cache : config.allScopes(node, server).path(CacheProviderCO.class).path(ObjectCacheInstanceCO.class).resolve(false)) {
             result.add(cache.getJndiName());
         }
         return result.toArray(new String[result.size()]);

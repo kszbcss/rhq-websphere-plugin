@@ -152,7 +152,7 @@ public class CellConfiguration {
         Path<CellCO> cell = cell();
         Path<NodeCO> node = cell.path(NodeCO.class, nodeName);
         Path<ServerCO> server = node.path(ServerCO.class, serverName);
-        ServerCO serverObject = server.resolveSingle();
+        ServerCO serverObject = server.resolveSingle(false);
         Path<ServerClusterCO> cluster = cell.path(ServerClusterCO.class, serverObject.getClusterName());
         // Order is important here: we return objects with higher precedence first
         return new PathGroup<Scope>(Scope.class, server, cluster, node, cell);

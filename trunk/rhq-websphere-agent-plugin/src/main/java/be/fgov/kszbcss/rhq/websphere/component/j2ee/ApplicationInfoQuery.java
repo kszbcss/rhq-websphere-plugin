@@ -58,7 +58,7 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
     }
 
     public ApplicationInfo execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        ApplicationDeploymentCO applicationDeployment = config.path(DeploymentCO.class, applicationName).path(ApplicationDeploymentCO.class).resolveSingle();
+        ApplicationDeploymentCO applicationDeployment = config.path(DeploymentCO.class, applicationName).path(ApplicationDeploymentCO.class).resolveSingle(false);
         if (isLooseConfig(applicationDeployment)) {
             return new ApplicationInfo(true, null, null, null);
         } else {
