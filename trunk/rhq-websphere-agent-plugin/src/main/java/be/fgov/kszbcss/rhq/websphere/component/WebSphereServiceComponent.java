@@ -24,7 +24,7 @@ package be.fgov.kszbcss.rhq.websphere.component;
 
 import org.mc4j.ems.connection.EmsConnection;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>> extends WebSphereComponent<T> {
     public final EmsConnection getEmsConnection() {

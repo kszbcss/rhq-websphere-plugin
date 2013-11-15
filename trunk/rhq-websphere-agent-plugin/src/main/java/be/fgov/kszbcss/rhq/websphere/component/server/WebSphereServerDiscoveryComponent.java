@@ -53,8 +53,8 @@ import org.rhq.core.system.ProcessInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
-import be.fgov.kszbcss.rhq.websphere.ConfigurationBasedProcessLocator;
 import be.fgov.kszbcss.rhq.websphere.connector.SecureAdminClientProvider;
+import be.fgov.kszbcss.rhq.websphere.process.locator.ConfigurationBasedProcessLocator;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;

@@ -32,8 +32,8 @@ import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereComponent;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 public class MeasurementFacetSupport implements MeasurementFacet {
     private static final Log log = LogFactory.getLog(MeasurementFacetSupport.class);

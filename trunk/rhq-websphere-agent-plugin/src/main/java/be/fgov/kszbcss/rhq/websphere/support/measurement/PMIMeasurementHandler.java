@@ -38,8 +38,8 @@ import org.rhq.core.domain.measurement.MeasurementDataNumeric;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 import com.ibm.websphere.pmi.PmiDataInfo;
 import com.ibm.websphere.pmi.PmiModuleConfig;

@@ -32,8 +32,8 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 public class JMXOperationMeasurementHandler implements MeasurementHandler {
     private static final Log log = LogFactory.getLog(JMXOperationMeasurementHandler.class);

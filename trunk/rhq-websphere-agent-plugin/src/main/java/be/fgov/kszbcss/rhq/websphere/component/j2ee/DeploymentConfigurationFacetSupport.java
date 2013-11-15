@@ -36,7 +36,7 @@ import org.rhq.core.domain.configuration.PropertyList;
 import org.rhq.core.domain.configuration.PropertyMap;
 import org.rhq.core.domain.configuration.PropertySimple;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 /**
  * Support class to collect the deployment configuration for a WAR module or an EJB.

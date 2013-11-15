@@ -36,7 +36,7 @@ import javax.management.ObjectName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;

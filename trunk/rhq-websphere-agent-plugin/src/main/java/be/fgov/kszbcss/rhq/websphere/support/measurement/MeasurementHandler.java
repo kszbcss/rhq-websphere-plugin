@@ -29,8 +29,8 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 /**
  * Handles an individual measurement on behalf of {@link MeasurementFacetSupport}.

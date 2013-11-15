@@ -24,8 +24,8 @@ package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
 import javax.management.JMException;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 

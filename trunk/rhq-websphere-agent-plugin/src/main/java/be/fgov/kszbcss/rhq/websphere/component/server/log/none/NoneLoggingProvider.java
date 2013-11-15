@@ -24,10 +24,10 @@ package be.fgov.kszbcss.rhq.websphere.component.server.log.none;
 
 import org.rhq.core.pluginapi.event.EventContext;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.EventPublisher;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 /**
  * Dummy {@link LoggingProvider} implementation that does nothing.

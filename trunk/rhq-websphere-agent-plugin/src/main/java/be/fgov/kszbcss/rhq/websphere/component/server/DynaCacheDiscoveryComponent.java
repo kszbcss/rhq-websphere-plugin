@@ -32,7 +32,7 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 public class DynaCacheDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
     private static final Log log = LogFactory.getLog(DynaCacheDiscoveryComponent.class); 

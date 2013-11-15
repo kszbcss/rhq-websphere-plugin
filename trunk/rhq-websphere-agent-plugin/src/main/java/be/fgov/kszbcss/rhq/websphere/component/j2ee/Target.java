@@ -28,8 +28,8 @@ import javax.management.JMException;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 public abstract class Target implements Serializable {
     private static final long serialVersionUID = -1343391240314708L;

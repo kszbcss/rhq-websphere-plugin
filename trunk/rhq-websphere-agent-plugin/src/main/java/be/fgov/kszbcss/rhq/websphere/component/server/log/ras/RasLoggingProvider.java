@@ -26,12 +26,12 @@ import javax.management.NotificationFilterSupport;
 
 import org.rhq.core.pluginapi.event.EventContext;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.Utils;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.EventPublisher;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.notification.NotificationListenerRegistration;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 public class RasLoggingProvider implements LoggingProvider {
     private NotificationListenerRegistration registration;

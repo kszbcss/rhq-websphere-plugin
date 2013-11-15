@@ -35,8 +35,8 @@ import org.w3c.dom.DocumentType;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementHandler;
 
 public abstract class SpecVersionMeasurementHandler implements MeasurementHandler {

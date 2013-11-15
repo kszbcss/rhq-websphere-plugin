@@ -34,11 +34,11 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.ModuleComponent;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.SIBDestination;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.SIBDestinationMap;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.SIBDestinationMapQuery;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
 
 import com.ibm.websphere.pmi.PmiConstants;

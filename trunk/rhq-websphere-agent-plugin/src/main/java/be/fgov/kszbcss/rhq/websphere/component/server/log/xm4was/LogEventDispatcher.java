@@ -33,9 +33,9 @@ import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.event.EventSeverity;
 import org.rhq.core.pluginapi.event.EventContext;
 
-import be.fgov.kszbcss.rhq.websphere.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.EventPublisher;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 import com.ibm.websphere.logging.WsLevel;
 

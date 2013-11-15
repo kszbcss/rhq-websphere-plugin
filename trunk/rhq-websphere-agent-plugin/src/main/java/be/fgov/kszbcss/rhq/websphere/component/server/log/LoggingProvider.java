@@ -24,8 +24,8 @@ package be.fgov.kszbcss.rhq.websphere.component.server.log;
 
 import org.rhq.core.pluginapi.event.EventContext;
 
-import be.fgov.kszbcss.rhq.websphere.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
+import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 /**
  * Retrieves and dispatches log events from a remote server. There is one instance of
