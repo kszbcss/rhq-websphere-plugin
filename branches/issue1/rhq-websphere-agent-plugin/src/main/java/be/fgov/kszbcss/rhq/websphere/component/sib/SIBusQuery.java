@@ -22,6 +22,8 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.sib;
 
+import java.util.Collection;
+
 import javax.management.JMException;
 
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
@@ -32,7 +34,7 @@ import be.fgov.kszbcss.rhq.websphere.config.types.SIBus;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class SIBusQuery implements ConfigQuery<SIBusInfo> {
+public final class SIBusQuery implements ConfigQuery<SIBusInfo> {
     private static final long serialVersionUID = 1L;
     
     private final String name;
@@ -42,9 +44,8 @@ public class SIBusQuery implements ConfigQuery<SIBusInfo> {
     }
 
     public SIBusInfo execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        config.cell().path(SIBus.class, name).path(SIBQueue.class).resolve();
-        // TODO Auto-generated method stub
-        return null;
+        Collection<SIBQueue> queues = config.cell().path(SIBus.class, name).path(SIBQueue.class).resolve(true);
+        return new SIBusInfo(queues.toArray(new SIBQueue[queues.size()]));
     }
 
     @Override
