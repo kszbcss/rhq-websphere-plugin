@@ -69,8 +69,7 @@ public abstract class Path<T extends ConfigObject> {
         } else if (configObjects.isEmpty()) {
             throw new ConfigObjectNotFoundException("Configuration object not found");
         } else {
-            // TODO: proper exception type
-            throw new RuntimeException("More than one configuration object found");
+            throw new MultipleConfigObjectsFoundException("More than one configuration object found");
         }
     }
 }
