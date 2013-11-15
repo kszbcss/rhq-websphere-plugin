@@ -27,11 +27,15 @@ import org.mc4j.ems.connection.EmsConnection;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>> extends WebSphereComponent<T> {
+    public final T getParent() {
+        return getResourceContext().getParentResourceComponent();
+    }
+    
     public final EmsConnection getEmsConnection() {
-        return getResourceContext().getParentResourceComponent().getEmsConnection();
+        return getParent().getEmsConnection();
     }
 
     public final ApplicationServer getServer() {
-        return getResourceContext().getParentResourceComponent().getServer();
+        return getParent().getServer();
     }
 }

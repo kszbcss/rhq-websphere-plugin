@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -51,12 +51,8 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
         measurementFacetSupport.addHandler("specVersion", new ModuleSpecVersionMeasurementHandler(this));
     }
 
-    public ApplicationComponent getApplication() {
-        return getResourceContext().getParentResourceComponent();
-    }
-    
     public String getApplicationName() {
-        return getApplication().getApplicationName();
+        return getParent().getApplicationName();
     }
     
     public String getModuleName() {
@@ -64,11 +60,11 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
     }
     
     public void registerLogEventContext(String componentName, EventContext context) {
-        getApplication().registerLogEventContext(getModuleName(), componentName, context);
+        getParent().registerLogEventContext(getModuleName(), componentName, context);
     }
     
     public void unregisterLogEventContext(String componentName) {
-        getApplication().unregisterLogEventContext(getModuleName(), componentName);
+        getParent().unregisterLogEventContext(getModuleName(), componentName);
     }
     
     /**
@@ -81,7 +77,7 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
      * @throws ConfigQueryException 
      */
     public ModuleInfo getModuleInfo() throws InterruptedException, ConnectorException, ConfigQueryException {
-        return getApplication().getApplicationInfo().getModule(getModuleName());
+        return getParent().getApplicationInfo().getModule(getModuleName());
     }
     
     @Override
