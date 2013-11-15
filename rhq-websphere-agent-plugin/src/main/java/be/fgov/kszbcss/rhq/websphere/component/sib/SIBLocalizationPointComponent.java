@@ -33,7 +33,6 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientProxy;
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 
@@ -54,17 +53,8 @@ public abstract class SIBLocalizationPointComponent extends WebSphereServiceComp
 
     @Override
     protected boolean isConfigured() throws Exception {
-        ApplicationServer server = getServer();
-        SIBMessagingEngineInfo meInfo = null;
-        for (SIBMessagingEngineInfo info : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()))) {
-            if (info.getName().equals(getResourceContext().getParentResourceComponent().getName())) {
-                meInfo = info;
-            }
-        }
-        if (meInfo == null) {
-            return false;
-        }
-        return Arrays.asList(meInfo.getDestinationNames(getType())).contains(getResourceContext().getResourceKey());
+        SIBMessagingEngineInfo meInfo = getResourceContext().getParentResourceComponent().getInfo();
+        return meInfo != null && Arrays.asList(meInfo.getDestinationNames(getType())).contains(getResourceContext().getResourceKey());
     }
     
     protected AvailabilityType doGetAvailability() {
