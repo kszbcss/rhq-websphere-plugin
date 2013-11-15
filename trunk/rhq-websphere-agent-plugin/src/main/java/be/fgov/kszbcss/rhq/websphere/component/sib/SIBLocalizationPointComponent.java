@@ -44,7 +44,7 @@ public abstract class SIBLocalizationPointComponent extends WebSphereServiceComp
         measurementFacetSupport = new MeasurementFacetSupport(this);
         // Need to start from the SIBMessagingEngine MBean here because the PMI module names for SIB were changed by PM60540
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(
-                ((MBeanClientProxy)getResourceContext().getParentResourceComponent().getSibMessagingEngine()).getMBeanClient(),
+                ((MBeanClientProxy)getParent().getSIBMessagingEngine()).getMBeanClient(),
                 "Destinations", getPMIModuleName(), getResourceContext().getResourceKey()));
     }
     
@@ -53,7 +53,7 @@ public abstract class SIBLocalizationPointComponent extends WebSphereServiceComp
 
     @Override
     protected boolean isConfigured() throws Exception {
-        SIBMessagingEngineInfo meInfo = getResourceContext().getParentResourceComponent().getInfo();
+        SIBMessagingEngineInfo meInfo = getParent().getInfo();
         return meInfo != null && Arrays.asList(meInfo.getDestinationNames(getType())).contains(getResourceContext().getResourceKey());
     }
     
@@ -62,7 +62,7 @@ public abstract class SIBLocalizationPointComponent extends WebSphereServiceComp
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
-        if (getResourceContext().getParentResourceComponent().isActive()) {
+        if (getParent().isActive()) {
             measurementFacetSupport.getValues(report, requests);
         }
     }

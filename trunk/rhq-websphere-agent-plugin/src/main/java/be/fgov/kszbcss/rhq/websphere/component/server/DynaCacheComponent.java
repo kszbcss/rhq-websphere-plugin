@@ -33,7 +33,6 @@ import org.rhq.core.domain.measurement.MeasurementDataNumeric;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
-import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
@@ -50,9 +49,8 @@ public class DynaCacheComponent extends WebSphereServiceComponent<WebSphereServe
 
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
-        ResourceContext<WebSphereServerComponent> context = getResourceContext();
-        cache = context.getParentResourceComponent().getServer().getMBeanClient("WebSphere:type=DynaCache,*").getProxy(DynaCache.class);
-        instanceName = context.getResourceKey();
+        cache = getServer().getMBeanClient("WebSphere:type=DynaCache,*").getProxy(DynaCache.class);
+        instanceName = getResourceContext().getResourceKey();
     }
 
     @Override

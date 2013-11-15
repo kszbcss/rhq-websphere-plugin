@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -53,7 +53,7 @@ public class SIBGatewayLinkComponent extends WebSphereServiceComponent<SIBMessag
     
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
-        SIBMessagingEngineComponent me = getResourceContext().getParentResourceComponent();
+        SIBMessagingEngineComponent me = getParent();
         ApplicationServer server = getServer();
         String name = getResourceContext().getResourceKey();
         gatewayLink = server.getMBeanClient(new SIBGatewayLinkMBeanLocator(me, name)).getProxy(SIBGatewayLink.class);
@@ -78,14 +78,14 @@ public class SIBGatewayLinkComponent extends WebSphereServiceComponent<SIBMessag
 
     @Override
     protected boolean isConfigured() throws Exception {
-        SIBMessagingEngineInfo meInfo = getResourceContext().getParentResourceComponent().getInfo();
+        SIBMessagingEngineInfo meInfo = getParent().getInfo();
         return meInfo != null && meInfo.getTargetUUIDForGatewayLink(getResourceContext().getResourceKey()) != null;
     }
 
     @Override
     protected AvailabilityType doGetAvailability() {
         try {
-            if (getResourceContext().getParentResourceComponent().isActive()) {
+            if (getParent().isActive()) {
                 return gatewayLink.isActive() ? AvailabilityType.UP : AvailabilityType.DOWN;
             } else {
                 log.debug("Message engine not started ==> availability = UP");

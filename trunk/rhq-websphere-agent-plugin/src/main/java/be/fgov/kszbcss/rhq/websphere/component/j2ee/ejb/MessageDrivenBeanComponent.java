@@ -31,7 +31,6 @@ import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
-import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.ModuleComponent;
@@ -51,11 +50,10 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         super.start();
-        ResourceContext<EJBModuleComponent> context = getResourceContext();
-        ModuleComponent parent = context.getParentResourceComponent();
+        ModuleComponent parent = getParent();
         endpoint = getServer().getMBeanClient("WebSphere:type=J2CMessageEndpoint,name="
                 + parent.getApplicationName() + "#" + parent.getModuleName() + "#"
-                + context.getResourceKey() + "_J2CMessageEndpoint,*").getProxy(J2CMessageEndpoint.class);
+                + getResourceContext().getResourceKey() + "_J2CMessageEndpoint,*").getProxy(J2CMessageEndpoint.class);
     }
 
     @Override
