@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -82,7 +82,7 @@ public abstract class WebSphereServer {
         // Notes:
         //  * The stats collection wrapper is applied before security because the security wrapper may rearrange
         //    some invocations, but we want the statistics to be as accurate as possible.
-        //  * Process identity validation is handles after security because the ProcessIdentityValidator may
+        //  * Process identity validation is handled after security because the ProcessIdentityValidator may
         //    prematurely create the AdminClient on a different thread.
         //  * The fail-fast feature is added last.
         processIdentityValidator = new ProcessIdentityValidator(new SecureAdminClientProvider(
