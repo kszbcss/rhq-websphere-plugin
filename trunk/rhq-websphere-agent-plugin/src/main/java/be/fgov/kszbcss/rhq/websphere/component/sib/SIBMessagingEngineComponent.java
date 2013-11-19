@@ -22,6 +22,8 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.sib;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.management.JMException;
@@ -39,6 +41,7 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.config.types.SIBQualifiedDestinationName;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
@@ -98,6 +101,49 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
             }
         }
         return null;
+    }
+    
+    /**
+     * Get the names of all destinations of a given type that have a localization point on this
+     * messaging engine and that should be monitored. In contrast to
+     * {@link SIBMessagingEngineInfo#getDestinationNames(SIBDestinationType)}, this method will
+     * filter out some destinations for which no useful metrics can be collected.
+     * 
+     * @param type
+     *            the destination type
+     * @return an array of destination names (which is empty if there are no matching destinations),
+     *         or <code>null</code> if the messaging engine could not be found in the configuration
+     * @throws InterruptedException
+     * @throws JMException
+     * @throws ConnectorException
+     * @throws ConfigQueryException
+     */
+    public String[] getDestinationNames(SIBDestinationType type) throws InterruptedException, JMException, ConnectorException, ConfigQueryException {
+        SIBMessagingEngineInfo me = getInfo();
+        if (me == null) {
+            return null;
+        }
+        if (type == SIBDestinationType.QUEUE) {
+            SIBusInfo bus = getServer().queryConfig(new SIBusQuery(me.getBusName()));
+            List<String> result = new ArrayList<String>();
+            log.debug("Starting to filter queues");
+            for (String name : me.getDestinationNames(SIBDestinationType.QUEUE)) {
+                List<SIBQualifiedDestinationName> path = bus.getQueue(name).getDefaultForwardRoutingPath();
+                if (path == null || path.isEmpty()) {
+                    result.add(name);
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Ignoring queue " + name + " because it has a default forward routing path: " + path);
+                    }
+                }
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Retained the following queues: " + result);
+            }
+            return result.toArray(new String[result.size()]);
+        } else {
+            return me.getDestinationNames(type);
+        }
     }
     
     private synchronized GroupName getGroupName() throws InterruptedException, JMException, ConnectorException, ConfigQueryException {
