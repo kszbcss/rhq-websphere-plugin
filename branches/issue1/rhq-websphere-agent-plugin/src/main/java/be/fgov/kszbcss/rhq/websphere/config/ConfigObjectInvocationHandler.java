@@ -88,11 +88,13 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if (method.getDeclaringClass() == ConfigObject.class) {
+        Class<?> declaringClass = method.getDeclaringClass();
+        if (declaringClass == ConfigObject.class || declaringClass == Object.class) {
+            // TODO: not correct for Object#equals
             return method.invoke(this, args);
+        } else {
+            return getAttributeValue(type.getAttributeDescriptor(method));
         }
-        // TODO: method may also be declared by Object (e.g. equals and hashCode)
-        return getAttributeValue(type.getAttributeDescriptor(method));
     }
     
     private Object getAttributeValue(ConfigObjectAttributeDesc desc) throws JMException, ConnectorException, InterruptedException {
@@ -145,5 +147,30 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
             throw new IllegalStateException("Configuration object has not been detached");
         }
         stream.defaultWriteObject();
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer("(");
+        boolean first = true;
+        for (ConfigObjectAttributeDesc desc : type.getAttributeDescriptors()) {
+            if (first) {
+                first = false;
+            } else {
+                buffer.append(',');
+            }
+            buffer.append(desc.getName());
+            buffer.append('=');
+            try {
+                buffer.append(getAttributeValue(desc));
+            } catch (JMException ex) {
+                buffer.append("#ERROR#");
+            } catch (ConnectorException ex) {
+                buffer.append("#ERROR#");
+            } catch (InterruptedException ex) {
+                Thread.interrupted();
+            }
+        }
+        return buffer.toString();
     }
 }
