@@ -48,7 +48,7 @@ public abstract class SIBLocalizationPointComponent extends WebSphereServiceComp
                 "Destinations", getPMIModuleName(), getResourceContext().getResourceKey()));
     }
     
-    protected abstract SIBLocalizationPointType getType();
+    protected abstract SIBDestinationType getType();
     protected abstract String getPMIModuleName();
 
     @Override
