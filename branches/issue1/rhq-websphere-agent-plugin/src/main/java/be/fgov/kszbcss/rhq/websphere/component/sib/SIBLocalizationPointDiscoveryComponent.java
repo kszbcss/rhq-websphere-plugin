@@ -34,11 +34,11 @@ public abstract class SIBLocalizationPointDiscoveryComponent implements Resource
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<SIBMessagingEngineComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
         SIBMessagingEngineComponent me = context.getParentResourceComponent();
-        SIBMessagingEngineInfo meInfo = me.getInfo();
-        if (meInfo == null) {
+        String[] destinationNames = me.getDestinationNames(getType());
+        if (destinationNames == null) {
             throw new InvalidPluginConfigurationException("Messaging engine " + me.getName() + " not found");
         }
-        for (String destination : meInfo.getDestinationNames(getType())) {
+        for (String destination : destinationNames) {
             result.add(new DiscoveredResourceDetails(context.getResourceType(), destination, destination, null, "SIBus Destination", null, null));
         }
         return result;
