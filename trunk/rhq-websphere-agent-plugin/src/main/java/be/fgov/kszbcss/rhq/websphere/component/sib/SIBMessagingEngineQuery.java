@@ -38,7 +38,7 @@ import be.fgov.kszbcss.rhq.websphere.config.types.SIBQueueLocalizationPointCO;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineInfo[]> {
-    private static final long serialVersionUID = 4836748290502191854L;
+    private static final long serialVersionUID = 2L;
     
     private final String node;
     private final String server;
@@ -55,7 +55,7 @@ public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineIn
             for (SIBLocalizationPointCO localizationPoint : me.getLocalizationPoints()) {
                 String identifier = localizationPoint.getIdentifier();
                 localizationPoints.add(new SIBLocalizationPointInfo(
-                        localizationPoint instanceof SIBQueueLocalizationPointCO ? SIBLocalizationPointType.QUEUE : SIBLocalizationPointType.TOPIC,
+                        localizationPoint instanceof SIBQueueLocalizationPointCO ? SIBDestinationType.QUEUE : SIBDestinationType.TOPIC,
                         identifier.substring(0, identifier.indexOf('@'))));
             }
             List<SIBGatewayLinkInfo> gatewayLinks = new ArrayList<SIBGatewayLinkInfo>();
