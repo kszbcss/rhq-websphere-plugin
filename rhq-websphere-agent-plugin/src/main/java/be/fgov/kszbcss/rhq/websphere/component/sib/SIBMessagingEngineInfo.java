@@ -49,6 +49,16 @@ public class SIBMessagingEngineInfo implements Serializable {
         return busName;
     }
     
+    /**
+     * Get the names of all destinations of a given type that have a localization point on this
+     * messaging engine.
+     * 
+     * @param type
+     *            the destination type
+     * @return an array of destination names (which is empty if there are no matching destinations)
+     * 
+     * @see {@link SIBMessagingEngineComponent#getDestinationNames(SIBDestinationType)}
+     */
     public String[] getDestinationNames(SIBDestinationType type) {
         List<String> result = new ArrayList<String>();
         for (SIBLocalizationPointInfo localizationPoint : localizationPoints) {
