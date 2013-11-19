@@ -74,19 +74,19 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     }
     
     public void registerLogEventContext(String moduleName, EventContext context) {
-        getResourceContext().getParentResourceComponent().registerLogEventContext(getApplicationName(), moduleName, null, context);
+        getParent().registerLogEventContext(getApplicationName(), moduleName, null, context);
     }
     
     public void unregisterLogEventContext(String moduleName) {
-        getResourceContext().getParentResourceComponent().unregisterLogEventContext(getApplicationName(), moduleName, null);
+        getParent().unregisterLogEventContext(getApplicationName(), moduleName, null);
     }
     
     public void registerLogEventContext(String moduleName, String componentName, EventContext context) {
-        getResourceContext().getParentResourceComponent().registerLogEventContext(getApplicationName(), moduleName, componentName, context);
+        getParent().registerLogEventContext(getApplicationName(), moduleName, componentName, context);
     }
     
     public void unregisterLogEventContext(String moduleName, String componentName) {
-        getResourceContext().getParentResourceComponent().unregisterLogEventContext(getApplicationName(), moduleName, componentName);
+        getParent().unregisterLogEventContext(getApplicationName(), moduleName, componentName);
     }
     
     @Override

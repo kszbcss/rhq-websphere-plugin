@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,7 +41,7 @@ public abstract class J2EEComponent<T extends ModuleComponent> extends WebSphere
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         ResourceContext<T> context = getResourceContext();
-        ModuleComponent parent = context.getParentResourceComponent();
+        ModuleComponent parent = getParent();
         WebSphereServer server = getServer();
         measurementFacetSupport = new MeasurementFacetSupport(this);
         // Applications may be installed with "Create MBeans for resources" disabled. In this case, there
@@ -52,7 +52,7 @@ public abstract class J2EEComponent<T extends ModuleComponent> extends WebSphere
                 getPMISubmodule(), context.getResourceKey()));
         PropertySimple suppressLogEventsProp = context.getPluginConfiguration().getSimple("suppressLogEvents");
         boolean suppressLogEvents = suppressLogEventsProp != null && Boolean.TRUE.equals(suppressLogEventsProp.getBooleanValue());
-        context.getParentResourceComponent().registerLogEventContext(context.getResourceKey(), suppressLogEvents ? null : context.getEventContext());
+        parent.registerLogEventContext(context.getResourceKey(), suppressLogEvents ? null : context.getEventContext());
     }
     
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
@@ -60,8 +60,7 @@ public abstract class J2EEComponent<T extends ModuleComponent> extends WebSphere
     }
 
     public void stop() {
-        ResourceContext<T> context = getResourceContext();
-        context.getParentResourceComponent().unregisterLogEventContext(context.getResourceKey());
+        getParent().unregisterLogEventContext(getResourceContext().getResourceKey());
     }
     
     protected abstract String getPMIModule();

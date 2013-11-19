@@ -49,11 +49,11 @@ public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagin
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         measurementFacetSupport = new MeasurementFacetSupport(this);
+        final SIBMessagingEngine sibMessagingEngine = getParent().getSIBMessagingEngine();
         // Need to start from the SIBMessagingEngine MBean here because the PMI module names for SIB were changed by PM60540
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(
-                ((MBeanClientProxy)getResourceContext().getParentResourceComponent().getSibMessagingEngine()).getMBeanClient(),
+                ((MBeanClientProxy)sibMessagingEngine).getMBeanClient(),
                 "Storage Management", "Transactions"));
-        final SIBMessagingEngine sibMessagingEngine = getResourceContext().getParentResourceComponent().getSibMessagingEngine();
         measurementFacetSupport.addHandler("IndoubtTransactions", new InDoubtTransactionsMeasurementHandler() {
             @Override
             protected Set<String> getTransactionIds() throws JMException, ConnectorException {
@@ -77,7 +77,7 @@ public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagin
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
-        if (getResourceContext().getParentResourceComponent().isActive()) {
+        if (getParent().isActive()) {
             measurementFacetSupport.getValues(report, requests);
         }
     }

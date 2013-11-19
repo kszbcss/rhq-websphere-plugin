@@ -33,7 +33,6 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientProxy;
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 
@@ -45,7 +44,7 @@ public abstract class SIBLocalizationPointComponent extends WebSphereServiceComp
         measurementFacetSupport = new MeasurementFacetSupport(this);
         // Need to start from the SIBMessagingEngine MBean here because the PMI module names for SIB were changed by PM60540
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(
-                ((MBeanClientProxy)getResourceContext().getParentResourceComponent().getSibMessagingEngine()).getMBeanClient(),
+                ((MBeanClientProxy)getParent().getSIBMessagingEngine()).getMBeanClient(),
                 "Destinations", getPMIModuleName(), getResourceContext().getResourceKey()));
     }
     
@@ -54,17 +53,8 @@ public abstract class SIBLocalizationPointComponent extends WebSphereServiceComp
 
     @Override
     protected boolean isConfigured() throws Exception {
-        ApplicationServer server = getServer();
-        SIBMessagingEngineInfo meInfo = null;
-        for (SIBMessagingEngineInfo info : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()))) {
-            if (info.getName().equals(getResourceContext().getParentResourceComponent().getName())) {
-                meInfo = info;
-            }
-        }
-        if (meInfo == null) {
-            return false;
-        }
-        return Arrays.asList(meInfo.getDestinationNames(getType())).contains(getResourceContext().getResourceKey());
+        SIBMessagingEngineInfo meInfo = getParent().getInfo();
+        return meInfo != null && Arrays.asList(meInfo.getDestinationNames(getType())).contains(getResourceContext().getResourceKey());
     }
     
     protected AvailabilityType doGetAvailability() {
@@ -72,7 +62,7 @@ public abstract class SIBLocalizationPointComponent extends WebSphereServiceComp
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
-        if (getResourceContext().getParentResourceComponent().isActive()) {
+        if (getParent().isActive()) {
             measurementFacetSupport.getValues(report, requests);
         }
     }

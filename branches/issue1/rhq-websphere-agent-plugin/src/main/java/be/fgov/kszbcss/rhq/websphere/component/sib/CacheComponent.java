@@ -43,7 +43,7 @@ public class CacheComponent extends WebSphereServiceComponent<SIBMessagingEngine
         measurementFacetSupport = new MeasurementFacetSupport(this);
         // Need to start from the SIBMessagingEngine MBean here because the PMI module names for SIB were changed by PM60540
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(
-                ((MBeanClientProxy)getResourceContext().getParentResourceComponent().getSibMessagingEngine()).getMBeanClient(),
+                ((MBeanClientProxy)getParent().getSIBMessagingEngine()).getMBeanClient(),
                 "Storage Management", "Cache"));
     }
 
@@ -58,7 +58,7 @@ public class CacheComponent extends WebSphereServiceComponent<SIBMessagingEngine
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
-        if (getResourceContext().getParentResourceComponent().isActive()) {
+        if (getParent().isActive()) {
             measurementFacetSupport.getValues(report, requests);
         }
     }

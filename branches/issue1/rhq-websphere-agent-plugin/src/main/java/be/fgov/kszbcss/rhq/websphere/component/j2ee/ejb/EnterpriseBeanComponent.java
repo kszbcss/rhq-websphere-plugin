@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -55,16 +55,12 @@ public abstract class EnterpriseBeanComponent extends J2EEComponent<EJBModuleCom
         return getResourceContext().getResourceKey();
     }
     
-    public EJBModuleComponent getModule() {
-        return getResourceContext().getParentResourceComponent();
-    }
-    
     public String getModuleName() {
-        return getModule().getModuleName();
+        return getParent().getModuleName();
     }
     
     public ApplicationComponent getApplication() {
-        return getModule().getApplication();
+        return getParent().getParent();
     }
     
     public String getApplicationName() {
@@ -73,7 +69,7 @@ public abstract class EnterpriseBeanComponent extends J2EEComponent<EJBModuleCom
     
     @Override
     protected boolean isConfigured() throws Exception {
-        return getModule().getBeanNames(getType()).contains(getBeanName());
+        return getParent().getBeanNames(getType()).contains(getBeanName());
     }
 
     protected AvailabilityType doGetAvailability() {

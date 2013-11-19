@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,7 +35,6 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.configuration.ConfigurationFacet;
 import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
-import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
@@ -58,10 +57,9 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
     private MeasurementFacetSupport measurementFacetSupport;
     
     protected void start() throws InvalidPluginConfigurationException, Exception {
-        ResourceContext<DataSourceComponent> context = getResourceContext();
-        dataSourceComponent = context.getParentResourceComponent();
+        dataSourceComponent = getParent();
         adminOperations = dataSourceComponent.getServer().getMBeanClient("WebSphere:type=AdminOperations,*").getProxy(AdminOperations.class);
-        Configuration config = context.getPluginConfiguration();
+        Configuration config = getResourceContext().getPluginConfiguration();
         principal = config.getSimpleValue("principal", null);
         credentials = config.getSimpleValue("credentials", null);
         try {
@@ -136,7 +134,7 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
         if (measurementFacetSupport == null) {
             log.warn("No monitoring user defined for data source "
-                    + getResourceContext().getParentResourceComponent().getResourceContext().getResourceKey()
+                    + getParent().getResourceContext().getResourceKey()
                     + "; unable to collect measurements");
         } else {
             measurementFacetSupport.getValues(report, requests);

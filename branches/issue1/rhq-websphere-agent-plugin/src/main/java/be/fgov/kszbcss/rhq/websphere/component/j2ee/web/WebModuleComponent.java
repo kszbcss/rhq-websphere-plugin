@@ -49,11 +49,11 @@ public class WebModuleComponent extends ModuleComponent implements Configuration
     @Override
     protected void start() throws InvalidPluginConfigurationException, Exception {
         super.start();
-        configurationFacetSupport = new DeploymentConfigurationFacetSupport(getApplication(), getModuleName(), null);
+        configurationFacetSupport = new DeploymentConfigurationFacetSupport(getParent(), getModuleName(), null);
         ResourceContext<ApplicationComponent> context = getResourceContext();
         PropertySimple suppressLogEventsProp = context.getPluginConfiguration().getSimple("suppressLogEvents");
         boolean suppressLogEvents = suppressLogEventsProp != null && Boolean.TRUE.equals(suppressLogEventsProp.getBooleanValue());
-        getApplication().registerLogEventContext(getModuleName(), suppressLogEvents ? null : context.getEventContext());
+        getParent().registerLogEventContext(getModuleName(), suppressLogEvents ? null : context.getEventContext());
     }
 
     @Override
@@ -80,7 +80,7 @@ public class WebModuleComponent extends ModuleComponent implements Configuration
 
     @Override
     public void stop() {
-        getApplication().unregisterLogEventContext(getModuleName());
+        getParent().unregisterLogEventContext(getModuleName());
         super.stop();
     }
 }
