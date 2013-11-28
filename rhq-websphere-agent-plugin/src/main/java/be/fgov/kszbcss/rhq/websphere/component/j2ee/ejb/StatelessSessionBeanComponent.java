@@ -49,6 +49,7 @@ public class StatelessSessionBeanComponent extends EnterpriseBeanComponent {
         EJBMonitor ejbMonitor = getApplication().getParent().getEjbMonitor();
         try {
             if (((MBeanClientProxy)ejbMonitor).getMBeanClient().isRegistered()) {
+                // TODO: once XM4WAS 0.4.0 has been released, use the variant of the validateStatelessSessionBean method that takes a timeout (and set it to 3 seconds)
                 String result = ejbMonitor.validateStatelessSessionBean(getApplicationName(), getModuleName(), getBeanName());
                 if (result != null && log.isDebugEnabled()) {
                     log.debug("validateStatelessSessionBean result:\n" + result);
