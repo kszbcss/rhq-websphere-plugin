@@ -132,6 +132,12 @@
     <metric property="stats.LeakedCount" displayName="Leaked Count" defaultOn="true"
             category="utilization" displayType="summary" defaultInterval="600000"
             description="The number of leaked class loaders."/>
+    <metric property="stats.ResourceRequestCacheModCount" displayName="Resource Request Cache Modifications" defaultOn="true"
+            category="performance" displayType="summary" defaultInterval="600000" measurementType="trendsup"
+            description="The number of modifications to the resource request cache of the class loader. The modification rate is expected to be roughly the same as the cache miss rate."/>
+    <metric property="stats.UnmanagedThreadCount" displayName="Unmanaged Threads" defaultOn="true"
+            category="utilization" displayType="summary" defaultInterval="600000"
+            description="The number of active unmanaged threads created by code loaded from the class loader."/>
 '>
 ]>
 <plugin name="WebSphere"
