@@ -51,7 +51,7 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
     private ThreadMonitor threadMonitor;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException, Exception {
+    protected void start() throws InvalidPluginConfigurationException {
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
         ApplicationServer server = getServer();
         measurementFacetSupport = new MeasurementFacetSupport(this);

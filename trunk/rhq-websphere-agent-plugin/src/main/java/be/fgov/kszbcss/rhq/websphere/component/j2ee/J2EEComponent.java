@@ -39,7 +39,7 @@ public abstract class J2EEComponent<T extends ModuleComponent> extends WebSphere
     private MeasurementFacetSupport measurementFacetSupport;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException, Exception {
+    protected void start() throws InvalidPluginConfigurationException {
         ResourceContext<T> context = getResourceContext();
         ModuleComponent parent = getParent();
         WebSphereServer server = getServer();

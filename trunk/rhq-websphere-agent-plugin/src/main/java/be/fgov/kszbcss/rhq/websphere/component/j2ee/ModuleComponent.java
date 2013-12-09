@@ -45,7 +45,7 @@ public abstract class ModuleComponent extends WebSphereServiceComponent<Applicat
     protected abstract String getMBeanType();
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException, Exception {
+    protected void start() throws InvalidPluginConfigurationException {
         mbean = getServer().getMBeanClient("WebSphere:type=" + getMBeanType() + ",Application=" + getApplicationName() + ",name=" + getModuleName() + ",*");
         measurementFacetSupport = new MeasurementFacetSupport(this);
         measurementFacetSupport.addHandler("specVersion", new ModuleSpecVersionMeasurementHandler(this));

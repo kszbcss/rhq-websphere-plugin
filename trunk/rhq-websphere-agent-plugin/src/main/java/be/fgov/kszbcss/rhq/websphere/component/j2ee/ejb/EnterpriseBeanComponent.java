@@ -39,7 +39,7 @@ public abstract class EnterpriseBeanComponent extends J2EEComponent<EJBModuleCom
     private DeploymentConfigurationFacetSupport configurationFacetSupport;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException, Exception {
+    protected void start() throws InvalidPluginConfigurationException {
         super.start();
         configurationFacetSupport = new DeploymentConfigurationFacetSupport(getApplication(), getModuleName(), getBeanName());
     }

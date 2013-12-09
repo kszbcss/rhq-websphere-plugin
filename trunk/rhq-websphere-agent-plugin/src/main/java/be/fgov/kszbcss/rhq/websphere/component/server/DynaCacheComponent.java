@@ -48,7 +48,7 @@ public class DynaCacheComponent extends WebSphereServiceComponent<WebSphereServe
     private String instanceName;
 
     @Override
-    protected void start() throws InvalidPluginConfigurationException, Exception {
+    protected void start() throws InvalidPluginConfigurationException {
         cache = getServer().getMBeanClient("WebSphere:type=DynaCache,*").getProxy(DynaCache.class);
         instanceName = getResourceContext().getResourceKey();
     }

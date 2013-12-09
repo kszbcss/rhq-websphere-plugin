@@ -52,7 +52,7 @@ public class SIBGatewayLinkComponent extends WebSphereServiceComponent<SIBMessag
     private MeasurementFacetSupport measurementFacetSupport;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException, Exception {
+    protected void start() throws InvalidPluginConfigurationException {
         SIBMessagingEngineComponent me = getParent();
         ApplicationServer server = getServer();
         String name = getResourceContext().getResourceKey();

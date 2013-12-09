@@ -34,6 +34,7 @@ import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 import org.rhq.plugins.jmx.JMXComponent;
 
+import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 public abstract class WebSphereComponent<T extends ResourceComponent<?>> implements JMXComponent<T>, OperationFacet {
@@ -50,7 +51,25 @@ public abstract class WebSphereComponent<T extends ResourceComponent<?>> impleme
         return resourceContext;
     }
 
-    protected abstract void start() throws InvalidPluginConfigurationException, Exception;
+    /**
+     * Initialize the resource component.
+     * <p>
+     * <b>Note:</b> In contrast to {@link ResourceComponent#start(ResourceContext)} this method is
+     * not allowed to throw checked exceptions. The rationale for this is to enforce the following
+     * design principle in the WebSphere plug-in: a resource component must not connect to WebSphere
+     * during the component startup; instead all connections to WebSphere must be established lazily
+     * (e.g. when checking the availability or retrieving metrics). This ensures that the plug-in
+     * works correctly even if some WebSphere instances are not running when the agent starts. The
+     * plug-in provides the necessary utility classes (such as {@link MBeanClient}) to enable lazy
+     * connections.
+     * 
+     * @throws InvalidPluginConfigurationException
+     *             if the resource component could not be started because of a bad plug-in
+     *             configuration
+     * 
+     * @see ResourceComponent#start(ResourceContext)
+     */
+    protected abstract void start() throws InvalidPluginConfigurationException;
     
     public abstract ApplicationServer getServer();
     

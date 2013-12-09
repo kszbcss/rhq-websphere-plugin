@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -47,7 +47,7 @@ public class WebModuleComponent extends ModuleComponent implements Configuration
     private DeploymentConfigurationFacetSupport configurationFacetSupport;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException, Exception {
+    protected void start() throws InvalidPluginConfigurationException {
         super.start();
         configurationFacetSupport = new DeploymentConfigurationFacetSupport(getParent(), getModuleName(), null);
         ResourceContext<ApplicationComponent> context = getResourceContext();
