@@ -69,7 +69,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     private GroupName groupName;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException, Exception {
+    protected void start() throws InvalidPluginConfigurationException {
         name = getResourceContext().getResourceKey();
         WebSphereServer server = getServer();
         sibMain = server.getMBeanClient("WebSphere:type=SIBMain,*").getProxy(SIBMain.class);

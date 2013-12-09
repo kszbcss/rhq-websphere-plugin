@@ -47,7 +47,7 @@ public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagin
     private MeasurementFacetSupport measurementFacetSupport;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException, Exception {
+    protected void start() throws InvalidPluginConfigurationException {
         measurementFacetSupport = new MeasurementFacetSupport(this);
         final SIBMessagingEngine sibMessagingEngine = getParent().getSIBMessagingEngine();
         // Need to start from the SIBMessagingEngine MBean here because the PMI module names for SIB were changed by PM60540

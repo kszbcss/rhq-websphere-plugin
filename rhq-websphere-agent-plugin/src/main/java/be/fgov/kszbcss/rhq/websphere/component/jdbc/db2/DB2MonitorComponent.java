@@ -56,7 +56,7 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
     private DB2MonitorContext context;
     private MeasurementFacetSupport measurementFacetSupport;
     
-    protected void start() throws InvalidPluginConfigurationException, Exception {
+    protected void start() throws InvalidPluginConfigurationException {
         dataSourceComponent = getParent();
         adminOperations = dataSourceComponent.getServer().getMBeanClient("WebSphere:type=AdminOperations,*").getProxy(AdminOperations.class);
         Configuration config = getResourceContext().getPluginConfiguration();
@@ -66,7 +66,7 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
             Class.forName("com.ibm.db2.jcc.DB2SimpleDataSource");
         } catch (ClassNotFoundException ex) {
             log.error("DB2 monitor unavailable: JDBC driver not present in the class path");
-            throw ex;
+            throw new Error(ex);
         }
         if (principal != null) {
             measurementFacetSupport = new MeasurementFacetSupport(this);

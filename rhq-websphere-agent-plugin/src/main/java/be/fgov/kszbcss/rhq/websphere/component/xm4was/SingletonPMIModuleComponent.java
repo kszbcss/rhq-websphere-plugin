@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@ public abstract class SingletonPMIModuleComponent extends WebSphereServiceCompon
     private MeasurementFacetSupport measurementFacetSupport;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException, Exception {
+    protected void start() throws InvalidPluginConfigurationException {
         measurementFacetSupport = new MeasurementFacetSupport(this);
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(getServer().getServerMBean(), getPMIModuleName()));
     }

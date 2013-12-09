@@ -105,7 +105,7 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
     private XM4WASJVM xm4wasJvm;
     private EJBMonitor ejbMonitor;
     
-    public void start() throws InvalidPluginConfigurationException, Exception {
+    public void start() throws InvalidPluginConfigurationException {
         ResourceContext<ResourceComponent<?>> context = getResourceContext();
         
         Configuration pluginConfiguration = context.getPluginConfiguration();
@@ -124,7 +124,11 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
         if (log.isDebugEnabled()) {
             log.debug("Creating logging provider: name=" + loggingProviderName + ", class=" + loggingProviderClass.getName());
         }
-        loggingProvider = loggingProviderClass.newInstance();
+        try {
+            loggingProvider = loggingProviderClass.newInstance();
+        } catch (Exception ex) {
+            throw new Error("Failed to instantiate " + loggingProviderClass, ex);
+        }
         
         PropertySimple unmanaged = pluginConfiguration.getSimple("unmanaged");
         if (unmanaged != null && unmanaged.getBooleanValue()) {
