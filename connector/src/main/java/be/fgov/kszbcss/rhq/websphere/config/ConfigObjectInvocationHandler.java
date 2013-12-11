@@ -122,17 +122,16 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
                 result = references.get(attributeName);
             }
             if (result == null) {
-                ConfigObjectTypeDesc referenceDesc = desc.getDescriptor();
                 Object value = ConfigServiceHelper.getAttributeValue(attributes, attributeName);
                 if (desc.isCollection()) {
                     List<?> list = (List<?>)value;
                     List<ConfigObject> resultList = new ArrayList<ConfigObject>(list.size());
                     for (Object objectName : list) {
-                        resultList.add(referenceDesc.createInstance(config, (ObjectName)objectName));
+                        resultList.add(config.getConfigObject((ObjectName)objectName));
                     }
                     result = resultList;
                 } else {
-                    result = referenceDesc.createInstance(config, (ObjectName)value);
+                    result = config.getConfigObject((ObjectName)value);
                 }
                 references.put(attributeName, result);
             }

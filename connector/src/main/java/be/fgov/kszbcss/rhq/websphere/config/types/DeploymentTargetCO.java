@@ -25,7 +25,7 @@ package be.fgov.kszbcss.rhq.websphere.config.types;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObjectType;
 
-@ConfigObjectType(name = "DeploymentTarget", extensions = { ClusteredTargetCO.class, ServerTargetCO.class })
+@ConfigObjectType(name = "DeploymentTarget")
 public interface DeploymentTargetCO extends ConfigObject {
 
 }

@@ -53,6 +53,7 @@ import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
 
 import com.ibm.websphere.management.Session;
 import com.ibm.websphere.management.application.client.AppDeploymentTask;
+import com.ibm.websphere.management.configservice.SystemAttributes;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 /**
@@ -164,12 +165,16 @@ public class CellConfiguration {
                 return configService.resolve(session, containmentPath);
             }
         });
-        ConfigObjectTypeDesc desc = ConfigObjectTypeRegistry.getDescriptor(type);
         Collection<T> result = new ArrayList<T>(objectNames.length);
         for (ObjectName objectName : objectNames) {
-            result.add(type.cast(desc.createInstance(this, objectName)));
+            result.add(type.cast(getConfigObject(objectName)));
         }
         return result;
+    }
+    
+    ConfigObject getConfigObject(ObjectName objectName) {
+        // TODO: null check (unknown config object type)
+        return ConfigObjectTypeRegistry.getDescriptor(objectName.getKeyProperty(SystemAttributes._WEBSPHERE_CONFIG_DATA_TYPE)).createInstance(this, objectName);
     }
     
     public String[] listResourceNames(String parent, int type, int depth) throws JMException, ConnectorException {
