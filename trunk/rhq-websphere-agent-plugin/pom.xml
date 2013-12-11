@@ -36,19 +36,16 @@
         <dependency>
             <groupId>org.rhq</groupId>
             <artifactId>rhq-core-domain</artifactId>
-            <version>${rhq.version}</version>
             <scope>provided</scope>
         </dependency> 
         <dependency> 
             <groupId>jboss.jboss-embeddable-ejb3</groupId> 
             <artifactId>hibernate-all</artifactId> 
-            <version>1.0.0.Alpha9</version> 
             <scope>provided</scope> 
         </dependency> 
         <dependency>
             <groupId>org.rhq</groupId>
             <artifactId>rhq-core-plugin-api</artifactId>
-            <version>${rhq.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -58,9 +55,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>mc4j</groupId>
-            <artifactId>org-mc4j-ems-impl</artifactId>
-            <version>${ems.version}</version>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>connector</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -71,13 +68,7 @@
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
-            <version>1.1.1</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache-core</artifactId>
-            <version>2.4.2</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -87,7 +78,6 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.0</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
