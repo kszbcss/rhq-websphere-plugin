@@ -20,7 +20,7 @@
  * if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package be.fgov.kszbcss.rhq.websphere.component.server;
+package be.fgov.kszbcss.rhq.websphere.process;
 
 import javax.management.JMException;
 
