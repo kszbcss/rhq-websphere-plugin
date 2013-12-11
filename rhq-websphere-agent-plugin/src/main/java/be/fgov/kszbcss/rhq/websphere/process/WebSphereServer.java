@@ -37,8 +37,6 @@ import javax.management.ObjectName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.rhq.websphere.PIDChangeTracker;
-import be.fgov.kszbcss.rhq.websphere.PIDWatcher;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.rhq.websphere.connector.FailFastAdminClientProvider;
 import be.fgov.kszbcss.rhq.websphere.connector.LazyAdminClientInvocationHandler;
@@ -51,6 +49,8 @@ import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientFactory;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanLocator;
 import be.fgov.kszbcss.rhq.websphere.process.locator.ProcessLocator;
 import be.fgov.kszbcss.rhq.websphere.proxy.Perf;
+import be.fgov.kszbcss.rhq.websphere.util.PIDChangeTracker;
+import be.fgov.kszbcss.rhq.websphere.util.PIDWatcher;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;

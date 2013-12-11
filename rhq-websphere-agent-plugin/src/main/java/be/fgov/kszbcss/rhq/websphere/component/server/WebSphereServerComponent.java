@@ -66,6 +66,7 @@ import be.fgov.kszbcss.rhq.websphere.component.server.log.xm4was.XM4WASLoggingPr
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObjectNotFoundException;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
+import be.fgov.kszbcss.rhq.websphere.process.ClusterNameQuery;
 import be.fgov.kszbcss.rhq.websphere.process.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.process.UnmanagedServer;
 import be.fgov.kszbcss.rhq.websphere.proxy.EJBMonitor;
