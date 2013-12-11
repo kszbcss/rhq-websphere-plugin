@@ -43,6 +43,7 @@
         <module>websphere-apis</module>
         <module>rhq-websphere-server-plugin</module>
         <module>distribution</module>
+        <module>connector</module>
     </modules>
     <repositories>
         <repository>
@@ -54,6 +55,45 @@
             </snapshots>
         </repository>
     </repositories>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>1.1.1</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.0</version>
+            </dependency>
+            <dependency> 
+                <groupId>jboss.jboss-embeddable-ejb3</groupId> 
+                <artifactId>hibernate-all</artifactId> 
+                <version>1.0.0.Alpha9</version> 
+            </dependency> 
+            <dependency>
+                <groupId>org.rhq</groupId>
+                <artifactId>rhq-core-domain</artifactId>
+                <version>${rhq.version}</version>
+            </dependency> 
+            <dependency>
+                <groupId>org.rhq</groupId>
+                <artifactId>rhq-core-plugin-api</artifactId>
+                <version>${rhq.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>mc4j</groupId>
+                <artifactId>org-mc4j-ems</artifactId>
+                <version>${ems.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>mc4j</groupId>
+                <artifactId>org-mc4j-ems-impl</artifactId>
+                <version>${ems.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <build>
         <pluginManagement>
             <plugins>
