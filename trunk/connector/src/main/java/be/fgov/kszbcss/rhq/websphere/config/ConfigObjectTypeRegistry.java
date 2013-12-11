@@ -22,18 +22,50 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 final class ConfigObjectTypeRegistry {
-    private static final Map<Class<? extends ConfigObject>,ConfigObjectTypeDesc> descriptors = new HashMap<Class<? extends ConfigObject>,ConfigObjectTypeDesc>();
+    private static final Map<Class<? extends ConfigObject>,ConfigObjectTypeDesc> descriptorByType = new HashMap<Class<? extends ConfigObject>,ConfigObjectTypeDesc>();
+    private static final Map<String,ConfigObjectTypeDesc> descriptorByName = new HashMap<String,ConfigObjectTypeDesc>();
     
-    synchronized static ConfigObjectTypeDesc getDescriptor(Class<? extends ConfigObject> type) {
-        ConfigObjectTypeDesc desc = descriptors.get(type);
-        if (desc == null) {
-            desc = new ConfigObjectTypeDesc(type);
+    static {
+        Properties mappings = new Properties();
+        InputStream in = ConfigObjectTypeRegistry.class.getResourceAsStream("/META-INF/config-object-types.index");
+        if (in == null) {
+            throw new Error("Index file not found");
         }
-        descriptors.put(type, desc);
-        return desc;
+        try {
+            try {
+                mappings.load(in);
+            } finally {
+                in.close();
+            }
+        } catch (IOException ex) {
+            throw new Error("Failed to load index file", ex);
+        }
+        for (Map.Entry<Object,Object> entry : mappings.entrySet()) {
+            String name = (String)entry.getKey();
+            Class<? extends ConfigObject> type;
+            try {
+                type = Class.forName((String)entry.getValue()).asSubclass(ConfigObject.class);
+            } catch (ClassNotFoundException ex) {
+                throw new NoClassDefFoundError(ex.getMessage());
+            }
+            ConfigObjectTypeDesc desc = new ConfigObjectTypeDesc(type, name);
+            descriptorByType.put(type, desc);
+            descriptorByName.put(name, desc);
+        }
+    }
+    
+    static ConfigObjectTypeDesc getDescriptor(Class<? extends ConfigObject> type) {
+        return descriptorByType.get(type);
+    }
+    
+    static ConfigObjectTypeDesc getDescriptor(String name) {
+        return descriptorByName.get(name);
     }
 }

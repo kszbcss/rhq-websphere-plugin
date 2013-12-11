@@ -28,8 +28,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface ConfigObjectType {
     String name();
-    Class<? extends ConfigObject>[] extensions() default {};
 }

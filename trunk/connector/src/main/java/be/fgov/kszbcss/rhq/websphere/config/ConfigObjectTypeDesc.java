@@ -35,27 +35,23 @@ import java.util.Map;
 
 import javax.management.ObjectName;
 
-import com.ibm.websphere.management.configservice.SystemAttributes;
-
 final class ConfigObjectTypeDesc implements Serializable {
     private final Class<? extends ConfigObject> iface;
     private final String name;
     private final Map<Method,ConfigObjectAttributeDesc> attributes = new HashMap<Method,ConfigObjectAttributeDesc>();
-    private final List<ConfigObjectTypeDesc> extensions = new ArrayList<ConfigObjectTypeDesc>();
     
-    ConfigObjectTypeDesc(Class<? extends ConfigObject> iface) {
+    ConfigObjectTypeDesc(Class<? extends ConfigObject> iface, String name) {
         this.iface = iface;
-        ConfigObjectType ann = iface.getAnnotation(ConfigObjectType.class);
-        name = ann.name();
+        this.name = name;
         for (Method method : iface.getMethods()) {
             if (method.getDeclaringClass().isAssignableFrom(ConfigObject.class)) {
                 continue;
             }
-            String name = method.getName();
-            if (!name.startsWith("get")) {
+            String methodName = method.getName();
+            if (!methodName.startsWith("get")) {
                 throw new IllegalArgumentException("Expected to find only getter methods in " + iface);
             }
-            String attributeName = Character.toLowerCase(name.charAt(3)) + name.substring(4);
+            String attributeName = Character.toLowerCase(methodName.charAt(3)) + methodName.substring(4);
             Type returnType = method.getGenericReturnType();
             boolean collection;
             Class<?> attributeType;
@@ -73,9 +69,6 @@ final class ConfigObjectTypeDesc implements Serializable {
                 attributeType = (Class<?>)returnType;
             }
             attributes.put(method, new ConfigObjectAttributeDesc(attributeName, attributeType, collection));
-        }
-        for (Class<? extends ConfigObject> extension : ann.extensions()) {
-            extensions.add(ConfigObjectTypeRegistry.getDescriptor(extension));
         }
     }
     
@@ -99,33 +92,8 @@ final class ConfigObjectTypeDesc implements Serializable {
         return attributes.get(method);
     }
     
-    private ConfigObjectTypeDesc findExtension(String type) {
-        for (ConfigObjectTypeDesc extension : extensions) {
-            if (extension.getName().equals(type)) {
-                return extension;
-            } else {
-                ConfigObjectTypeDesc desc = extension.findExtension(type);
-                if (desc != null) {
-                    return desc;
-                }
-            }
-        }
-        return null;
-    }
-    
     ConfigObject createInstance(CellConfiguration cellConfiguration, ObjectName objectName) {
-        String type = objectName.getKeyProperty(SystemAttributes._WEBSPHERE_CONFIG_DATA_TYPE);
-        ConfigObjectTypeDesc desc;
-        if (type.equals(name)) {
-            desc = this;
-        } else {
-            desc = findExtension(type);
-            if (desc == null) {
-                // TODO: log this
-                desc = this;
-            }
-        }
-        return (ConfigObject)Proxy.newProxyInstance(desc.iface.getClassLoader(), new Class<?>[] { desc.iface }, new ConfigObjectInvocationHandler(desc, cellConfiguration, objectName));
+        return (ConfigObject)Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[] { iface }, new ConfigObjectInvocationHandler(this, cellConfiguration, objectName));
     }
     
     private Object writeReplace() throws ObjectStreamException {
