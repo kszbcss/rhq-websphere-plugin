@@ -35,6 +35,16 @@ public abstract class WebSphereServiceComponent<T extends WebSphereComponent<?>>
         return getParent().getEmsConnection();
     }
 
+    @Override
+    public final String getNodeName() {
+        return getParent().getNodeName();
+    }
+
+    @Override
+    public final String getServerName() {
+        return getParent().getServerName();
+    }
+
     public final ApplicationServer getServer() {
         return getParent().getServer();
     }

@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,16 +30,12 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryQuery;
-import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryType;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 public abstract class ConnectionFactoryDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
     public final Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        ApplicationServer server = context.getParentResourceComponent().getServer();
-        for (String jndiName : server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getJndiNames()) {
+        for (String jndiName : context.getParentResourceComponent().getConnectionFactoryJndiNames(getType())) {
             result.add(new DiscoveredResourceDetails(context.getResourceType(), jndiName, jndiName, null, getDescription(), null, null));
         }
         return result;

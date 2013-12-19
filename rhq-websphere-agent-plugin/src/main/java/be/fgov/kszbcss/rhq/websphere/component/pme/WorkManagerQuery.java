@@ -22,58 +22,49 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.pme;
 
-import java.util.HashMap;
-
 import javax.management.JMException;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
-import be.fgov.kszbcss.rhq.websphere.config.types.TimerManagerInfoCO;
-import be.fgov.kszbcss.rhq.websphere.config.types.TimerManagerProviderCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.WorkManagerInfoCO;
+import be.fgov.kszbcss.rhq.websphere.config.types.WorkManagerProviderCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class TimerManagerMapQuery implements ConfigQuery<HashMap<String,String>> {
-    private static final long serialVersionUID = -2899860553017447788L;
-
-    private static final Log log = LogFactory.getLog(TimerManagerMapQuery.class);
+public class WorkManagerQuery implements ConfigQuery<WorkManagerInfoCO> {
+    private static final long serialVersionUID = 1L;
     
     private final String node;
     private final String server;
+    private final String jndiName;
     
-    public TimerManagerMapQuery(String node, String server) {
+    public WorkManagerQuery(String node, String server, String jndiName) {
         this.node = node;
         this.server = server;
+        this.jndiName = jndiName;
     }
 
-    public HashMap<String,String> execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        HashMap<String,String> map = new HashMap<String,String>();
-        for (TimerManagerInfoCO wm : config.allScopes(node, server).path(TimerManagerProviderCO.class).path(TimerManagerInfoCO.class).resolve(false)) {
-            String jndiName = wm.getJndiName();
-            if (!map.containsKey(jndiName)) {
-                map.put(jndiName, wm.getName());
+    public WorkManagerInfoCO execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+        for (WorkManagerInfoCO wm : config.allScopes(node, server).path(WorkManagerProviderCO.class).path(WorkManagerInfoCO.class).resolve(false)) {
+            if (jndiName.equals(wm.getJndiName())) {
+                wm.detach();
+                return wm;
             }
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Loaded timer managers for node '" + node + "' and server '" + server + "': " + map);
-        }
-        return map;
+        return null;
     }
 
     @Override
     public int hashCode() {
-        return 31*node.hashCode() + server.hashCode();
+        return 31*31*node.hashCode() + 31*server.hashCode() + jndiName.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof TimerManagerMapQuery) {
-            TimerManagerMapQuery other = (TimerManagerMapQuery)obj;
-            return other.node.equals(node) && other.server.equals(server);
+        if (obj instanceof WorkManagerQuery) {
+            WorkManagerQuery other = (WorkManagerQuery)obj;
+            return other.node.equals(node) && other.server.equals(server) && other.jndiName.equals(jndiName);
         } else {
             return false;
         }
@@ -81,6 +72,6 @@ public class TimerManagerMapQuery implements ConfigQuery<HashMap<String,String>>
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + node + "," + server + ")";
+        return getClass().getSimpleName() + "(" + node + "," + server + "," + jndiName + ")";
     }
 }

@@ -32,15 +32,12 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
-
 public class DynaCacheDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
     private static final Log log = LogFactory.getLog(DynaCacheDiscoveryComponent.class); 
     
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        ApplicationServer server = context.getParentResourceComponent().getServer();
-        for (String instanceName : server.queryConfig(new ObjectCacheInstanceQuery(server.getNode(), server.getServer()))) {
+        for (String instanceName : context.getParentResourceComponent().getObjectCacheInstanceNames()) {
             if (instanceName.equals("baseCache") || instanceName.startsWith("ws/")) {
                 if (log.isDebugEnabled()) {
                     log.debug("Ignoring DynaCache " + instanceName);

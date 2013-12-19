@@ -38,7 +38,6 @@ import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.proxy.DynaCache;
 
 public class DynaCacheComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, OperationFacet {
@@ -55,8 +54,7 @@ public class DynaCacheComponent extends WebSphereServiceComponent<WebSphereServe
 
     @Override
     protected boolean isConfigured() throws Exception {
-        ApplicationServer server = getServer();
-        String[] instanceNames = server.queryConfig(new ObjectCacheInstanceQuery(server.getNode(), server.getServer()));
+        String[] instanceNames = getParent().getObjectCacheInstanceNames();
         if (log.isDebugEnabled()) {
             log.debug("Dyna caches existing on server: " + Arrays.asList(instanceNames));
         }

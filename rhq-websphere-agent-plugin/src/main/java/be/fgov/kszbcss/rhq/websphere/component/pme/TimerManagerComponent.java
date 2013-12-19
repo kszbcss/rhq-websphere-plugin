@@ -37,6 +37,8 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import be.fgov.kszbcss.rhq.websphere.component.ThreadPoolPMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
+import be.fgov.kszbcss.rhq.websphere.config.types.TimerManagerInfoCO;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.support.configuration.ConfigurationFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
@@ -45,6 +47,7 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 public class TimerManagerComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, ConfigurationFacet {
     private MeasurementFacetSupport measurementFacetSupport;
     private ConfigurationFacetSupport configurationFacetSupport;
+    private ConfigData<TimerManagerInfoCO> configData;
     
     @Override
     protected void start() throws InvalidPluginConfigurationException {
@@ -52,12 +55,13 @@ public class TimerManagerComponent extends WebSphereServiceComponent<WebSphereSe
         measurementFacetSupport = new MeasurementFacetSupport(this);
         ApplicationServer server = getServer();
         String jndiName = context.getResourceKey();
+        configData = registerConfigQuery(new TimerManagerQuery(getNodeName(), getServerName(), jndiName));
         measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(server.getServerMBean(),
-                new TimerManagerThreadPoolPMIModuleSelector(server, jndiName)));
+                new TimerManagerThreadPoolPMIModuleSelector(jndiName, configData)));
         measurementFacetSupport.addHandler("alarm-stats", new PMIMeasurementHandler(server.getServerMBean(),
-                new TimerManagerAlarmManagerPMIModuleSelector(server, jndiName)));
+                new TimerManagerAlarmManagerPMIModuleSelector(jndiName, configData)));
         configurationFacetSupport = new ConfigurationFacetSupport(this,
-                server.getMBeanClient(new TimerManagerThreadPoolMBeanLocator(jndiName)), true);
+                server.getMBeanClient(new TimerManagerThreadPoolMBeanLocator(jndiName, configData)), true);
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
@@ -74,8 +78,7 @@ public class TimerManagerComponent extends WebSphereServiceComponent<WebSphereSe
 
     @Override
     protected boolean isConfigured() throws Exception {
-        ApplicationServer server = getServer();
-        return server.queryConfig(new TimerManagerMapQuery(server.getNode(), server.getServer())).containsKey(getResourceContext().getResourceKey());
+        return configData.get() != null;
     }
 
     protected AvailabilityType doGetAvailability() {

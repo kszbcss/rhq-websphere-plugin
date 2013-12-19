@@ -22,6 +22,8 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component;
 
+import java.io.Serializable;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rhq.core.domain.configuration.Configuration;
@@ -34,8 +36,13 @@ import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 import org.rhq.plugins.jmx.JMXComponent;
 
+import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
+
+import com.ibm.websphere.management.exception.ConnectorException;
 
 public abstract class WebSphereComponent<T extends ResourceComponent<?>> implements JMXComponent<T>, OperationFacet {
     private static final Log log = LogFactory.getLog(WebSphereComponent.class);
@@ -71,7 +78,18 @@ public abstract class WebSphereComponent<T extends ResourceComponent<?>> impleme
      */
     protected abstract void start() throws InvalidPluginConfigurationException;
     
+    public abstract String getNodeName();
+    public abstract String getServerName();
+    
     public abstract ApplicationServer getServer();
+    
+    protected final <S extends Serializable> ConfigData<S> registerConfigQuery(final ConfigQuery<S> query) {
+        return new ConfigData<S>() {
+            public S get() throws InterruptedException, ConnectorException, ConfigQueryException {
+                return getServer().queryConfig(query);
+            }
+        };
+    }
     
     /**
      * Determine whether the resource corresponding to this component is still present in the

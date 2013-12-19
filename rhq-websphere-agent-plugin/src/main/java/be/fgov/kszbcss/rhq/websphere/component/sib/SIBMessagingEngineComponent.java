@@ -22,8 +22,6 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.sib;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import javax.management.JMException;
@@ -40,8 +38,8 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
-import be.fgov.kszbcss.rhq.websphere.config.types.SIBQualifiedDestinationName;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
@@ -67,6 +65,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     private String cachedState;
     private long cachedStateTimestamp;
     private GroupName groupName;
+    private ConfigData<SIBMessagingEngineInfo> sibMessagingEngineInfo;
     
     @Override
     protected void start() throws InvalidPluginConfigurationException {
@@ -78,6 +77,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         sibMessagingEngine = sibMessagingEngineMBeanClient.getProxy(SIBMessagingEngine.class);
         measurementFacetSupport = new MeasurementFacetSupport(this);
         measurementFacetSupport.addHandler("health", new JMXOperationMeasurementHandler(sibMessagingEngineMBeanClient, "getHealth", true));
+        sibMessagingEngineInfo = registerConfigQuery(new SIBMessagingEngineQuery(getNodeName(), getServerName(), name));
     }
 
     /**
@@ -94,56 +94,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     }
 
     public SIBMessagingEngineInfo getInfo() throws InterruptedException, JMException, ConnectorException, ConfigQueryException {
-        ApplicationServer server = getServer();
-        for (SIBMessagingEngineInfo me : server.queryConfig(new SIBMessagingEngineQuery(server.getNode(), server.getServer()))) {
-            if (me.getName().equals(name)) {
-                return me;
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Get the names of all destinations of a given type that have a localization point on this
-     * messaging engine and that should be monitored. In contrast to
-     * {@link SIBMessagingEngineInfo#getDestinationNames(SIBDestinationType)}, this method will
-     * filter out some destinations for which no useful metrics can be collected.
-     * 
-     * @param type
-     *            the destination type
-     * @return an array of destination names (which is empty if there are no matching destinations),
-     *         or <code>null</code> if the messaging engine could not be found in the configuration
-     * @throws InterruptedException
-     * @throws JMException
-     * @throws ConnectorException
-     * @throws ConfigQueryException
-     */
-    public String[] getDestinationNames(SIBDestinationType type) throws InterruptedException, JMException, ConnectorException, ConfigQueryException {
-        SIBMessagingEngineInfo me = getInfo();
-        if (me == null) {
-            return null;
-        }
-        if (type == SIBDestinationType.QUEUE) {
-            SIBusInfo bus = getServer().queryConfig(new SIBusQuery(me.getBusName()));
-            List<String> result = new ArrayList<String>();
-            log.debug("Starting to filter queues");
-            for (String name : me.getDestinationNames(SIBDestinationType.QUEUE)) {
-                List<SIBQualifiedDestinationName> path = bus.getQueue(name).getDefaultForwardRoutingPath();
-                if (path == null || path.isEmpty()) {
-                    result.add(name);
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Ignoring queue " + name + " because it has a default forward routing path: " + path);
-                    }
-                }
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("Retained the following queues: " + result);
-            }
-            return result.toArray(new String[result.size()]);
-        } else {
-            return me.getDestinationNames(type);
-        }
+        return sibMessagingEngineInfo.get();
     }
     
     private synchronized GroupName getGroupName() throws InterruptedException, JMException, ConnectorException, ConfigQueryException {

@@ -35,9 +35,6 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.ModuleComponent;
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.SIBDestination;
-import be.fgov.kszbcss.rhq.websphere.component.j2ee.SIBDestinationMap;
-import be.fgov.kszbcss.rhq.websphere.component.j2ee.SIBDestinationMapQuery;
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
 
 import com.ibm.websphere.pmi.PmiConstants;
@@ -90,7 +87,6 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
     @Override
     public void loadResourceConfiguration(Configuration configuration) throws Exception {
         super.loadResourceConfiguration(configuration);
-        ApplicationServer server = getServer();
         List<Map<String,String>> data = getApplication().getConfiguration().getData("BindJndiForEJBMessageBinding", getModuleName(), getBeanName());
         if (data == null || data.size() != 1) {
             throw new Exception("No message listener binding found");
@@ -98,7 +94,7 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
         Map<String,String> binding = data.get(0);
         String activationSpecJndiName = binding.get("JNDI");
         String destinationJndiName = binding.get("jndi.dest");
-        ActivationSpecInfo activationSpec = server.queryConfig(new ActivationSpecQuery(server.getNode(), server.getServer())).getActivationSpec(activationSpecJndiName);
+        ActivationSpecInfo activationSpec = getApplication().getParent().getActivationSpecs().getActivationSpec(activationSpecJndiName);
         String busName = null;
         String destinationName = null;
         if (destinationJndiName != null && destinationJndiName.length() == 0) {
@@ -115,8 +111,7 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
             }
         }
         if (destinationJndiName != null) {
-            SIBDestinationMap sibDestinationMap = server.queryConfig(new SIBDestinationMapQuery(server.getNode(), server.getServer()));
-            SIBDestination dest = sibDestinationMap.getSIBDestination(destinationJndiName);
+            SIBDestination dest = getApplication().getParent().getSIBDestinationMap().getSIBDestination(destinationJndiName);
             if (dest != null) {
                 busName = dest.getBusName();
                 destinationName = dest.getDestinationName();

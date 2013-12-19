@@ -53,7 +53,7 @@ public abstract class SIBLocalizationPointComponent extends WebSphereServiceComp
 
     @Override
     protected boolean isConfigured() throws Exception {
-        String[] destinationNames = getParent().getDestinationNames(getType());
+        String[] destinationNames = getParent().getInfo().getDestinationNames(getType());
         return destinationNames!= null && Arrays.asList(destinationNames).contains(getResourceContext().getResourceKey());
     }
     

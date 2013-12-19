@@ -34,15 +34,13 @@ import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 public class ApplicationDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
     private static final Log log = LogFactory.getLog(ApplicationDiscoveryComponent.class);
     
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        ApplicationServer server = context.getParentResourceComponent().getServer();
-        String[] applicationNames = server.queryConfig(new DeployedApplicationsQuery(server.getNode(), server.getServer()));
+        String[] applicationNames = context.getParentResourceComponent().getDeployedApplications();
         if (log.isDebugEnabled()) {
             log.debug("Discovered the following applications on " + context.getParentResourceComponent().getResourceContext().getResourceKey() + ": " + Arrays.asList(applicationNames));
         }
@@ -52,10 +50,6 @@ public class ApplicationDiscoveryComponent implements ResourceDiscoveryComponent
             if (applicationName.equals("commsvc")) {
                 if (log.isDebugEnabled()) {
                     log.debug("Skipped internal application " + applicationName);
-                }
-            } else if (server.queryConfig(new ApplicationInfoQuery(applicationName)).isLooseConfig()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Skipped application deployed by RAD");
                 }
             } else {
                 result.add(new DiscoveredResourceDetails(context.getResourceType(), applicationName, applicationName, null, "An enterprise application.", null, null));

@@ -22,7 +22,8 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.pme;
 
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.management.JMException;
 
@@ -37,31 +38,28 @@ import be.fgov.kszbcss.rhq.websphere.config.types.WorkManagerProviderCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class WorkManagerMapQuery implements ConfigQuery<HashMap<String,String>> {
-    private static final long serialVersionUID = 949198396112347229L;
+public class WorkManagerJndiNamesQuery implements ConfigQuery<String[]> {
+    private static final long serialVersionUID = 1L;
     
-    private static final Log log = LogFactory.getLog(WorkManagerMapQuery.class);
+    private static final Log log = LogFactory.getLog(WorkManagerJndiNamesQuery.class);
     
     private final String node;
     private final String server;
     
-    public WorkManagerMapQuery(String node, String server) {
+    public WorkManagerJndiNamesQuery(String node, String server) {
         this.node = node;
         this.server = server;
     }
 
-    public HashMap<String,String> execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        HashMap<String,String> map = new HashMap<String,String>();
+    public String[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+        Set<String> result = new HashSet<String>();
         for (WorkManagerInfoCO wm : config.allScopes(node, server).path(WorkManagerProviderCO.class).path(WorkManagerInfoCO.class).resolve(false)) {
-            String jndiName = wm.getJndiName();
-            if (!map.containsKey(jndiName)) {
-                map.put(jndiName, wm.getName());
-            }
+            result.add(wm.getJndiName());
         }
         if (log.isDebugEnabled()) {
-            log.debug("Loaded work managers for node '" + node + "' and server '" + server + "': " + map);
+            log.debug("Loaded work managers for node '" + node + "' and server '" + server + "': " + result);
         }
-        return map;
+        return result.toArray(new String[result.size()]);
     }
 
     @Override
@@ -71,8 +69,8 @@ public class WorkManagerMapQuery implements ConfigQuery<HashMap<String,String>> 
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof WorkManagerMapQuery) {
-            WorkManagerMapQuery other = (WorkManagerMapQuery)obj;
+        if (obj instanceof WorkManagerJndiNamesQuery) {
+            WorkManagerJndiNamesQuery other = (WorkManagerJndiNamesQuery)obj;
             return other.node.equals(node) && other.server.equals(server);
         } else {
             return false;

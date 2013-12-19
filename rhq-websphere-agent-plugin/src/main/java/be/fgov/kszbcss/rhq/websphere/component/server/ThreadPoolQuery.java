@@ -27,40 +27,42 @@ import javax.management.JMException;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolManagerCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
 /**
- * Query to retrieve the <tt>ThreadPool</tt> configuration objects from the
- * <tt>ThreadPoolManager</tt>.
+ * Query to retrieve a <tt>ThreadPool</tt> configuration object.
  */
-public class ThreadPoolManagerQuery implements ConfigQuery<ThreadPoolManagerCO> {
+public class ThreadPoolQuery implements ConfigQuery<ThreadPoolCO> {
     private static final long serialVersionUID = 1L;
     
     private final String node;
     private final String server;
+    private final String name;
 
-    public ThreadPoolManagerQuery(String node, String server) {
+    public ThreadPoolQuery(String node, String server, String name) {
         this.node = node;
         this.server = server;
+        this.name = name;
     }
 
-    public ThreadPoolManagerCO execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        return config.server(node, server).path(ThreadPoolManagerCO.class).resolveSingle(true);
+    public ThreadPoolCO execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+        return config.server(node, server).path(ThreadPoolManagerCO.class).path(ThreadPoolCO.class, name).resolveAtMostOne(true);
     }
 
 
     @Override
     public int hashCode() {
-        return 31*node.hashCode() + server.hashCode();
+        return 31*31*node.hashCode() + 31*server.hashCode() + name.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof ThreadPoolManagerQuery) {
-            ThreadPoolManagerQuery other = (ThreadPoolManagerQuery)obj;
-            return other.node.equals(node) && other.server.equals(server);
+        if (obj instanceof ThreadPoolQuery) {
+            ThreadPoolQuery other = (ThreadPoolQuery)obj;
+            return other.node.equals(node) && other.server.equals(server) && other.name.equals(name);
         } else {
             return false;
         }
@@ -68,6 +70,6 @@ public class ThreadPoolManagerQuery implements ConfigQuery<ThreadPoolManagerCO> 
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + node + "," + server + ")";
+        return getClass().getSimpleName() + "(" + node + "," + server + "," + name + ")";
     }
 }
