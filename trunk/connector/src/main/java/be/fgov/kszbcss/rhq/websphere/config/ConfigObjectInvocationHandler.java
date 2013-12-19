@@ -79,7 +79,7 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
     public synchronized void detach() throws JMException, ConnectorException, InterruptedException {
         for (ConfigObjectAttributeDesc desc : type.getAttributeDescriptors()) {
             Object value = getAttributeValue(desc);
-            if (desc.isReference()) {
+            if (value != null && desc.isReference()) {
                 if (value instanceof List) {
                     for (Object item : (List<?>)value) {
                         ((ConfigObject)item).detach();
@@ -119,18 +119,18 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
         }
         String attributeName = desc.getName();
         if (desc.isReference()) {
-            Object result;
             if (references == null) {
                 references = new HashMap<String,Object>();
-                result = null;
-            } else {
-                result = references.get(attributeName);
             }
-            if (result == null) {
+            // Note that the cached reference may be null; therefore we need to use containsKey
+            if (references.containsKey(attributeName)) {
+                return references.get(attributeName);
+            } else {
                 Object value = ConfigServiceHelper.getAttributeValue(attributes, attributeName);
                 if (log.isDebugEnabled()) {
                     log.debug("Loading config object(s) referenced by attribute " + attributeName + " on " + objectName + ": " + value);
                 }
+                Object result;
                 if (desc.isCollection()) {
                     List<?> list = (List<?>)value;
                     List<ConfigObject> resultList = new ArrayList<ConfigObject>(list.size());
@@ -139,11 +139,11 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
                     }
                     result = resultList;
                 } else {
-                    result = config.getConfigObject((ObjectName)value);
+                    result = value == null ? null : config.getConfigObject((ObjectName)value);
                 }
                 references.put(attributeName, result);
+                return result;
             }
-            return result;
         } else {
             return ConfigServiceHelper.getAttributeValue(attributes, attributeName);
         }
