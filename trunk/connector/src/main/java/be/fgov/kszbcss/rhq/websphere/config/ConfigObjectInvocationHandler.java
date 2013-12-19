@@ -128,6 +128,9 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
             }
             if (result == null) {
                 Object value = ConfigServiceHelper.getAttributeValue(attributes, attributeName);
+                if (log.isDebugEnabled()) {
+                    log.debug("Loading config object(s) referenced by attribute " + attributeName + " on " + objectName + ": " + value);
+                }
                 if (desc.isCollection()) {
                     List<?> list = (List<?>)value;
                     List<ConfigObject> resultList = new ArrayList<ConfigObject>(list.size());

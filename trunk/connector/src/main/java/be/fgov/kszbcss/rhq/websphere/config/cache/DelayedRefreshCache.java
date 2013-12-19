@@ -61,6 +61,7 @@ public class DelayedRefreshCache<K,V> {
                     if (log.isDebugEnabled()) {
                         log.debug("Scheduling refresh request " + refreshRequest.getId()
                                 + " (cache=" + underlyingCache.getName()
+                                + "; key=" + key
                                 + "; immediate=" + refreshRequest.isImmediate() + ")");
                     }
                     pendingRequests.put(key, refreshRequest);
