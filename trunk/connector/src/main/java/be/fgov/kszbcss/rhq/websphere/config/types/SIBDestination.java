@@ -20,27 +20,13 @@
  * if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package be.fgov.kszbcss.rhq.websphere.component.sib;
+package be.fgov.kszbcss.rhq.websphere.config.types;
 
-import java.io.Serializable;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigObjectType;
 
-import be.fgov.kszbcss.rhq.websphere.config.types.SIBQueue;
-
-public final class SIBusInfo implements Serializable {
-    private static final long serialVersionUID = 1L;
-
-    private final SIBQueue[] queues;
-
-    public SIBusInfo(SIBQueue[] queues) {
-        this.queues = queues;
-    }
-    
-    public SIBQueue getQueue(String name) {
-        for (SIBQueue queue : queues) {
-            if (queue.getIdentifier().equals(name)) {
-                return queue;
-            }
-        }
-        return null;
-    }
+@ConfigObjectType(name = "SIBDestination")
+public interface SIBDestination extends ConfigObject {
+    String getIdentifier();
+    String getUuid();
 }

@@ -40,7 +40,6 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryInfo;
 import be.fgov.kszbcss.rhq.websphere.component.JAASAuthData;
-import be.fgov.kszbcss.rhq.websphere.component.JAASAuthDataQuery;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceComponent;
 import be.fgov.kszbcss.rhq.websphere.proxy.AdminOperations;
@@ -117,7 +116,7 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
                     if (log.isDebugEnabled()) {
                         log.debug("Loading data for authentication alias " + authDataAlias);
                     }
-                    JAASAuthData authData = getServer().queryConfig(new JAASAuthDataQuery()).getData(authDataAlias);
+                    JAASAuthData authData = getParent().getParent().getJAASAuthDataMap().getData(authDataAlias);
                     if (authData == null) {
                         log.warn("No data found for authentication alias " + authDataAlias);
                     } else {

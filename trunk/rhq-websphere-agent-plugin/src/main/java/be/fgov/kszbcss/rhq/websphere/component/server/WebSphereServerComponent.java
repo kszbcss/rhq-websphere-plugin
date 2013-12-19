@@ -57,13 +57,27 @@ import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
+import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryJndiNamesQuery;
+import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryType;
+import be.fgov.kszbcss.rhq.websphere.component.JAASAuthDataMap;
+import be.fgov.kszbcss.rhq.websphere.component.JAASAuthDataQuery;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereComponent;
+import be.fgov.kszbcss.rhq.websphere.component.j2ee.DeployedApplicationsQuery;
+import be.fgov.kszbcss.rhq.websphere.component.j2ee.SIBDestinationMap;
+import be.fgov.kszbcss.rhq.websphere.component.j2ee.SIBDestinationMapQuery;
+import be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.ActivationSpecQuery;
+import be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.ActivationSpecs;
+import be.fgov.kszbcss.rhq.websphere.component.pme.TimerManagerJndiNamesQuery;
+import be.fgov.kszbcss.rhq.websphere.component.pme.WorkManagerJndiNamesQuery;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.J2EEComponentKey;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.none.NoneLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.ras.RasLoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.component.server.log.xm4was.XM4WASLoggingProvider;
+import be.fgov.kszbcss.rhq.websphere.component.sib.SIBMessagingEngineNamesQuery;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObjectNotFoundException;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.connector.ems.WebsphereConnectionProvider;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.process.ClusterNameQuery;
@@ -93,8 +107,8 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
         loggingProviderClasses.put("xm4was", XM4WASLoggingProvider.class);
     }
     
-    private String cell;
-    private String node;
+    private String cellName;
+    private String nodeName;
     private String serverName;
     private File stateDir;
     private ApplicationServer server;
@@ -106,16 +120,28 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
     private XM4WASJVM xm4wasJvm;
     private EJBMonitor ejbMonitor;
     
+    private ConfigData<String> clusterName;
+    private Map<ConnectionFactoryType,ConfigData<String[]>> connectionFactoryJndiNamesMap;
+    private ConfigData<String[]> deployedApplications;
+    private ConfigData<SIBDestinationMap> sibDestinationMap;
+    private ConfigData<ActivationSpecs> activationSpecs;
+    private ConfigData<JAASAuthDataMap> jaasAuthDataMap;
+    private ConfigData<String[]> objectCacheInstanceNames;
+    private ConfigData<String[]> workManagerJndiNames;
+    private ConfigData<String[]> timerManagerJndiNames;
+    private ConfigData<String[]> threadPoolNames;
+    private ConfigData<String[]> sibMessagingEngineNames;
+    
     public void start() throws InvalidPluginConfigurationException {
         ResourceContext<ResourceComponent<?>> context = getResourceContext();
         
         Configuration pluginConfiguration = context.getPluginConfiguration();
         
         String[] parts = context.getResourceKey().split("/");
-        cell = parts[0];
-        node = parts[1];
+        cellName = parts[0];
+        nodeName = parts[1];
         serverName = parts[2];
-        stateDir = new File(new File(new File(new File(getResourceContext().getDataDirectory(), "state"), cell), node), serverName);
+        stateDir = new File(new File(new File(new File(getResourceContext().getDataDirectory(), "state"), cellName), nodeName), serverName);
         
         loggingProviderName = pluginConfiguration.getSimpleValue("loggingProvider", "none");
         Class<? extends LoggingProvider> loggingProviderClass = loggingProviderClasses.get(loggingProviderName);
@@ -133,9 +159,9 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
         
         PropertySimple unmanaged = pluginConfiguration.getSimple("unmanaged");
         if (unmanaged != null && unmanaged.getBooleanValue()) {
-            server = new UnmanagedServer(cell, node, serverName, pluginConfiguration);
+            server = new UnmanagedServer(cellName, nodeName, serverName, pluginConfiguration);
         } else {
-            server = new ManagedServer(cell, node, serverName, pluginConfiguration);
+            server = new ManagedServer(cellName, nodeName, serverName, pluginConfiguration);
         }
         server.init();
         
@@ -150,6 +176,31 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
         
         // TODO: the EJBMonitor MBean is not necessarily registered; maybe we need something to prevent the plug-in from querying the server repeatedly for the same MBean
         ejbMonitor = server.getMBeanClient("XM4WAS:type=EJBMonitor,*").getProxy(EJBMonitor.class);
+        
+        clusterName = registerConfigQuery(new ClusterNameQuery(nodeName, serverName));
+        connectionFactoryJndiNamesMap = new HashMap<ConnectionFactoryType,ConfigData<String[]>>();
+        for (ConnectionFactoryType type : ConnectionFactoryType.values()) {
+            connectionFactoryJndiNamesMap.put(type, registerConfigQuery(new ConnectionFactoryJndiNamesQuery(nodeName, serverName, type)));
+        }
+        deployedApplications = registerConfigQuery(new DeployedApplicationsQuery(nodeName, serverName));
+        sibDestinationMap = registerConfigQuery(new SIBDestinationMapQuery(nodeName, serverName));
+        activationSpecs = registerConfigQuery(new ActivationSpecQuery(nodeName, serverName));
+        jaasAuthDataMap = registerConfigQuery(new JAASAuthDataQuery());
+        objectCacheInstanceNames = registerConfigQuery(new ObjectCacheInstanceQuery(nodeName, serverName));
+        workManagerJndiNames = registerConfigQuery(new WorkManagerJndiNamesQuery(nodeName, serverName));
+        timerManagerJndiNames = registerConfigQuery(new TimerManagerJndiNamesQuery(nodeName, serverName));
+        threadPoolNames = registerConfigQuery(new ThreadPoolNamesQuery(nodeName, serverName));
+        sibMessagingEngineNames = registerConfigQuery(new SIBMessagingEngineNamesQuery(nodeName, serverName));
+    }
+
+    @Override
+    public String getNodeName() {
+        return nodeName;
+    }
+
+    @Override
+    public String getServerName() {
+        return serverName;
     }
 
     public ApplicationServer getServer() {
@@ -174,6 +225,46 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
         return connection;
     }
     
+    public String[] getConnectionFactoryJndiNames(ConnectionFactoryType type) throws InterruptedException, ConnectorException, ConfigQueryException {
+        return connectionFactoryJndiNamesMap.get(type).get();
+    }
+    
+    public String[] getDeployedApplications() throws InterruptedException, ConnectorException, ConfigQueryException {
+        return deployedApplications.get();
+    }
+
+    public SIBDestinationMap getSIBDestinationMap() throws InterruptedException, ConnectorException, ConfigQueryException {
+        return sibDestinationMap.get();
+    }
+    
+    public ActivationSpecs getActivationSpecs() throws InterruptedException, ConnectorException, ConfigQueryException {
+        return activationSpecs.get();
+    }
+
+    public JAASAuthDataMap getJAASAuthDataMap() throws InterruptedException, ConnectorException, ConfigQueryException {
+        return jaasAuthDataMap.get();
+    }
+
+    public String[] getObjectCacheInstanceNames() throws InterruptedException, ConnectorException, ConfigQueryException {
+        return objectCacheInstanceNames.get();
+    }
+
+    public String[] getWorkManagerJndiNames() throws InterruptedException, ConnectorException, ConfigQueryException {
+        return workManagerJndiNames.get();
+    }
+    
+    public String[] getTimerManagerJndiNames() throws InterruptedException, ConnectorException, ConfigQueryException {
+        return timerManagerJndiNames.get();
+    }
+    
+    public String[] getThreadPoolNames() throws InterruptedException, ConnectorException, ConfigQueryException {
+        return threadPoolNames.get();
+    }
+
+    public String[] getSIBMessagingEngineNames() throws InterruptedException, ConnectorException, ConfigQueryException {
+        return sibMessagingEngineNames.get();
+    }
+
     @Override
     protected boolean isConfigured() throws Exception {
         ApplicationServer server = getServer();
@@ -185,7 +276,7 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
             //  * If the server is managed, then we rely on the deployment manager connection
             //    still being available after the server has been removed. This will not
             //    always be the case, in particular if the RHQ agent is restarted.
-            server.queryConfig(new ClusterNameQuery(server.getNode(), server.getServer()));
+            clusterName.get();
             return true;
         } catch (ConfigObjectNotFoundException ex) {
             // We must return false only if the configuration object corresponding to the server

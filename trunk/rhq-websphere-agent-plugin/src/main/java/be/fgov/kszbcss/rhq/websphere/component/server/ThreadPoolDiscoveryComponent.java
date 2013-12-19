@@ -30,15 +30,10 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 
-import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolCO;
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
-
 public class ThreadPoolDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();
-        ApplicationServer server = context.getParentResourceComponent().getServer();
-        for (ThreadPoolCO threadPool : server.queryConfig(new ThreadPoolManagerQuery(server.getNode(), server.getServer())).getThreadPools()) {
-            String name = threadPool.getName();
+        for (String name : context.getParentResourceComponent().getThreadPoolNames()) {
             // The "server.startup" thread pool is not interesting, and there is also no MBean available
             if (!name.equals("server.startup")) {
                 result.add(new DiscoveredResourceDetails(context.getResourceType(), name, name, null, "A thread pool.", null, null));

@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,26 +26,29 @@ import java.util.Map;
 
 import javax.management.JMException;
 
+import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
+import be.fgov.kszbcss.rhq.websphere.config.types.WorkManagerInfoCO;
 import be.fgov.kszbcss.rhq.websphere.mbean.DynamicMBeanObjectNamePatternLocator;
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class WorkManagerThreadPoolMBeanLocator extends DynamicMBeanObjectNamePatternLocator {
     private final String jndiName;
+    private final ConfigData<WorkManagerInfoCO> configData;
 
-    public WorkManagerThreadPoolMBeanLocator(String jndiName) {
+    public WorkManagerThreadPoolMBeanLocator(String jndiName, ConfigData<WorkManagerInfoCO> configData) {
         super("WebSphere", false);
         this.jndiName = jndiName;
+        this.configData = configData;
     }
 
     @Override
     protected void applyKeyProperties(WebSphereServer server, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
         String name;
         try {
-            name = ((ApplicationServer)server).queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer())).get(jndiName);
+            name = configData.get().getName();
         } catch (ConfigQueryException ex) {
             // TODO
             throw new RuntimeException(ex);

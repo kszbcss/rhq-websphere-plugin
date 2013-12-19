@@ -24,11 +24,9 @@ package be.fgov.kszbcss.rhq.websphere.config.types;
 
 import java.util.List;
 
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObjectType;
 
 @ConfigObjectType(name = "SIBQueue")
-public interface SIBQueue extends ConfigObject {
-    String getIdentifier();
+public interface SIBQueue extends SIBDestination {
     List<SIBQualifiedDestinationName> getDefaultForwardRoutingPath();
 }

@@ -20,13 +20,12 @@
  * if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package be.fgov.kszbcss.rhq.websphere.config.types;
+package be.fgov.kszbcss.rhq.websphere.config;
 
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObjectType;
+import java.io.Serializable;
 
-@ConfigObjectType(name = "SIBLocalizationPoint")
-public interface SIBLocalizationPointCO extends ConfigObject {
-    String getIdentifier();
-    String getTargetUuid();
+import com.ibm.websphere.management.exception.ConnectorException;
+
+public interface ConfigData<T extends Serializable> {
+    T get() throws InterruptedException, ConnectorException, ConfigQueryException;
 }

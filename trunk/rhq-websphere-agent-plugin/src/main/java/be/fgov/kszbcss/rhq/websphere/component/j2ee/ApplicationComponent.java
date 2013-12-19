@@ -22,7 +22,6 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
-import java.util.Arrays;
 import java.util.Set;
 
 import org.rhq.core.domain.configuration.Configuration;
@@ -34,10 +33,9 @@ import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
-import com.ibm.websphere.management.exception.ConnectorException;
-
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
@@ -45,10 +43,14 @@ import be.fgov.kszbcss.rhq.websphere.proxy.ApplicationManager;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
+import com.ibm.websphere.management.exception.ConnectorException;
+
 public class ApplicationComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet {
     private MBeanClient mbean;
     private MeasurementFacetSupport measurementFacetSupport;
     private ApplicationManager applicationManager;
+    private ConfigData<ApplicationInfo> applicationInfo;
+    private ConfigData<ApplicationConfiguration> applicationConfiguration;
     
     @Override
     protected void start() {
@@ -59,6 +61,8 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
         measurementFacetSupport.addHandler("specVersion", new ApplicationSpecVersionMeasurementHandler(this));
         measurementFacetSupport.setDefaultHandler(new JMXAttributeGroupHandler(mbean));
         applicationManager = server.getMBeanClient("WebSphere:type=ApplicationManager,*").getProxy(ApplicationManager.class);
+        applicationInfo = registerConfigQuery(new ApplicationInfoQuery(getApplicationName()));
+        applicationConfiguration = registerConfigQuery(new ApplicationConfigurationQuery(getApplicationName()));
     }
     
     public String getApplicationName() {
@@ -66,11 +70,11 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     }
     
     public ApplicationInfo getApplicationInfo() throws InterruptedException, ConnectorException, ConfigQueryException {
-        return getServer().queryConfig(new ApplicationInfoQuery(getApplicationName()));
+        return applicationInfo.get();
     }
     
     public ApplicationConfiguration getConfiguration() throws InterruptedException, ConnectorException, ConfigQueryException {
-        return getServer().queryConfig(new ApplicationConfigurationQuery(getApplicationName()));
+        return applicationConfiguration.get();
     }
     
     public void registerLogEventContext(String moduleName, EventContext context) {
@@ -91,8 +95,7 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     
     @Override
     protected boolean isConfigured() throws Exception {
-        ApplicationServer server = getServer();
-        return Arrays.asList(server.queryConfig(new DeployedApplicationsQuery(server.getNode(), server.getServer()))).contains(getApplicationName()) && !getApplicationInfo().isLooseConfig();
+        return getApplicationInfo() != null;
     }
 
     protected AvailabilityType doGetAvailability() {

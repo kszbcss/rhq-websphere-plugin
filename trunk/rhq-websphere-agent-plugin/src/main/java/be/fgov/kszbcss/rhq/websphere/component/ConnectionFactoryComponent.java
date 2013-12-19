@@ -38,6 +38,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.stat.WSRangeStatistic;
 
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
@@ -51,14 +52,16 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
     protected String jndiName;
     protected MBeanClient mbean;
     private MeasurementFacetSupport measurementFacetSupport;
+    private ConfigData<ConnectionFactoryInfo> configData;
 
     protected abstract ConnectionFactoryType getType();
 
     @Override
     protected void start() throws InvalidPluginConfigurationException {
         jndiName = getResourceContext().getResourceKey();
+        configData = registerConfigQuery(new ConnectionFactoryQuery(getNodeName(), getServerName(), getType(), jndiName));
         ApplicationServer server = getServer();
-        mbean = server.getMBeanClient(new ConnectionFactoryMBeanLocator(getType(), jndiName));
+        mbean = server.getMBeanClient(new ConnectionFactoryMBeanLocator(getType(), jndiName, configData));
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException, InterruptedException {
@@ -88,8 +91,7 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
     }
 
     public ConnectionFactoryInfo getConnectionFactoryInfo() throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        ApplicationServer server = getServer();
-        return server.queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), getType())).getByJndiName(jndiName);
+        return configData.get();
     }
     
     @Override

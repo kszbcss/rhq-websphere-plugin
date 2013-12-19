@@ -30,8 +30,8 @@ import javax.management.JMException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.types.ApplicationDeploymentCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.ClusteredTargetCO;
@@ -40,7 +40,6 @@ import be.fgov.kszbcss.rhq.websphere.config.types.DeploymentCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.DeploymentTargetCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.DeploymentTargetMappingCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.ModuleDeploymentCO;
-import be.fgov.kszbcss.rhq.websphere.config.types.PropertyCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.ServerTargetCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -58,9 +57,9 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
     }
 
     public ApplicationInfo execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        ApplicationDeploymentCO applicationDeployment = config.path(DeploymentCO.class, applicationName).path(ApplicationDeploymentCO.class).resolveSingle(false);
-        if (isLooseConfig(applicationDeployment)) {
-            return new ApplicationInfo(true, null, null, null);
+        ApplicationDeploymentCO applicationDeployment = config.path(DeploymentCO.class, applicationName).path(ApplicationDeploymentCO.class).resolveAtMostOne(false);
+        if (applicationDeployment == null) {
+            return null;
         } else {
             String dataId = applicationDeployment.getId();
             String baseURI = dataId.substring(0, dataId.indexOf('|'));
@@ -92,28 +91,9 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
                     throw ex;
                 }
             }
-            return new ApplicationInfo(false, deploymentDescriptor, loadTargetMappings(applicationDeployment),
+            return new ApplicationInfo(deploymentDescriptor, loadTargetMappings(applicationDeployment),
                     moduleInfos.toArray(new ModuleInfo[moduleInfos.size()]));
         }
-    }
-    
-    /**
-     * Determines if the given <tt>ApplicationDeployment</tt> object has a <tt>was.loose.config</tt> property.
-     * This is the case for applications deployed by RAD with resources in the workspace.
-     * 
-     * @param applicationDeployment
-     * @return <code>true</code> if the <tt>was.loose.config</tt> property is set
-     * @throws JMException
-     * @throws ConnectorException
-     * @throws InterruptedException
-     */
-    private boolean isLooseConfig(ApplicationDeploymentCO applicationDeployment) throws JMException, ConnectorException, InterruptedException {
-        for (PropertyCO property : applicationDeployment.getProperties()) {
-            if (property.getName().equals("was.loose.config")) {
-                return true;
-            }
-        }
-        return false;
     }
     
     private TargetMapping[] loadTargetMappings(DeployedObjectCO object) throws JMException, ConnectorException, InterruptedException {

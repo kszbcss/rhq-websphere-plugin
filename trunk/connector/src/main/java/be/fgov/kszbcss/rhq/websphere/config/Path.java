@@ -110,4 +110,19 @@ public abstract class Path<T extends ConfigObject> {
             throw new MultipleConfigObjectsFoundException("More than one configuration object found");
         }
     }
+
+    public T resolveAtMostOne(boolean detach) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+        Collection<T> configObjects = resolve(false);
+        if (configObjects.size() == 1) {
+            T configObject = configObjects.iterator().next();
+            if (detach) {
+                configObject.detach();
+            }
+            return configObject;
+        } else if (configObjects.isEmpty()) {
+            return null;
+        } else {
+            throw new MultipleConfigObjectsFoundException("More than one configuration object found");
+        }
+    }
 }

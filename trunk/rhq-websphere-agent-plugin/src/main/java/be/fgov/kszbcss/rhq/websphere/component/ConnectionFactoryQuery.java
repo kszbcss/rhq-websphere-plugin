@@ -22,9 +22,7 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.management.JMException;
@@ -42,27 +40,27 @@ import be.fgov.kszbcss.rhq.websphere.config.types.J2EEResourceProviderCO;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> {
-    private static final long serialVersionUID = -719660915106304560L;
+public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactoryInfo> {
+    private static final long serialVersionUID = 1L;
 
     private static final Log log = LogFactory.getLog(ConnectionFactoryQuery.class);
     
     private final String node;
     private final String server;
     private final ConnectionFactoryType type;
+    private final String jndiName;
     
-    public ConnectionFactoryQuery(String node, String server, ConnectionFactoryType type) {
+    public ConnectionFactoryQuery(String node, String server, ConnectionFactoryType type, String jndiName) {
         this.node = node;
         this.server = server;
         this.type = type;
+        this.jndiName = jndiName;
     }
 
-    public ConnectionFactories execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
-        List<ConnectionFactoryInfo> result = new ArrayList<ConnectionFactoryInfo>();
+    public ConnectionFactoryInfo execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         for (ConnectionFactoryCO cf : config.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve(false)) {
-            String jndiName = cf.getJndiName();
-            // If no JNDI name is defined, then it's probably a J2CConnectionFactory corresponding to a JDBC data source
-            if (jndiName != null) {
+            // Attention: the returned JNDI name may be null
+            if (jndiName.equals(cf.getJndiName())) {
                 if (log.isDebugEnabled()) {
                     log.debug("Retrieving properties for " + jndiName);
                 }
@@ -89,30 +87,29 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
                     properties.put(name, value);
                 }
                 J2EEResourceProviderCO provider = cf.getProvider();
-                // TODO: remove duplicate jndi names!
-                result.add(new ConnectionFactoryInfo(
+                return new ConnectionFactoryInfo(
                         cf.getId(),
                         provider.getName(),
                         cf.getName(),
                         jndiName,
                         cf instanceof DataSourceCO ? ((DataSourceCO)cf).getDatasourceHelperClassname() : null,
                         cf.getAuthDataAlias(),
-                        properties));
+                        properties);
             }
         }
-        return new ConnectionFactories(result.toArray(new ConnectionFactoryInfo[result.size()]));
+        return null;
     }
 
     @Override
     public int hashCode() {
-        return 31*31*node.hashCode() + 31*server.hashCode() + type.hashCode();
+        return 31*31*31*node.hashCode() + 31*31*server.hashCode() + 31*type.hashCode() + jndiName.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof ConnectionFactoryQuery) {
             ConnectionFactoryQuery other = (ConnectionFactoryQuery)obj;
-            return other.node.equals(node) && other.server.equals(server) && other.type.equals(type);
+            return other.node.equals(node) && other.server.equals(server) && other.type.equals(type) && other.jndiName.equals(jndiName);
         } else {
             return false;
         }
@@ -120,6 +117,6 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactories> 
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + node + "," + server + "," + type + ")";
+        return getClass().getSimpleName() + "(" + node + "," + server + "," + type + "," + jndiName + ")";
     }
 }

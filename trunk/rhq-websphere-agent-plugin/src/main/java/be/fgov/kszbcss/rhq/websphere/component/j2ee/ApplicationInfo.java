@@ -30,26 +30,15 @@ import java.util.List;
  * deployment descriptors.
  */
 public class ApplicationInfo extends DeployedObject {
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 3L;
     
-    private final boolean looseConfig;
     private final ModuleInfo[] modules;
     
-    public ApplicationInfo(boolean looseConfig, byte[] deploymentDescriptor, TargetMapping[] targetMappings, ModuleInfo[] modules) {
+    public ApplicationInfo(byte[] deploymentDescriptor, TargetMapping[] targetMappings, ModuleInfo[] modules) {
         super(deploymentDescriptor, targetMappings);
-        this.looseConfig = looseConfig;
         this.modules = modules;
     }
     
-    /**
-     * Indicates whether this is an application deployed by RAD with resources in the workspace.
-     * 
-     * @return <code>true</code> if this application is deployed by RAD with resources in the workspace
-     */
-    public boolean isLooseConfig() {
-        return looseConfig;
-    }
-
     public List<ModuleInfo> getModules(ModuleType type) {
         List<ModuleInfo> result = new ArrayList<ModuleInfo>();
         for (ModuleInfo module : modules) {

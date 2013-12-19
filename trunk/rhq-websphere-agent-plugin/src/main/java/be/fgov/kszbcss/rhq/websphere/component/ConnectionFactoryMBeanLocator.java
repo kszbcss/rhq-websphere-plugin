@@ -26,9 +26,9 @@ import java.util.Map;
 
 import javax.management.JMException;
 
+import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.DynamicMBeanObjectNamePatternLocator;
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -41,18 +41,20 @@ import com.ibm.websphere.management.exception.ConnectorException;
 public final class ConnectionFactoryMBeanLocator extends DynamicMBeanObjectNamePatternLocator {
     private final ConnectionFactoryType type;
     private final String jndiName;
+    private final ConfigData<ConnectionFactoryInfo> configData;
 
-    public ConnectionFactoryMBeanLocator(ConnectionFactoryType type, String jndiName) {
+    public ConnectionFactoryMBeanLocator(ConnectionFactoryType type, String jndiName, ConfigData<ConnectionFactoryInfo> configData) {
         super("WebSphere", false);
         this.type = type;
         this.jndiName = jndiName;
+        this.configData = configData;
     }
 
     @Override
     protected void applyKeyProperties(WebSphereServer server, Map<String,String> props) throws JMException, ConnectorException, InterruptedException {
         ConnectionFactoryInfo cf;
         try {
-            cf = ((ApplicationServer)server).queryConfig(new ConnectionFactoryQuery(server.getNode(), server.getServer(), type)).getByJndiName(jndiName);
+            cf = configData.get();
         } catch (ConfigQueryException ex) {
             // TODO
             throw new RuntimeException(ex);

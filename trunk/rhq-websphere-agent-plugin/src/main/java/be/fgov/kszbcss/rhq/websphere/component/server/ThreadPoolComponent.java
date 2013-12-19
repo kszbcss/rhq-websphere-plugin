@@ -37,6 +37,7 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.ThreadPoolPMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
 import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolCO;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.proxy.ThreadMonitor;
@@ -49,6 +50,7 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
     private MeasurementFacetSupport measurementFacetSupport;
     private ConfigurationFacetSupport configurationFacetSupport;
     private ThreadMonitor threadMonitor;
+    private ConfigData<ThreadPoolCO> configData;
     
     @Override
     protected void start() throws InvalidPluginConfigurationException {
@@ -61,7 +63,8 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
         measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(server.getServerMBean(), PmiConstants.THREADPOOL_MODULE, name));
         configurationFacetSupport = new ConfigurationFacetSupport(this,
                 server.getMBeanClient("WebSphere:type=ThreadPool,name=" + name + ",*"), true);
-        threadMonitor = server.getMBeanClient("XM4WAS:type=ThreadMonitor,*").getProxy(ThreadMonitor.class); 
+        threadMonitor = server.getMBeanClient("XM4WAS:type=ThreadMonitor,*").getProxy(ThreadMonitor.class);
+        configData = registerConfigQuery(new ThreadPoolQuery(getNodeName(), getServerName(), name));
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
@@ -78,13 +81,7 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
 
     @Override
     protected boolean isConfigured() throws Exception {
-        ApplicationServer server = getServer();
-        for (ThreadPoolCO threadPool : server.queryConfig(new ThreadPoolManagerQuery(server.getNode(), server.getServer())).getThreadPools()) {
-            if (threadPool.getName().equals(getResourceContext().getResourceKey())) {
-                return true;
-            }
-        }
-        return false;
+        return configData.get() != null;
     }
 
     protected AvailabilityType doGetAvailability() {

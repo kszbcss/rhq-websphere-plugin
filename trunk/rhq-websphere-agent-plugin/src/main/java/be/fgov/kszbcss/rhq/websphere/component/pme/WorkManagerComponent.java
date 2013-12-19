@@ -37,6 +37,8 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import be.fgov.kszbcss.rhq.websphere.component.ThreadPoolPMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
+import be.fgov.kszbcss.rhq.websphere.config.types.WorkManagerInfoCO;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.support.configuration.ConfigurationFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
@@ -44,6 +46,7 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport
 public class WorkManagerComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, ConfigurationFacet {
     private MeasurementFacetSupport measurementFacetSupport;
     private ConfigurationFacetSupport configurationFacetSupport;
+    private ConfigData<WorkManagerInfoCO> configData;
     
     @Override
     protected void start() throws InvalidPluginConfigurationException {
@@ -51,10 +54,11 @@ public class WorkManagerComponent extends WebSphereServiceComponent<WebSphereSer
         measurementFacetSupport = new MeasurementFacetSupport(this);
         ApplicationServer server = getServer();
         String jndiName = context.getResourceKey();
+        configData = registerConfigQuery(new WorkManagerQuery(getNodeName(), getServerName(), jndiName));
         measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(server.getServerMBean(),
-                new WorkManagerThreadPoolPMIModuleSelector(server, jndiName)));
+                new WorkManagerThreadPoolPMIModuleSelector(jndiName, configData)));
         configurationFacetSupport = new ConfigurationFacetSupport(this,
-                server.getMBeanClient(new WorkManagerThreadPoolMBeanLocator(jndiName)), true);
+                server.getMBeanClient(new WorkManagerThreadPoolMBeanLocator(jndiName, configData)), true);
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
@@ -71,8 +75,7 @@ public class WorkManagerComponent extends WebSphereServiceComponent<WebSphereSer
 
     @Override
     protected boolean isConfigured() throws Exception {
-        ApplicationServer server = getServer();
-        return server.queryConfig(new WorkManagerMapQuery(server.getNode(), server.getServer())).containsKey(getResourceContext().getResourceKey());
+        return configData.get() != null;
     }
 
     protected AvailabilityType doGetAvailability() {

@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2013 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,8 +35,6 @@ import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.configuration.PropertyList;
 import org.rhq.core.domain.configuration.PropertyMap;
 import org.rhq.core.domain.configuration.PropertySimple;
-
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 /**
  * Support class to collect the deployment configuration for a WAR module or an EJB.
@@ -90,8 +88,7 @@ public class DeploymentConfigurationFacetSupport {
             log.debug("Messaging destination bindings: " + messagingDestinationRefs);
         }
         if (!messagingDestinationRefs.isEmpty()) {
-            ApplicationServer server = application.getServer();
-            SIBDestinationMap sibDestinationMap = server.queryConfig(new SIBDestinationMapQuery(server.getNode(), server.getServer()));
+            SIBDestinationMap sibDestinationMap = application.getParent().getSIBDestinationMap();
             PropertyList list = new PropertyList("messagingDestinationRefs");
             for (Map.Entry<String,String> entry : messagingDestinationRefs.entrySet()) {
                 PropertyMap map = new PropertyMap("messagingDestinationRef");

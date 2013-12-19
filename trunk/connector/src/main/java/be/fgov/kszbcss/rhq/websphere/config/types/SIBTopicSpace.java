@@ -22,11 +22,8 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config.types;
 
-import be.fgov.kszbcss.rhq.websphere.config.ConfigObject;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigObjectType;
 
-@ConfigObjectType(name = "SIBLocalizationPoint")
-public interface SIBLocalizationPointCO extends ConfigObject {
-    String getIdentifier();
-    String getTargetUuid();
+@ConfigObjectType(name = "SIBTopicSpace")
+public interface SIBTopicSpace extends SIBDestination {
 }
