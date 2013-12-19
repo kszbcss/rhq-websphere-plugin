@@ -46,6 +46,11 @@ import com.ibm.websphere.management.configservice.ConfigServiceHelper;
 import com.ibm.websphere.management.configservice.SystemAttributes;
 import com.ibm.websphere.management.exception.ConnectorException;
 
+/**
+ * Invocation handler for {@link ConfigObject} proxies. This class is designed to be thread safe
+ * because {@link CellConfiguration} caches {@link ConfigObject} instances and they may therefore be
+ * accessed concurrently.
+ */
 final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigObject {
     private static final long serialVersionUID = 1L;
 
@@ -71,7 +76,7 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
         return objectName.getKeyProperty(SystemAttributes._WEBSPHERE_CONFIG_DATA_TYPE);
     }
     
-    public void detach() throws JMException, ConnectorException, InterruptedException {
+    public synchronized void detach() throws JMException, ConnectorException, InterruptedException {
         for (ConfigObjectAttributeDesc desc : type.getAttributeDescriptors()) {
             Object value = getAttributeValue(desc);
             if (desc.isReference()) {
@@ -97,7 +102,7 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
         }
     }
     
-    private Object getAttributeValue(ConfigObjectAttributeDesc desc) throws JMException, ConnectorException, InterruptedException {
+    private synchronized Object getAttributeValue(ConfigObjectAttributeDesc desc) throws JMException, ConnectorException, InterruptedException {
         if (attributes == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Loading attributes for configuration object " + objectName + " ...");
@@ -141,7 +146,7 @@ final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigOb
         }
     }
     
-    private void writeObject(ObjectOutputStream stream) throws IOException {
+    private synchronized void writeObject(ObjectOutputStream stream) throws IOException {
         if (config != null) {
             throw new IllegalStateException("Configuration object has not been detached");
         }

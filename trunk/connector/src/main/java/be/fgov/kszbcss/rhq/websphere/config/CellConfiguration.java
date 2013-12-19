@@ -25,6 +25,7 @@ package be.fgov.kszbcss.rhq.websphere.config;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -66,6 +67,10 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * </ul>
  */
 public class CellConfiguration {
+    static class ResolverCacheEntry {
+        ConfigObject[] result;
+    }
+    
     private static final Log log = LogFactory.getLog(CellConfiguration.class);
     
     private final String cell;
@@ -76,6 +81,26 @@ public class CellConfiguration {
     private final ReadWriteLock sessionLock = new ReentrantReadWriteLock();
     private boolean destroyed;
     private Session session;
+    
+    /**
+     * Cache for {@link ConfigService#resolve(Session, String)} results. There are several reasons
+     * to cache the results of that method:
+     * <ul>
+     * <li>If the agent monitors multiple application servers in the same cell, then the code will
+     * repeatedly resolve the same containment paths, namely for configuration objects defined at
+     * cell, node or cluster scope.
+     * <li>It removes the need to optimize {@link ConfigQuery} implementations to reduce the number
+     * of config object lookups. Instead we can optimize them for readablity and clarity of design.
+     * </ul>
+     */
+    private final Map<String,ResolverCacheEntry> resolverCache = new HashMap<String,ResolverCacheEntry>();
+    
+    /**
+     * {@link ConfigObject} cache. This cache ensures that during the lifetime of a given session, only
+     * a single {@link ConfigObject} instance is constructed for each accessed config object on the
+     * server side.
+     */
+    private final Map<String,ConfigObject> configObjectCache = new HashMap<String,ConfigObject>();
     
     CellConfiguration(String cell, ConfigService configService, ConfigRepository configRepository, AppManagement appManagement) {
         this.cell = cell;
@@ -122,10 +147,16 @@ public class CellConfiguration {
         } finally {
             writeLock.unlock();
         }
+        if (log.isDebugEnabled()) {
+            log.debug("Start executing action " + action + " on session " + session);
+        }
         try {
             return action.execute(configService, appManagement, session);
         } finally {
             readLock.unlock();
+            if (log.isDebugEnabled()) {
+                log.debug("Finished executing action " + action + " on session " + session);
+            }
         }
     }
     
@@ -160,21 +191,65 @@ public class CellConfiguration {
     }
     
     <T extends ConfigObject> Collection<T> resolve(final String containmentPath, Class<T> type) throws JMException, ConnectorException, InterruptedException {
-        ObjectName[] objectNames = execute(new SessionAction<ObjectName[]>() {
-            public ObjectName[] execute(ConfigService configService, AppManagement appManagement, Session session) throws JMException, ConnectorException {
-                return configService.resolve(session, containmentPath);
+        ResolverCacheEntry cacheEntry;
+        synchronized (resolverCache) {
+            cacheEntry = resolverCache.get(containmentPath);
+            if (cacheEntry == null) {
+                cacheEntry = new ResolverCacheEntry();
+                resolverCache.put(containmentPath, cacheEntry);
             }
-        });
-        Collection<T> result = new ArrayList<T>(objectNames.length);
-        for (ObjectName objectName : objectNames) {
-            result.add(type.cast(getConfigObject(objectName)));
+        }
+        ConfigObject[] configObjects;
+        synchronized (cacheEntry) {
+            configObjects = cacheEntry.result;
+            if (configObjects != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Resolver cache hit for containment path " + containmentPath);
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Resolver cache miss for containment path " + containmentPath);
+                }
+                ObjectName[] objectNames = execute(new SessionAction<ObjectName[]>() {
+                    public ObjectName[] execute(ConfigService configService, AppManagement appManagement, Session session) throws JMException, ConnectorException {
+                        return configService.resolve(session, containmentPath);
+                    }
+                });
+                if (log.isDebugEnabled()) {
+                    log.debug("Resolver result: " + Arrays.asList(objectNames));
+                }
+                configObjects = new ConfigObject[objectNames.length];
+                for (int i=0; i<objectNames.length; i++) {
+                    configObjects[i] = getConfigObject(objectNames[i]);
+                }
+                cacheEntry.result = configObjects;
+            }
+        }
+        Collection<T> result = new ArrayList<T>(configObjects.length);
+        for (ConfigObject configObject : configObjects) {
+            result.add(type.cast(configObject));
         }
         return result;
     }
     
     ConfigObject getConfigObject(ObjectName objectName) {
-        // TODO: null check (unknown config object type)
-        return ConfigObjectTypeRegistry.getDescriptor(objectName.getKeyProperty(SystemAttributes._WEBSPHERE_CONFIG_DATA_TYPE)).createInstance(this, objectName);
+        String id = objectName.getKeyProperty(SystemAttributes._WEBSPHERE_CONFIG_DATA_ID);
+        synchronized (configObjectCache) {
+            ConfigObject configObject = configObjectCache.get(id);
+            if (configObject != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Config object cache hit for " + id);
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Config object cache miss for " + id);
+                }
+                // TODO: null check (unknown config object type)
+                configObject = ConfigObjectTypeRegistry.getDescriptor(objectName.getKeyProperty(SystemAttributes._WEBSPHERE_CONFIG_DATA_TYPE)).createInstance(this, objectName);
+                configObjectCache.put(id, configObject);
+            }
+            return configObject;
+        }
     }
     
     public String[] listResourceNames(String parent, int type, int depth) throws JMException, ConnectorException {
@@ -236,6 +311,14 @@ public class CellConfiguration {
                     configService.discard(session);
                 } catch (Exception ex) {
                     log.warn("Unexpected exception when discarding workspace " + session, ex);
+                }
+                synchronized (resolverCache) {
+                    log.debug("Clearing resolver cache");
+                    resolverCache.clear();
+                }
+                synchronized (configObjectCache) {
+                    log.debug("Clearing config object cache");
+                    configObjectCache.clear();
                 }
             }
             if (destroy) {
