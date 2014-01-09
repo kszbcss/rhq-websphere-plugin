@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -38,6 +38,9 @@ public abstract class Path<T extends ConfigObject> {
     abstract <S extends ConfigObject> Collection<S> resolveRelative(String relativePath, Class<S> type) throws JMException, ConnectorException, InterruptedException;
     
     public final <S extends ConfigObject> Path<S> path(Class<S> type, String name) {
+        if (name == null) {
+            throw new IllegalArgumentException("name must not be null");
+        }
         return new RelativePath<S>(this, type, name);
     }
     
