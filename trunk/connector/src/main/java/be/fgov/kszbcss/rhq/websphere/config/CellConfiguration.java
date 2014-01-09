@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -185,9 +185,16 @@ public class CellConfiguration {
         Path<NodeCO> node = cell.path(NodeCO.class, nodeName);
         Path<ServerCO> server = node.path(ServerCO.class, serverName);
         ServerCO serverObject = server.resolveSingle(false);
-        Path<ServerClusterCO> cluster = cell.path(ServerClusterCO.class, serverObject.getClusterName());
         // Order is important here: we return objects with higher precedence first
-        return new PathGroup<Scope>(Scope.class, server, cluster, node, cell);
+        Collection<Path<? extends Scope>> paths = new ArrayList<Path<? extends Scope>>(4);
+        paths.add(server);
+        String clusterName = serverObject.getClusterName();
+        if (clusterName != null) {
+            paths.add(cell.path(ServerClusterCO.class, clusterName));
+        }
+        paths.add(node);
+        paths.add(cell);
+        return new PathGroup<Scope>(Scope.class, paths);
     }
     
     <T extends ConfigObject> Collection<T> resolve(final String containmentPath, Class<T> type) throws JMException, ConnectorException, InterruptedException {

@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,9 +32,9 @@ import com.ibm.websphere.management.exception.ConnectorException;
 
 final class PathGroup<T extends ConfigObject> extends Path<T> {
     private final Class<T> type;
-    private final Path<? extends T>[] paths;
+    private final Collection<Path<? extends T>> paths;
     
-    PathGroup(Class<T> type, Path<? extends T>... paths) {
+    PathGroup(Class<T> type, Collection<Path<? extends T>> paths) {
         this.type = type;
         this.paths = paths;
     }
