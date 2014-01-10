@@ -30,6 +30,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>rhq-websphere-agent-plugin</artifactId>
+    <packaging>rhq-agent-plugin</packaging>
     <name>RHQ WebSphere Agent Plug-in</name>
     <description>RHQ plugin for managing WebSphere Application Server</description>
     <dependencies>
@@ -115,20 +116,16 @@
     <build>
         <plugins>
             <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-libs</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.outputDirectory}/lib</outputDirectory>
-                            <includeScope>runtime</includeScope>
-                        </configuration>
-                    </execution>
-                </executions>
+                <groupId>org.rhq.maven.plugins</groupId>
+                <artifactId>rhq-agent-plugin-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -145,16 +142,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Implementation-Version>${project.version}</Implementation-Version>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -165,21 +152,6 @@
                     <configuration>
                         <lifecycleMappingMetadata>
                             <pluginExecutions>
-                                <pluginExecution>
-                                    <!-- This is not required in Eclipse; ignoring this just means that we can't build the
-                                         deployable plug-in in Eclipse (but we can still compile and run unit tests). -->
-                                    <pluginExecutionFilter>
-                                        <groupId>org.apache.maven.plugins</groupId>
-                                        <artifactId>maven-dependency-plugin</artifactId>
-                                        <versionRange>[1.0.0,)</versionRange>
-                                        <goals>
-                                            <goal>copy-dependencies</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore/>
-                                    </action>
-                                </pluginExecution>
                                 <pluginExecution>
                                     <!-- We only need the aspects at runtime, but not to compile the code in Eclipse. -->
                                     <pluginExecutionFilter>
