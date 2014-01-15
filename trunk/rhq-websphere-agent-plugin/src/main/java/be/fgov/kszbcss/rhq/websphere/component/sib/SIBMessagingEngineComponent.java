@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -48,6 +48,7 @@ import be.fgov.kszbcss.rhq.websphere.proxy.SIBMain;
 import be.fgov.kszbcss.rhq.websphere.proxy.SIBMessagingEngine;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXOperationMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
+import be.fgov.kszbcss.rhq.websphere.support.measurement.SimpleMeasurementHandler;
 
 import com.ibm.websphere.hamanager.jmx.GroupMemberData;
 import com.ibm.websphere.hamanager.jmx.GroupMemberState;
@@ -77,6 +78,23 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         sibMessagingEngine = sibMessagingEngineMBeanClient.getProxy(SIBMessagingEngine.class);
         measurementFacetSupport = new MeasurementFacetSupport(this);
         measurementFacetSupport.addHandler("health", new JMXOperationMeasurementHandler(sibMessagingEngineMBeanClient, "getHealth", true));
+        measurementFacetSupport.addHandler("state", new SimpleMeasurementHandler() {
+            @Override
+            protected Object getValue() throws InterruptedException, JMException, ConnectorException {
+                return getState();
+            }
+        });
+        measurementFacetSupport.addHandler("memberState", new SimpleMeasurementHandler() {
+            @Override
+            protected Object getValue() throws InterruptedException, JMException, ConnectorException {
+                try {
+                    return getMemberState();
+                } catch (ConfigQueryException ex) {
+                    // TODO: better exception?
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
         sibMessagingEngineInfo = registerConfigQuery(new SIBMessagingEngineQuery(getNodeName(), getServerName(), name));
     }
 
@@ -151,27 +169,17 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         } else if (state.equals("Joined")) {
             log.debug("Messaging engine is in state Joined; check the state in the HAManager");
             try {
-                ApplicationServer server = getServer();
-                String nodeName = server.getNode();
-                String serverName = server.getServer();
-                long startTime = System.currentTimeMillis();
-                GroupMemberData[] members = haManager.retrieveGroupMembers(getGroupName());
-                long duration = System.currentTimeMillis() - startTime;
-                if (log.isDebugEnabled()) {
-                    log.debug("HAManager#retrieveGroupMembers took " + duration + " ms");
-                }
-                for (GroupMemberData member : members) {
-                    if (member.getNodeName().equals(nodeName) && member.getServerName().equals(serverName)) {
-                        GroupMemberState memberState = member.getMemberState();
-                        AvailabilityType availability = memberState.equals(GroupMemberState.IDLE) ? AvailabilityType.UP : AvailabilityType.DOWN;
-                        if (log.isDebugEnabled()) {
-                            log.debug("Group member state = " + memberState + " => messaging engine " + availability);
-                        }
-                        return availability;
+                GroupMemberState memberState = getMemberState();
+                if (memberState == null) {
+                    log.debug("No group member data found => messaging engine DOWN");
+                    return AvailabilityType.DOWN;
+                } else {
+                    AvailabilityType availability = memberState.equals(GroupMemberState.IDLE) ? AvailabilityType.UP : AvailabilityType.DOWN;
+                    if (log.isDebugEnabled()) {
+                        log.debug("Group member state = " + memberState + " => messaging engine " + availability);
                     }
+                    return availability;
                 }
-                log.debug("No group member data found => messaging engine DOWN");
-                return AvailabilityType.DOWN;
             } catch (Exception ex) {
                 log.debug("Failed to get state from HAManager => messaging engine DOWN", ex);
                 return AvailabilityType.DOWN;
@@ -186,7 +194,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         measurementFacetSupport.getValues(report, requests);
     }
 
-    private synchronized String getState() throws JMException, ConnectorException {
+    synchronized String getState() throws JMException, ConnectorException {
         long currentTime = System.currentTimeMillis();
         if (currentTime - cachedStateTimestamp > 60000) {
             cachedState = null;
@@ -200,6 +208,24 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
             cachedStateTimestamp = currentTime;
         }
         return cachedState;
+    }
+    
+    GroupMemberState getMemberState() throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+        ApplicationServer server = getServer();
+        String nodeName = server.getNode();
+        String serverName = server.getServer();
+        long startTime = System.currentTimeMillis();
+        GroupMemberData[] members = haManager.retrieveGroupMembers(getGroupName());
+        long duration = System.currentTimeMillis() - startTime;
+        if (log.isDebugEnabled()) {
+            log.debug("HAManager#retrieveGroupMembers took " + duration + " ms");
+        }
+        for (GroupMemberData member : members) {
+            if (member.getNodeName().equals(nodeName) && member.getServerName().equals(serverName)) {
+                return member.getMemberState();
+            }
+        }
+        return null;
     }
     
     public boolean isActive() throws JMException, ConnectorException {
