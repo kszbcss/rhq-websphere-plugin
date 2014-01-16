@@ -58,6 +58,7 @@ public abstract class SIBLocalizationPointComponent extends WebSphereServiceComp
     }
     
     protected AvailabilityType doGetAvailability() {
+        // TODO: if the messaging engine is active, we should check that the corresponding MBean is registered and that the state reported by the MBean is ACTIVE
         return AvailabilityType.UP;
     }
 
