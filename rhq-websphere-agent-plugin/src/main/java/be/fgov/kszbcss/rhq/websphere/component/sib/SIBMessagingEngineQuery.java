@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -48,7 +48,7 @@ import be.fgov.kszbcss.rhq.websphere.config.types.SIBus;
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineInfo> {
-    private static final long serialVersionUID = 3L;
+    private static final long serialVersionUID = 4L;
     
     private static final Log log = LogFactory.getLog(SIBMessagingEngineQuery.class);
     
@@ -128,14 +128,14 @@ public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineIn
 
     @Override
     public int hashCode() {
-        return 31*node.hashCode() + server.hashCode();
+        return 31*31*node.hashCode() + 31*server.hashCode() + name.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof SIBMessagingEngineQuery) {
             SIBMessagingEngineQuery other = (SIBMessagingEngineQuery)obj;
-            return other.node.equals(node) && other.server.equals(server);
+            return other.node.equals(node) && other.server.equals(server) && other.name.equals(name);
         } else {
             return false;
         }
@@ -143,6 +143,6 @@ public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineIn
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + node + "," + server + ")";
+        return getClass().getSimpleName() + "(" + node + "," + server + "," + name + ")";
     }
 }
