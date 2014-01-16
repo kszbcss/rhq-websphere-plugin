@@ -174,9 +174,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
                     log.debug("No group member data found => messaging engine DOWN");
                     return AvailabilityType.DOWN;
                 } else {
-                    // Normally a standby messaging engine is expected to be in state Joined/IDLE, but under some
-                    // circumstances (or on some WebSphere versions?) the state is Joined/ACTIVATED.
-                    AvailabilityType availability = memberState.equals(GroupMemberState.IDLE) || memberState.equals(GroupMemberState.ACTIVATED) ? AvailabilityType.UP : AvailabilityType.DOWN;
+                    AvailabilityType availability = memberState.equals(GroupMemberState.IDLE) ? AvailabilityType.UP : AvailabilityType.DOWN;
                     if (log.isDebugEnabled()) {
                         log.debug("Group member state = " + memberState + " => messaging engine " + availability);
                     }
