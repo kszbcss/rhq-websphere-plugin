@@ -26,6 +26,8 @@ import javax.management.JMException;
 
 import org.rhq.core.domain.configuration.Configuration;
 
+import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
@@ -34,6 +36,8 @@ import be.fgov.kszbcss.rhq.websphere.process.locator.ConfigurationBasedProcessLo
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public final class ManagedServer extends ApplicationServer {
+    private final ConfigQuery<String> clusterNameQuery;
+    private final ConfigData<String> clusterName;
     private NodeAgent nodeAgent;
     
     /**
@@ -49,6 +53,13 @@ public final class ManagedServer extends ApplicationServer {
      */
     public ManagedServer(String cell, String node, String server, Configuration config) {
         super(cell, node, server, "ManagedProcess", new ConfigurationBasedProcessLocator(config));
+        clusterName = registerConfigQuery(clusterNameQuery = new ClusterNameQuery(node, server));
+    }
+
+    @Override
+    public void destroy() {
+        unregisterConfigQuery(clusterNameQuery);
+        super.destroy();
     }
 
     public synchronized NodeAgent getNodeAgent() {
@@ -64,6 +75,6 @@ public final class ManagedServer extends ApplicationServer {
     }
 
     public String getClusterName() throws InterruptedException, JMException, ConnectorException, ConfigQueryException {
-        return queryConfig(new ClusterNameQuery(getNode(), getServer()));
+        return clusterName.get();
     }
 }

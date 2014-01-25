@@ -69,7 +69,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     private ConfigData<SIBMessagingEngineInfo> sibMessagingEngineInfo;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException {
+    protected void doStart() throws InvalidPluginConfigurationException {
         name = getResourceContext().getResourceKey();
         WebSphereServer server = getServer();
         sibMain = server.getMBeanClient("WebSphere:type=SIBMain,*").getProxy(SIBMain.class);
@@ -245,8 +245,5 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         } else {
             return null;
         }
-    }
-
-    public void stop() {
     }
 }

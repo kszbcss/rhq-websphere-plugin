@@ -44,8 +44,8 @@ public class DataSourceComponent extends ConnectionFactoryComponent implements C
     }
 
     @Override
-    protected void start() throws InvalidPluginConfigurationException {
-        super.start();
+    protected void doStart() throws InvalidPluginConfigurationException {
+        super.doStart();
         configurationFacetSupport = new ConfigurationFacetSupport(this, mbean);
     }
     

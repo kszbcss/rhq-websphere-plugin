@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -47,8 +47,8 @@ public class WebModuleComponent extends ModuleComponent implements Configuration
     private DeploymentConfigurationFacetSupport configurationFacetSupport;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException {
-        super.start();
+    protected void doStart() throws InvalidPluginConfigurationException {
+        super.doStart();
         configurationFacetSupport = new DeploymentConfigurationFacetSupport(getParent(), getModuleName(), null);
         ResourceContext<ApplicationComponent> context = getResourceContext();
         PropertySimple suppressLogEventsProp = context.getPluginConfiguration().getSimple("suppressLogEvents");
@@ -79,8 +79,7 @@ public class WebModuleComponent extends ModuleComponent implements Configuration
     }
 
     @Override
-    public void stop() {
+    protected void doStop() {
         getParent().unregisterLogEventContext(getModuleName());
-        super.stop();
     }
 }

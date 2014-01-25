@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,6 +23,8 @@
 package be.fgov.kszbcss.rhq.websphere.component;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,20 +40,18 @@ import org.rhq.plugins.jmx.JMXComponent;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
-
-import com.ibm.websphere.management.exception.ConnectorException;
 
 public abstract class WebSphereComponent<T extends ResourceComponent<?>> implements JMXComponent<T>, OperationFacet {
     private static final Log log = LogFactory.getLog(WebSphereComponent.class);
     
     private ResourceContext<T> resourceContext;
+    private final List<ConfigQuery<?>> registeredConfigQueries = new ArrayList<ConfigQuery<?>>();
 
     public final void start(ResourceContext<T> context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
-        start();
+        doStart();
     }
     
     public final ResourceContext<T> getResourceContext() {
@@ -76,19 +76,26 @@ public abstract class WebSphereComponent<T extends ResourceComponent<?>> impleme
      * 
      * @see ResourceComponent#start(ResourceContext)
      */
-    protected abstract void start() throws InvalidPluginConfigurationException;
+    protected abstract void doStart() throws InvalidPluginConfigurationException;
     
+    public final void stop() {
+        doStop();
+        for (ConfigQuery<?> query : registeredConfigQueries) {
+            getServer().unregisterConfigQuery(query);
+        }
+        registeredConfigQueries.clear();
+    }
+    
+    protected void doStop() {}
+
     public abstract String getNodeName();
     public abstract String getServerName();
     
     public abstract ApplicationServer getServer();
     
-    protected final <S extends Serializable> ConfigData<S> registerConfigQuery(final ConfigQuery<S> query) {
-        return new ConfigData<S>() {
-            public S get() throws InterruptedException, ConnectorException, ConfigQueryException {
-                return getServer().queryConfig(query);
-            }
-        };
+    protected final <S extends Serializable> ConfigData<S> registerConfigQuery(ConfigQuery<S> query) {
+        registeredConfigQueries.add(query);
+        return getServer().registerConfigQuery(query);
     }
     
     /**

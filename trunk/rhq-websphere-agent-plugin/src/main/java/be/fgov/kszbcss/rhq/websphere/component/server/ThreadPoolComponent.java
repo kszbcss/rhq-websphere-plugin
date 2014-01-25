@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -53,7 +53,7 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
     private ConfigData<ThreadPoolCO> configData;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException {
+    protected void doStart() throws InvalidPluginConfigurationException {
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
         ApplicationServer server = getServer();
         measurementFacetSupport = new MeasurementFacetSupport(this);
@@ -98,8 +98,5 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
         } else {
             return super.doInvokeOperation(name, parameters);
         }
-    }
-
-    public void stop() {
     }
 }

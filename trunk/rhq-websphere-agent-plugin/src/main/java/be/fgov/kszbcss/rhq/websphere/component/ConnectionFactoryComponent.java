@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -57,7 +57,7 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
     protected abstract ConnectionFactoryType getType();
 
     @Override
-    protected void start() throws InvalidPluginConfigurationException {
+    protected void doStart() throws InvalidPluginConfigurationException {
         jndiName = getResourceContext().getResourceKey();
         configData = registerConfigQuery(new ConnectionFactoryQuery(getNodeName(), getServerName(), getType(), jndiName));
         ApplicationServer server = getServer();
@@ -87,9 +87,6 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
         });
     }
     
-    public void stop() {
-    }
-
     public ConnectionFactoryInfo getConnectionFactoryInfo() throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         return configData.get();
     }
