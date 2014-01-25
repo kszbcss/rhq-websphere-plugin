@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012,2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -38,7 +38,7 @@ import org.rhq.core.pluginapi.plugin.PluginContext;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.process.DeploymentManager;
+import be.fgov.kszbcss.rhq.websphere.process.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.process.UnmanagedServer;
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
@@ -96,22 +96,22 @@ public class ConfigQueryServiceFactory {
         instance = null;
     }
 
-    public synchronized ConfigQueryService getConfigQueryService(DeploymentManager deploymentManager) throws ConnectorException {
+    public synchronized ConfigQueryService getConfigQueryService(ManagedServer server) {
         // Normally at this point the cell should be known (because the DeploymentManager object is
         // created from an ApplicationServer object with a known cell name). Therefore the
         // invocation of getCell should not trigger a call to the deployment manager, i.e. this
         // method returns successfully even if the deployment manager is unavailable (which is a requirement).
-        String cell = deploymentManager.getCell();
+        String cell = server.getCell();
         DeploymentManagerConnection dmc = dmcMap.get(cell);
         if (dmc == null) {
-            dmc = new DeploymentManagerConnection(this, cacheManager, deploymentManager, cell);
+            dmc = new DeploymentManagerConnection(this, cacheManager, server.getNodeAgent().getDeploymentManager(), cell);
             dmcMap.put(cell, dmc);
         }
         dmc.incrementRefCount();
         return new ConfigQueryServiceHandle(dmc);
     }
     
-    public ConfigQueryService getConfigQueryService(UnmanagedServer server) throws ConnectorException {
+    public ConfigQueryService getConfigQueryService(UnmanagedServer server) {
         // We use cell+node+server as cache name because for a stand-alone server it is more likely that the cell name is not unique
         String cell = server.getCell();
         return new ConfigQueryServiceImpl(cacheManager, cell + "_" + server.getNode() + "_" + server.getServer(), server, cell);

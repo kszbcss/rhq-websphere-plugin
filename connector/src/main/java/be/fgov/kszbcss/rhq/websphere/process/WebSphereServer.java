@@ -117,14 +117,35 @@ public abstract class WebSphereServer {
     public void destroy() {
     }
     
+    /**
+     * Get the cell name. A subclass may override this method if it is able to return the cell name
+     * without the possibility of getting a {@link ConnectorException}.
+     * 
+     * @return the cell name
+     * @throws ConnectorException
+     */
     public String getCell() throws ConnectorException {
         return processIdentityValidator.getCell();
     }
 
+    /**
+     * Get the node name. A subclass may override this method if it is able to return the node name
+     * without the possibility of getting a {@link ConnectorException}.
+     * 
+     * @return the node name
+     * @throws ConnectorException
+     */
     public String getNode() throws ConnectorException {
         return processIdentityValidator.getNode();
     }
 
+    /**
+     * Get the server name. A subclass may override this method if it is able to return the server
+     * name without the possibility of getting a {@link ConnectorException}.
+     * 
+     * @return the server name
+     * @throws ConnectorException
+     */
     public String getServer() throws ConnectorException {
         return processIdentityValidator.getServer();
     }
