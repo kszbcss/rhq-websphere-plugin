@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,13 @@ package be.fgov.kszbcss.rhq.websphere.process;
 import be.fgov.kszbcss.rhq.websphere.process.locator.ProcessLocator;
 
 public final class DeploymentManager extends WebSphereServer {
+    /**
+     * Constructor.
+     * 
+     * @param cell
+     *            the cell name; may be <code>null</code> if unknown
+     * @param processLocator
+     */
     public DeploymentManager(String cell, ProcessLocator processLocator) {
         super(cell, null, "dmgr", "DeploymentManager", processLocator);
     }

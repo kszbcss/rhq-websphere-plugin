@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,11 +36,22 @@ import com.ibm.websphere.management.exception.ConnectorException;
 public final class ManagedServer extends ApplicationServer {
     private NodeAgent nodeAgent;
     
+    /**
+     * Constructor.
+     * 
+     * @param cell
+     *            the cell name; must not be <code>null</code>
+     * @param node
+     *            the node name; must not be <code>null</code>
+     * @param server
+     *            the server name; must not be <code>null</code>
+     * @param config
+     */
     public ManagedServer(String cell, String node, String server, Configuration config) {
         super(cell, node, server, "ManagedProcess", new ConfigurationBasedProcessLocator(config));
     }
 
-    public synchronized NodeAgent getNodeAgent() throws ConnectorException {
+    public synchronized NodeAgent getNodeAgent() {
         if (nodeAgent == null) {
             nodeAgent = new NodeAgent(getCell(), getNode(), new ParentProcessLocator(this));
         }
@@ -48,8 +59,8 @@ public final class ManagedServer extends ApplicationServer {
     }
     
     @Override
-    protected ConfigQueryService createConfigQueryService() throws ConnectorException {
-        return ConfigQueryServiceFactory.getInstance().getConfigQueryService(getNodeAgent().getDeploymentManager());
+    protected ConfigQueryService createConfigQueryService() {
+        return ConfigQueryServiceFactory.getInstance().getConfigQueryService(this);
     }
 
     public String getClusterName() throws InterruptedException, JMException, ConnectorException, ConfigQueryException {
