@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -47,7 +47,7 @@ public class DynaCacheComponent extends WebSphereServiceComponent<WebSphereServe
     private String instanceName;
 
     @Override
-    protected void start() throws InvalidPluginConfigurationException {
+    protected void doStart() throws InvalidPluginConfigurationException {
         cache = getServer().getMBeanClient("WebSphere:type=DynaCache,*").getProxy(DynaCache.class);
         instanceName = getResourceContext().getResourceKey();
     }
@@ -102,8 +102,5 @@ public class DynaCacheComponent extends WebSphereServiceComponent<WebSphereServe
             cache.clearCache(instanceName);
         }
         return null;
-    }
-
-    public void stop() {
     }
 }

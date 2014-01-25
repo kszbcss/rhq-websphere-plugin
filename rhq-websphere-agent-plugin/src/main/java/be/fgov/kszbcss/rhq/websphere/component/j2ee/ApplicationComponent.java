@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -53,7 +53,7 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     private ConfigData<ApplicationConfiguration> applicationConfiguration;
     
     @Override
-    protected void start() {
+    protected void doStart() {
         ApplicationServer server = getServer();
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
         mbean = server.getMBeanClient("WebSphere:type=Application,name=" + context.getResourceKey() + ",*");
@@ -118,8 +118,5 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
             applicationManager.stopApplication(getApplicationName());
         }
         return null;
-    }
-
-    public void stop() {
     }
 }

@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -55,7 +55,7 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
     private DB2MonitorContext context;
     private MeasurementFacetSupport measurementFacetSupport;
     
-    protected void start() throws InvalidPluginConfigurationException {
+    protected void doStart() throws InvalidPluginConfigurationException {
         dataSourceComponent = getParent();
         adminOperations = dataSourceComponent.getServer().getMBeanClient("WebSphere:type=AdminOperations,*").getProxy(AdminOperations.class);
         Configuration config = getResourceContext().getPluginConfiguration();
@@ -171,7 +171,8 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
         }
     }
 
-    public void stop() {
+    @Override
+    protected void doStop() {
         if (context != null) {
             context.destroy();
             context = null;

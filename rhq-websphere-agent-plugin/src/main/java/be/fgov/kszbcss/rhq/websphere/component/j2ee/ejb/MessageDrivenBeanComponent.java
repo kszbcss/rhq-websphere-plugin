@@ -45,8 +45,8 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
     private J2CMessageEndpoint endpoint;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException {
-        super.start();
+    protected void doStart() throws InvalidPluginConfigurationException {
+        super.doStart();
         ModuleComponent parent = getParent();
         endpoint = getServer().getMBeanClient("WebSphere:type=J2CMessageEndpoint,name="
                 + parent.getApplicationName() + "#" + parent.getModuleName() + "#"

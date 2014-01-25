@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -132,7 +132,7 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
     private ConfigData<String[]> threadPoolNames;
     private ConfigData<String[]> sibMessagingEngineNames;
     
-    public void start() throws InvalidPluginConfigurationException {
+    public void doStart() throws InvalidPluginConfigurationException {
         ResourceContext<ResourceComponent<?>> context = getResourceContext();
         
         Configuration pluginConfiguration = context.getPluginConfiguration();
@@ -387,7 +387,8 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
         return ejbMonitor;
     }
 
-    public void stop() {
+    @Override
+    protected void doStop() {
         persistLoggingState(loggingProvider.stop());
         server.destroy();
     }

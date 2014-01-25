@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -49,6 +49,7 @@ import be.fgov.kszbcss.rhq.websphere.proxy.AppManagement;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigRepository;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
 
+import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.management.repository.ConfigEpoch;
 
 public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, ConfigQueryServiceImplMBean {
@@ -178,6 +179,18 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, Con
             throw new InterruptedException();
         }
         return result;
+    }
+
+    public <T extends Serializable> ConfigData<T> registerConfigQuery(final ConfigQuery<T> query) {
+        return new ConfigData<T>() {
+            public T get() throws InterruptedException, ConnectorException, ConfigQueryException {
+                return query(query);
+            }
+        };
+    }
+
+    public void unregisterConfigQuery(ConfigQuery<?> query) {
+        
     }
 
     public void release() {

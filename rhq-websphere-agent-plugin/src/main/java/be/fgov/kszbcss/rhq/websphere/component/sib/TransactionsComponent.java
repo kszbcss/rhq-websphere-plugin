@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -47,7 +47,7 @@ public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagin
     private MeasurementFacetSupport measurementFacetSupport;
     
     @Override
-    protected void start() throws InvalidPluginConfigurationException {
+    protected void doStart() throws InvalidPluginConfigurationException {
         measurementFacetSupport = new MeasurementFacetSupport(this);
         final SIBMessagingEngine sibMessagingEngine = getParent().getSIBMessagingEngine();
         // Need to start from the SIBMessagingEngine MBean here because the PMI module names for SIB were changed by PM60540
@@ -80,8 +80,5 @@ public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagin
         if (getParent().isActive()) {
             measurementFacetSupport.getValues(report, requests);
         }
-    }
-
-    public void stop() {
     }
 }

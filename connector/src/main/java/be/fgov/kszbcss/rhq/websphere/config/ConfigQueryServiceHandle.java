@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012,2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,6 +40,14 @@ public class ConfigQueryServiceHandle implements ConfigQueryService {
         return dmc.getConfigQueryService().query(query);
     }
     
+    public <T extends Serializable> ConfigData<T> registerConfigQuery(ConfigQuery<T> query) {
+        return dmc.getConfigQueryService().registerConfigQuery(query);
+    }
+
+    public void unregisterConfigQuery(ConfigQuery<?> query) {
+        dmc.getConfigQueryService().unregisterConfigQuery(query);
+    }
+
     public void release() {
         if (log.isDebugEnabled()) {
             log.debug("Releasing one instance of ConfigQueryServiceHandle for cell " + dmc.getConfigQueryService().getCell());
