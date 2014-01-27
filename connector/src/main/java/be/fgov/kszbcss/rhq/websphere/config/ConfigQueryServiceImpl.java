@@ -22,28 +22,24 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.management.JMException;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
-
-import net.sf.ehcache.CacheManager;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.rhq.websphere.config.cache.CacheRefreshException;
-import be.fgov.kszbcss.rhq.websphere.config.cache.DelayedRefreshCache;
-import be.fgov.kszbcss.rhq.websphere.config.cache.MutablePriorityQueue;
+import be.fgov.kszbcss.rhq.websphere.config.cache.ConfigQueryCache;
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.proxy.AppManagement;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigRepository;
@@ -55,14 +51,11 @@ import com.ibm.websphere.management.repository.ConfigEpoch;
 public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, ConfigQueryServiceImplMBean {
     private static final Log log = LogFactory.getLog(ConfigQueryServiceImpl.class);
     
-    private final CacheManager cacheManager;
-    private final String cacheName;
     private final ConfigRepository configRepository;
     private final CellConfiguration config;
     private final ScheduledFuture<?> future;
     private final String cell;
-    private final ExecutorService queryExecutorService;
-    private final DelayedRefreshCache<ConfigQuery<?>,ConfigQueryResult> queryCache;
+    private final ConfigQueryCache queryCache;
     private final ScheduledExecutorService epochPollExecutorService;
     private ObjectInstance mbean;
     private ConfigEpoch epoch;
@@ -70,20 +63,17 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, Con
     private boolean waitForConnection = true;
     private Exception lastException;
 
-    public ConfigQueryServiceImpl(CacheManager cacheManager, String cacheName, WebSphereServer server, String cell) {
-        this.cacheManager = cacheManager;
-        this.cacheName = cacheName;
+    public ConfigQueryServiceImpl(String cacheName, File persistentFile, WebSphereServer server, String cell) {
         this.cell = cell;
         configRepository = server.getMBeanClient("WebSphere:type=ConfigRepository,*").getProxy(ConfigRepository.class);
         config = new CellConfiguration(cell,
                 server.getMBeanClient("WebSphere:type=ConfigService,*").getProxy(ConfigService.class),
                 configRepository,
                 server.getMBeanClient("WebSphere:type=AppManagement,*").getProxy(AppManagement.class));
-        cacheManager.addCache(cacheName);
-        queryExecutorService = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS, new MutablePriorityQueue<Runnable>(), new NamedThreadFactory(cacheName + "-query"));
-        queryCache = new DelayedRefreshCache<ConfigQuery<?>,ConfigQueryResult>(cacheManager.getEhcache(cacheName), queryExecutorService, new ConfigQueryResultFactory(this));
+        queryCache = new ConfigQueryCache(cacheName, this, persistentFile);
         epochPollExecutorService = Executors.newScheduledThreadPool(1, new NamedThreadFactory(cacheName + "-epoch-poll"));
         future = epochPollExecutorService.scheduleWithFixedDelay(this, 0, 30, TimeUnit.SECONDS);
+        queryCache.start(2);
         try {
             mbean = ManagementFactory.getPlatformMBeanServer().registerMBean(this, ObjectName.getInstance("rhq.websphere:type=ConfigQueryService,cell=" + cell + ",cacheName=" + cacheName));
         } catch (Throwable ex) {
@@ -122,6 +112,7 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, Con
                 config.refresh();
             }
             this.epoch = epoch;
+            queryCache.setEpoch(epoch);
             lastException = exception;
             if (!polled) {
                 polled = true;
@@ -130,6 +121,7 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, Con
         }
     }
     
+    // TODO: do we still need this? maybe in the query method?
     synchronized ConfigEpoch getEpoch() {
         if (!polled && waitForConnection) {
             log.debug("Waiting for connection to deployment manager for cell " + cell);
@@ -155,42 +147,20 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, Con
         return config;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException, ConfigQueryException {
-        // If the current thread is already interrupted, then don't query the cache at all
-        if (Thread.interrupted()) {
-            throw new InterruptedException();
+    public <T extends Serializable> T query(ConfigQuery<T> query) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+        // TODO: should we check first if the connection to the deployment manager is available?
+        if (log.isDebugEnabled()) {
+            log.debug("Executing query: " + query);
         }
-        T result;
-        try {
-            result = (T)queryCache.get(query, CacheRefreshStrategy.isImmediateRefresh()).object;
-        } catch (CacheRefreshException ex) {
-            Throwable cause = ex.getCause();
-            if (cause instanceof ConfigQueryException) {
-                throw (ConfigQueryException)cause;
-            } else {
-                // TODO: handle this properly
-                throw new RuntimeException(ex);
-            }
-        }
-        // TODO: this is probably no longer applicable
-        // The interrupt flag may have been set by ConfigQueryResultFactory
-        if (Thread.interrupted()) {
-            throw new InterruptedException();
-        }
-        return result;
+        return query.execute(config);
     }
 
-    public <T extends Serializable> ConfigData<T> registerConfigQuery(final ConfigQuery<T> query) {
-        return new ConfigData<T>() {
-            public T get() throws InterruptedException, ConnectorException, ConfigQueryException {
-                return query(query);
-            }
-        };
+    public <T extends Serializable> ConfigData<T> registerConfigQuery(ConfigQuery<T> query) {
+        return queryCache.registerConfigQuery(query);
     }
 
     public void unregisterConfigQuery(ConfigQuery<?> query) {
-        
+        queryCache.unregisterConfigQuery(query);
     }
 
     public void release() {
@@ -202,8 +172,11 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, Con
         config.destroy();
         future.cancel(false);
         epochPollExecutorService.shutdownNow();
-        queryExecutorService.shutdownNow();
-        cacheManager.removeCache(cacheName);
+        try {
+            queryCache.stop();
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     public synchronized String dumpLastException() {

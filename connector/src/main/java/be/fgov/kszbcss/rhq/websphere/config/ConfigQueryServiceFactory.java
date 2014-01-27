@@ -27,11 +27,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.config.CacheConfiguration;
-import net.sf.ehcache.config.Configuration;
-import net.sf.ehcache.config.DiskStoreConfiguration;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rhq.core.pluginapi.plugin.PluginContext;
@@ -48,30 +43,16 @@ public class ConfigQueryServiceFactory {
     private static ConfigQueryServiceFactory instance;
     
     private final Map<String,DeploymentManagerConnection> dmcMap = new HashMap<String,DeploymentManagerConnection>();
-    private final CacheManager cacheManager;
+    private final File cacheDirectory;
     
     private ConfigQueryServiceFactory(PluginContext context) {
         log.debug("Initializing ConfigQueryServiceFactory");
-        Configuration config = new Configuration();
-        config.setUpdateCheck(false);
-        DiskStoreConfiguration diskStoreConfiguration = new DiskStoreConfiguration();
-        File cacheDirectory = new File(context.getDataDirectory(), "cache");
+        cacheDirectory = new File(context.getDataDirectory(), "cache");
         cacheDirectory.mkdirs();
-        diskStoreConfiguration.setPath(cacheDirectory.getAbsolutePath());
-        config.addDiskStore(diskStoreConfiguration);
-        CacheConfiguration cacheConfig = new CacheConfiguration("default", 100);
-        // Every time an entry is accessed, we check if it is up to date (by checking the repository epoch).
-        // Therefore we really need to use timeToIdleSeconds here.
-        cacheConfig.setTimeToIdleSeconds(7*24*3600);
-        // This ensures persistence between agent/plugin restarts
-        cacheConfig.setDiskPersistent(true);
-        config.setDefaultCacheConfiguration(cacheConfig);
-        cacheManager = new CacheManager(config);
     }
     
     private void doDestroy() {
         log.debug("Destroying ConfigQueryServiceFactory");
-        cacheManager.shutdown();
     }
     
     public synchronized static void init(PluginContext context) {
@@ -104,7 +85,7 @@ public class ConfigQueryServiceFactory {
         String cell = server.getCell();
         DeploymentManagerConnection dmc = dmcMap.get(cell);
         if (dmc == null) {
-            dmc = new DeploymentManagerConnection(this, cacheManager, server.getNodeAgent().getDeploymentManager(), cell);
+            dmc = new DeploymentManagerConnection(this, server.getNodeAgent().getDeploymentManager(), cell, new File(cacheDirectory, cell));
             dmcMap.put(cell, dmc);
         }
         dmc.incrementRefCount();
@@ -114,24 +95,27 @@ public class ConfigQueryServiceFactory {
     public ConfigQueryService getConfigQueryService(UnmanagedServer server) {
         // We use cell+node+server as cache name because for a stand-alone server it is more likely that the cell name is not unique
         String cell = server.getCell();
-        return new ConfigQueryServiceImpl(cacheManager, cell + "_" + server.getNode() + "_" + server.getServer(), server, cell);
+        String name = cell + "_" + server.getNode() + "_" + server.getServer();
+        return new ConfigQueryServiceImpl(name, new File(cacheDirectory, name), server, cell);
     }
     
     public ConfigQueryService getConfigQueryServiceWithoutCaching(WebSphereServer server) throws ConnectorException {
-        String cell = server.getCell();
-        Configuration config = new Configuration();
-        config.setUpdateCheck(false);
-        CacheConfiguration cacheConfig = new CacheConfiguration("non-persistent", 100);
-        cacheConfig.setTimeToIdleSeconds(7*24*3600);
-        config.setDefaultCacheConfiguration(cacheConfig);
-        final CacheManager nonPersistentCacheManager = new CacheManager(config);
-        return new ConfigQueryServiceImpl(nonPersistentCacheManager, cell + "-non-persistent", server, cell) {
-            @Override
-            public void release() {
-                super.release();
-                nonPersistentCacheManager.shutdown();
-            }
-        };
+        // TODO
+        throw new UnsupportedOperationException();
+//        String cell = server.getCell();
+//        Configuration config = new Configuration();
+//        config.setUpdateCheck(false);
+//        CacheConfiguration cacheConfig = new CacheConfiguration("non-persistent", 100);
+//        cacheConfig.setTimeToIdleSeconds(7*24*3600);
+//        config.setDefaultCacheConfiguration(cacheConfig);
+//        final CacheManager nonPersistentCacheManager = new CacheManager(config);
+//        return new ConfigQueryServiceImpl(nonPersistentCacheManager, cell + "-non-persistent", server, cell) {
+//            @Override
+//            public void release() {
+//                super.release();
+//                nonPersistentCacheManager.shutdown();
+//            }
+//        };
     }
     
     synchronized void removeDeploymentManagerConnection(DeploymentManagerConnection dmc) {

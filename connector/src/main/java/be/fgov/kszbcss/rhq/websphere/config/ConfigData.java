@@ -24,8 +24,6 @@ package be.fgov.kszbcss.rhq.websphere.config;
 
 import java.io.Serializable;
 
-import com.ibm.websphere.management.exception.ConnectorException;
-
 public interface ConfigData<T extends Serializable> {
-    T get() throws InterruptedException, ConnectorException, ConfigQueryException;
+    T get() throws InterruptedException, ConfigQueryException;
 }

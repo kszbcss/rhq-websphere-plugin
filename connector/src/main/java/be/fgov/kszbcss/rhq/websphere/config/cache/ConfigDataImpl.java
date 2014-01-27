@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,15 +20,24 @@
  * if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package be.fgov.kszbcss.rhq.websphere.config;
+package be.fgov.kszbcss.rhq.websphere.config.cache;
 
 import java.io.Serializable;
 
-import com.ibm.websphere.management.repository.ConfigEpoch;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 
-class ConfigQueryResult implements Serializable {
-    private static final long serialVersionUID = 1595659913195045702L;
+final class ConfigDataImpl<T extends Serializable> implements ConfigData<T> {
+    private final ConfigQueryCache cache;
+    private final ConfigQueryCacheEntry<T> entry;
     
-    ConfigEpoch epoch;
-    Object object;
+    ConfigDataImpl(ConfigQueryCache cache, ConfigQueryCacheEntry<T> entry) {
+        this.cache = cache;
+        this.entry = entry;
+    }
+
+    @Override
+    public T get() throws InterruptedException, ConfigQueryException {
+        return cache.get(entry);
+    }
 }
