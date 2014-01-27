@@ -82,15 +82,18 @@ public class ConfigQueryCache implements Runnable {
                     ConfigQueryCacheEntry<?> entry = null;
                     for (ConfigQueryCacheEntry<?> candidate : cache.values()) {
                         synchronized (candidate) {
-                            if (!candidate.refreshing && candidate.refCount > 0 && !epoch.equals(candidate.epoch)
-                                    && (candidate.lastTransientError == 0 || System.currentTimeMillis()-candidate.lastTransientError > RETRY_INTERVAL)) {
-                                if (candidate.waiters > maxWaiters) {
-                                    entry = candidate;
-                                    maxWaiters = candidate.waiters;
+                            if (!candidate.refreshing) {
+                                if (candidate.refCount > 0 && !epoch.equals(candidate.epoch)
+                                        && (candidate.lastTransientError == 0 || System.currentTimeMillis()-candidate.lastTransientError > RETRY_INTERVAL)) {
+                                    int waiters = candidate.waitingThreads.size();
+                                    if (waiters > maxWaiters) {
+                                        entry = candidate;
+                                        maxWaiters = waiters;
+                                    }
+                                } else if (!candidate.waitingThreads.isEmpty()) {
+                                    // If we get here, something is broken
+                                    log.warn("There are threads waiting for refresh of entry " + candidate.query + ", but the entry is not scheduled for refresh");
                                 }
-                            } else if (candidate.waiters > 0) {
-                                // If we get here, something is broken
-                                log.warn("There are threads waiting for refresh of entry " + candidate.query + ", but the entry is not scheduled for refresh");
                             }
                         }
                     }
@@ -139,6 +142,7 @@ public class ConfigQueryCache implements Runnable {
             }
             entry.refreshing = false;
             entry.notifyAll();
+            entry.waitingThreads.clear();
         }
     }
     
@@ -267,12 +271,11 @@ public class ConfigQueryCache implements Runnable {
                     if (log.isDebugEnabled()) {
                         log.debug("Waiting for refresh of entry " + entry.query);
                     }
-                    entry.waiters++;
-                    try {
+                    Thread thread = Thread.currentThread();
+                    entry.waitingThreads.add(thread);
+                    do {
                         entry.wait();
-                    } finally {
-                        entry.waiters--;
-                    }
+                    } while (entry.waitingThreads.contains(thread));
                 }
             }
         }
