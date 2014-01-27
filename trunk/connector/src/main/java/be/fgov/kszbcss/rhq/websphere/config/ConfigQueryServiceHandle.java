@@ -24,8 +24,12 @@ package be.fgov.kszbcss.rhq.websphere.config;
 
 import java.io.Serializable;
 
+import javax.management.JMException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.ibm.websphere.management.exception.ConnectorException;
 
 public class ConfigQueryServiceHandle implements ConfigQueryService {
     private static final Log log = LogFactory.getLog(ConfigQueryServiceHandle.class);
@@ -36,7 +40,7 @@ public class ConfigQueryServiceHandle implements ConfigQueryService {
         this.dmc = dmc;
     }
     
-    public <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException, ConfigQueryException {
+    public <T extends Serializable> T query(ConfigQuery<T> query) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         return dmc.getConfigQueryService().query(query);
     }
     

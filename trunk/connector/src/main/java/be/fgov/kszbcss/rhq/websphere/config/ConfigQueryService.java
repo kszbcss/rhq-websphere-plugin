@@ -24,6 +24,10 @@ package be.fgov.kszbcss.rhq.websphere.config;
 
 import java.io.Serializable;
 
+import javax.management.JMException;
+
+import com.ibm.websphere.management.exception.ConnectorException;
+
 // TODO: Javadoc is no longer accurate
 /**
  * Supports sending queries for configuration data to a deployment manager. There is a single
@@ -36,15 +40,17 @@ import java.io.Serializable;
  */
 public interface ConfigQueryService {
     /**
-     * 
+     * Execute the given query without caching.
      * 
      * @param <T>
      * @param query
      * @return
+     * @throws JMException 
+     * @throws ConnectorException 
      * @throws InterruptedException
      * @throws ConfigQueryException 
      */
-    <T extends Serializable> T query(ConfigQuery<T> query) throws InterruptedException, ConfigQueryException;
+    <T extends Serializable> T query(ConfigQuery<T> query) throws JMException, ConnectorException, InterruptedException, ConfigQueryException;
     
     <T extends Serializable> ConfigData<T> registerConfigQuery(ConfigQuery<T> query);
     

@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012,2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
-import net.sf.ehcache.CacheManager;
+import java.io.File;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,9 +41,9 @@ class DeploymentManagerConnection {
     private final ConfigQueryServiceImpl configQueryService;
     private int refCount;
     
-    DeploymentManagerConnection(ConfigQueryServiceFactory factory, CacheManager cacheManager, DeploymentManager dm, String cell) {
+    DeploymentManagerConnection(ConfigQueryServiceFactory factory, DeploymentManager dm, String cell, File persistentFile) {
         this.factory = factory;
-        configQueryService = new ConfigQueryServiceImpl(cacheManager, cell, dm, cell);
+        configQueryService = new ConfigQueryServiceImpl(cell, persistentFile, dm, cell);
     }
     
     ConfigQueryServiceImpl getConfigQueryService() {
