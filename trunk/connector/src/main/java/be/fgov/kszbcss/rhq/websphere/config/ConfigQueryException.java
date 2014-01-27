@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,11 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
+/**
+ * Indicates that a non transient error occurred while executing a configuration query. Non
+ * transient means that another execution of the same query would result in the same error (provided
+ * that the configuration didn't change).
+ */
 public class ConfigQueryException extends Exception {
     private static final long serialVersionUID = -7760965104778091605L;
 
