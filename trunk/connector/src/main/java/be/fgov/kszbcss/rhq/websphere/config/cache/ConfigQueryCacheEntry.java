@@ -23,7 +23,6 @@
 package be.fgov.kszbcss.rhq.websphere.config.cache;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Set;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
@@ -69,9 +68,9 @@ final class ConfigQueryCacheEntry<T extends Serializable> implements Serializabl
     transient int refCount;
     
     /**
-     * Threads waiting for a refresh of the query result.
+     * Threads waiting for a refresh of the query result. Initialized lazily.
      */
-    transient final Set<Thread> waitingThreads = new HashSet<Thread>();
+    transient Set<Thread> waitingThreads;
     
     /**
      * Indicates that the entry is currently being refreshed. This field is guarded by

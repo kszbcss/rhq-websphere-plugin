@@ -30,6 +30,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -78,19 +79,30 @@ public class ConfigQueryCache implements Runnable {
                     log.debug("Repository epoch is unknown (no connection to the deployment manager?); sleeping");
                     cache.wait();
                 } else {
+                    long currentTime = System.currentTimeMillis();
+                    long wakeup = -1;
                     int maxWaiters = -1;
+                    ConfigEpoch maxEpoch = null;
                     ConfigQueryCacheEntry<?> entry = null;
                     for (ConfigQueryCacheEntry<?> candidate : cache.values()) {
                         synchronized (candidate) {
                             if (!candidate.refreshing) {
-                                if (candidate.refCount > 0 && !epoch.equals(candidate.epoch)
-                                        && (candidate.lastTransientError == 0 || System.currentTimeMillis()-candidate.lastTransientError > RETRY_INTERVAL)) {
-                                    int waiters = candidate.waitingThreads.size();
-                                    if (waiters > maxWaiters) {
-                                        entry = candidate;
-                                        maxWaiters = waiters;
+                                int waiters = candidate.waitingThreads == null ? 0 : candidate.waitingThreads.size();
+                                if (candidate.refCount > 0 && !epoch.equals(candidate.epoch)) {
+                                    if (candidate.lastTransientError != 0 && currentTime-candidate.lastTransientError < RETRY_INTERVAL) {
+                                        long t = candidate.lastTransientError + RETRY_INTERVAL;
+                                        if (wakeup == -1 || t < wakeup) {
+                                            wakeup = t;
+                                        }
+                                    } else {
+                                        // Give priority for entries with waiting threads, but also to old entries
+                                        if (waiters > maxWaiters || (waiters == maxWaiters && candidate.epoch != null && (maxEpoch == null || candidate.epoch.compareTo(maxEpoch) > 0))) {
+                                            entry = candidate;
+                                            maxWaiters = waiters;
+                                            maxEpoch = candidate.epoch;
+                                        }
                                     }
-                                } else if (!candidate.waitingThreads.isEmpty()) {
+                                } else if (waiters > 0) {
                                     // If we get here, something is broken
                                     log.warn("There are threads waiting for refresh of entry " + candidate.query + ", but the entry is not scheduled for refresh");
                                 }
@@ -98,8 +110,15 @@ public class ConfigQueryCache implements Runnable {
                         }
                     }
                     if (entry == null) {
-                        log.debug("No entries to refresh; sleeping");
-                        cache.wait();
+                        if (wakeup == -1) {
+                            log.debug("No entries to refresh; sleeping");
+                            cache.wait();
+                        } else {
+                            if (log.isDebugEnabled()) {
+                                log.debug("No entries to refresh; sleeping for " + (wakeup-currentTime) + " ms");
+                            }
+                            cache.wait(wakeup-currentTime);
+                        }
                     } else {
                         synchronized (entry) {
                             // We kept the lock on cache. Therefore refreshing must still be false.
@@ -113,12 +132,12 @@ public class ConfigQueryCache implements Runnable {
     }
     
     private <T extends Serializable> void refreshEntry(ConfigQueryCacheEntry<T> entry) throws InterruptedException {
-        if (log.isDebugEnabled()) {
-            log.debug("Starting to refresh cache entry for " + entry.query);
-        }
         ConfigEpoch epoch;
         synchronized (cache) {
             epoch = this.epoch;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Starting to refresh cache entry for " + entry.query + "; current epoch: " + epoch);
         }
         T result = null;
         ConfigQueryException nonTransientException = null;
@@ -142,7 +161,9 @@ public class ConfigQueryCache implements Runnable {
             }
             entry.refreshing = false;
             entry.notifyAll();
-            entry.waitingThreads.clear();
+            if (entry.waitingThreads != null) {
+                entry.waitingThreads.clear();
+            }
         }
     }
     
@@ -155,32 +176,40 @@ public class ConfigQueryCache implements Runnable {
                 }
                 refreshEntry(entry);
             }
+            log.debug("Thread stopping");
         } catch (InterruptedException ex) {
+            log.debug("Thread interrupted");
             return;
+        } catch (Throwable ex) {
+            log.error("Unexpected exception", ex);
         }
     }
     
     public void start(int numThreads) {
-        if (persistentFile.exists()) {
-            if (log.isDebugEnabled()) {
-                log.debug("Reading persistent cache " + persistentFile);
+        synchronized (cache) {
+            if (threads != null || stopping) {
+                // start has already been called before
+                throw new IllegalStateException();
             }
-            try {
-                ObjectInputStream in = new ObjectInputStream(new FileInputStream(persistentFile));
+            if (persistentFile.exists()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Reading persistent cache " + persistentFile);
+                }
                 try {
-                    synchronized (cache) {
+                    ObjectInputStream in = new ObjectInputStream(new FileInputStream(persistentFile));
+                    try {
                         for (int i=in.readInt(); i>0; i--) {
                             ConfigQueryCacheEntry<?> entry = (ConfigQueryCacheEntry<?>)in.readObject();
                             cache.put(entry.query, entry);
                         }
+                    } finally {
+                        in.close();
                     }
-                } finally {
-                    in.close();
+                } catch (IOException ex) {
+                    log.error("Failed to read persistent cache data", ex);
+                } catch (ClassNotFoundException ex) {
+                    log.error("Unexpected exception", ex);
                 }
-            } catch (IOException ex) {
-                log.error("Failed to read persistent cache data", ex);
-            } catch (ClassNotFoundException ex) {
-                log.error("Unexpected exception", ex);
             }
         }
         if (log.isDebugEnabled()) {
@@ -239,14 +268,19 @@ public class ConfigQueryCache implements Runnable {
                 entry = new ConfigQueryCacheEntry<T>(query);
                 cache.put(query, entry);
             }
-            entry.refCount++;
+            synchronized (entry) {
+                entry.refCount++;
+            }
         }
         return new ConfigDataImpl<T>(this, entry);
     }
 
     public void unregisterConfigQuery(ConfigQuery<?> query) {
         synchronized (cache) {
-            cache.get(query).refCount--;
+            ConfigQueryCacheEntry<?> entry = cache.get(query);
+            synchronized (entry) {
+                entry.refCount--;
+            }
         }
     }
     
@@ -257,6 +291,9 @@ public class ConfigQueryCache implements Runnable {
                 epoch = this.epoch;
             }
             synchronized (entry) {
+                if (entry.refCount <= 0) {
+                    throw new IllegalStateException("refCount=" + entry.refCount);
+                }
                 // TODO: if epoch is null (and immediate refresh is set), shouldn't we wait for the deployment manager connection to become available?
                 if (entry.epoch != null && (!CacheRefreshStrategy.isImmediateRefresh() || epoch == null || epoch.equals(entry.epoch) || entry.lastTransientError != 0)) {
                     if (log.isDebugEnabled()) {
@@ -271,10 +308,21 @@ public class ConfigQueryCache implements Runnable {
                     if (log.isDebugEnabled()) {
                         log.debug("Waiting for refresh of entry " + entry.query);
                     }
+                    if (entry.waitingThreads == null) {
+                        entry.waitingThreads = new HashSet<Thread>();
+                    }
                     Thread thread = Thread.currentThread();
                     entry.waitingThreads.add(thread);
                     do {
-                        entry.wait();
+                        try {
+                            entry.wait();
+                        } catch (InterruptedException ex) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Interrupted; query: " + entry.query + "; epoch: " + entry.epoch + " (current: " + epoch + ")");
+                            }
+                            entry.waitingThreads.remove(thread);
+                            throw ex;
+                        }
                     } while (entry.waitingThreads.contains(thread));
                 }
             }

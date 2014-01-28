@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012,2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,8 +24,8 @@ package com.ibm.websphere.management.repository;
 
 import java.io.Serializable;
 
-public class ConfigEpoch implements Comparable<ConfigEpoch>, Serializable {
-    public int compareTo(ConfigEpoch o) {
+public class ConfigEpoch implements Comparable, Serializable {
+    public int compareTo(Object o) {
         return 0;
     }
 }
