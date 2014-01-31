@@ -30,7 +30,7 @@ import javax.management.JMException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.types.ApplicationDeploymentCO;
@@ -56,7 +56,7 @@ public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
         this.applicationName = applicationName;
     }
 
-    public ApplicationInfo execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public ApplicationInfo execute(Config config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         ApplicationDeploymentCO applicationDeployment = config.path(DeploymentCO.class, applicationName).path(ApplicationDeploymentCO.class).resolveAtMostOne(false);
         if (applicationDeployment == null) {
             return null;

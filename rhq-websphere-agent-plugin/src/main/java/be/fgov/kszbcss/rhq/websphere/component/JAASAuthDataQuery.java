@@ -27,7 +27,7 @@ import java.util.Map;
 
 import javax.management.JMException;
 
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.types.JAASAuthDataCO;
 
@@ -36,7 +36,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 public class JAASAuthDataQuery implements ConfigQuery<JAASAuthDataMap> {
     private static final long serialVersionUID = -7960159720107221635L;
 
-    public JAASAuthDataMap execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
+    public JAASAuthDataMap execute(Config config) throws JMException, ConnectorException, InterruptedException {
         Map<String,JAASAuthData> map = new HashMap<String,JAASAuthData>();
         for (JAASAuthDataCO co : config.path(JAASAuthDataCO.class).resolve(false)) {
             map.put(co.getAlias(), new JAASAuthData(co.getUserId(), co.getPassword()));

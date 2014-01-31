@@ -24,6 +24,7 @@ package be.fgov.kszbcss.rhq.websphere.config;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,6 +49,7 @@ import be.fgov.kszbcss.rhq.websphere.config.types.NodeCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.ServerCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.ServerClusterCO;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientProxy;
+import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.proxy.AppManagement;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigRepository;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
@@ -56,17 +58,9 @@ import com.ibm.websphere.management.Session;
 import com.ibm.websphere.management.application.client.AppDeploymentTask;
 import com.ibm.websphere.management.configservice.SystemAttributes;
 import com.ibm.websphere.management.exception.ConnectorException;
+import com.ibm.websphere.management.repository.ConfigEpoch;
 
-/**
- * Facade that gives access to various parts of the cell configuration. This includes:
- * <ul>
- * <li>Access to the configuration service to query configuration objects.
- * <li>Access to the configuration repository to query configuration documents.
- * <li>Access to the <tt>AppManagement</tt> MBean to retrieve information about a deployed
- * application.
- * </ul>
- */
-public class CellConfiguration {
+public class CellConfiguration implements Config, ConfigQueryExecutor {
     static class ResolverCacheEntry {
         ConfigObject[] result;
     }
@@ -102,16 +96,20 @@ public class CellConfiguration {
      */
     private final Map<String,ConfigObject> configObjectCache = new HashMap<String,ConfigObject>();
     
-    CellConfiguration(String cell, ConfigService configService, ConfigRepository configRepository, AppManagement appManagement) {
+    CellConfiguration(WebSphereServer server, String cell) {
         this.cell = cell;
-        this.configService = configService;
-        this.configRepository = configRepository;
-        this.appManagement = appManagement;
+        configService = server.getMBeanClient("WebSphere:type=ConfigService,*").getProxy(ConfigService.class);
+        configRepository = server.getMBeanClient("WebSphere:type=ConfigRepository,*").getProxy(ConfigRepository.class);
+        appManagement = server.getMBeanClient("WebSphere:type=AppManagement,*").getProxy(AppManagement.class);
         root = new RootPath(this);
     }
     
     public String getCell() {
         return cell;
+    }
+
+    ConfigEpoch getRepositoryEpoch() throws JMException, ConnectorException {
+        return configRepository.getRepositoryEpoch();
     }
 
     /**
@@ -342,8 +340,12 @@ public class CellConfiguration {
         // a ConfigService method is called, a new session will be created automatically.
         discardSession(false);
     }
+
+    public <T extends Serializable> T query(ConfigQuery<T> query) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+        return query.execute(this);
+    }
     
-    void destroy() {
+    public void destroy() {
         discardSession(true);
     }
 }

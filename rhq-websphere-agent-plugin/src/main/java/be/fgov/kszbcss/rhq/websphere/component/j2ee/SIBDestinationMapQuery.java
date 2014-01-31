@@ -30,7 +30,7 @@ import javax.management.JMException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.types.J2CAdminObjectCO;
@@ -52,7 +52,7 @@ public class SIBDestinationMapQuery implements ConfigQuery<SIBDestinationMap> {
         this.server = server;
     }
 
-    public SIBDestinationMap execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public SIBDestinationMap execute(Config config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         Map<String,SIBDestination> map = new HashMap<String,SIBDestination>();
         for (J2CResourceAdapterCO ra : config.allScopes(node, server).path(J2CResourceAdapterCO.class).resolve(false)) {
             for (J2CAdminObjectCO adminObject : ra.getJ2cAdminObjects()) {

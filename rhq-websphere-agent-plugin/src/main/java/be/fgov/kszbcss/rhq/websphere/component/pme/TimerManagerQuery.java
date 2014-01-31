@@ -24,7 +24,7 @@ package be.fgov.kszbcss.rhq.websphere.component.pme;
 
 import javax.management.JMException;
 
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.types.TimerManagerInfoCO;
@@ -45,7 +45,7 @@ public class TimerManagerQuery implements ConfigQuery<TimerManagerInfoCO> {
         this.jndiName = jndiName;
     }
 
-    public TimerManagerInfoCO execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public TimerManagerInfoCO execute(Config config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         for (TimerManagerInfoCO tm : config.allScopes(node, server).path(TimerManagerProviderCO.class).path(TimerManagerInfoCO.class).resolve(false)) {
             if (jndiName.equals(tm.getJndiName())) {
                 tm.detach();

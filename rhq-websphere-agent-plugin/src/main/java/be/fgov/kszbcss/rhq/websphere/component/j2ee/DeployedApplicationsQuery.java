@@ -30,8 +30,8 @@ import javax.management.JMException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.types.ApplicationDeploymentCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.DeploymentCO;
@@ -54,7 +54,7 @@ public class DeployedApplicationsQuery implements ConfigQuery<String[]> {
         this.server = server;
     }
 
-    public String[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public String[] execute(Config config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         ServerEntryCO serverEntry = config.node(node).path(ServerIndexCO.class).path(ServerEntryCO.class, server).resolveSingle(false);
         List<String> deployedApplications = serverEntry.getDeployedApplications();
         List<String> result = new ArrayList<String>(deployedApplications.size());

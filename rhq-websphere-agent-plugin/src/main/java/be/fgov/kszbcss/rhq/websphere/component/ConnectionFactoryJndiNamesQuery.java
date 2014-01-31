@@ -27,7 +27,7 @@ import java.util.Set;
 
 import javax.management.JMException;
 
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.types.ConnectionFactoryCO;
@@ -47,7 +47,7 @@ public class ConnectionFactoryJndiNamesQuery implements ConfigQuery<String[]> {
         this.type = type;
     }
 
-    public String[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public String[] execute(Config config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         Set<String> result = new HashSet<String>();
         for (ConnectionFactoryCO cf : config.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve(false)) {
             String jndiName = cf.getJndiName();

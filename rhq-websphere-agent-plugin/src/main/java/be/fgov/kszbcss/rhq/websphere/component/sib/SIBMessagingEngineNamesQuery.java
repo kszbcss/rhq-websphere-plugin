@@ -27,7 +27,7 @@ import java.util.List;
 
 import javax.management.JMException;
 
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.types.SIBMessagingEngineCO;
@@ -45,7 +45,7 @@ public class SIBMessagingEngineNamesQuery implements ConfigQuery<String[]> {
         this.server = server;
     }
 
-    public String[] execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public String[] execute(Config config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         List<String> result = new ArrayList<String>();
         for (SIBMessagingEngineCO me : config.allScopes(node, server).path(SIBMessagingEngineCO.class).resolve(false)) {
             result.add(me.getName());

@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012,2014 Crossroads Bank for Social Security
+ * Copyright (C) 2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,20 +24,23 @@ package be.fgov.kszbcss.rhq.websphere.config;
 
 import java.io.Serializable;
 
-// TODO: Javadoc is no longer accurate
-/**
- * Supports sending queries for configuration data to a deployment manager. There is a single
- * instance of this class for each WebSphere cell with at least one server being monitored by the
- * plugin. Query results are stored in a cache.
- * <p>
- * <b>Note:</b> The implementation is designed such that a single cache instance can be used for all
- * cells (i.e. the cache key contains the cell name). This makes sure that cache entries eventually
- * disappear when all servers for a given cell are removed from the inventory.
- */
-public interface ConfigQueryService {
-    <T extends Serializable> ConfigData<T> registerConfigQuery(ConfigQuery<T> query);
+import javax.management.JMException;
+
+import com.ibm.websphere.management.exception.ConnectorException;
+
+public interface ConfigQueryExecutor {
+    /**
+     * Execute the given query without caching.
+     * 
+     * @param <T>
+     * @param query
+     * @return
+     * @throws JMException 
+     * @throws ConnectorException 
+     * @throws InterruptedException
+     * @throws ConfigQueryException 
+     */
+    <T extends Serializable> T query(ConfigQuery<T> query) throws JMException, ConnectorException, InterruptedException, ConfigQueryException;
     
-    void unregisterConfigQuery(ConfigQuery<?> query);
-    
-    void release();
+    void destroy();
 }

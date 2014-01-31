@@ -24,8 +24,8 @@ package be.fgov.kszbcss.rhq.websphere.component.server;
 
 import javax.management.JMException;
 
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.ThreadPoolManagerCO;
@@ -48,7 +48,7 @@ public class ThreadPoolQuery implements ConfigQuery<ThreadPoolCO> {
         this.name = name;
     }
 
-    public ThreadPoolCO execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public ThreadPoolCO execute(Config config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         return config.server(node, server).path(ThreadPoolManagerCO.class).path(ThreadPoolCO.class, name).resolveAtMostOne(true);
     }
 
