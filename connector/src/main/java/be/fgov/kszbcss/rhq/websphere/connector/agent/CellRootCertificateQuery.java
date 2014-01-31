@@ -80,24 +80,11 @@ public class CellRootCertificateQuery implements ConfigQuery<X509Certificate> {
     }
     
     private String getRootAlias(KeyStore ks) throws KeyStoreException {
+        // It is not clear how WebSphere selects the certificate if there are multiple certificates;
+        // we assume that it is always the last one in the key store.
         String rootAlias = null;
-        int generation = -1;
         for (Enumeration<String> e = ks.aliases(); e.hasMoreElements(); ) {
-            String alias = e.nextElement();
-            int tmpGeneration = -1;
-            if (alias.equals("root")) {
-                tmpGeneration = 0;
-            } else if (alias.startsWith("root_")) {
-                try {
-                    tmpGeneration = Integer.parseInt(alias.substring(5));
-                } catch (NumberFormatException ex) {
-                    continue;
-                }
-            }
-            if (tmpGeneration > generation) {
-                generation = tmpGeneration;
-                rootAlias = alias;
-            }
+            rootAlias = e.nextElement();
         }
         return rootAlias;
     }
