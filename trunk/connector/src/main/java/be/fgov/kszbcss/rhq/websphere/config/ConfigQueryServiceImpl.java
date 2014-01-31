@@ -41,9 +41,6 @@ import org.apache.commons.logging.LogFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.cache.ConfigQueryCache;
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
-import be.fgov.kszbcss.rhq.websphere.proxy.AppManagement;
-import be.fgov.kszbcss.rhq.websphere.proxy.ConfigRepository;
-import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.management.repository.ConfigEpoch;
@@ -51,7 +48,6 @@ import com.ibm.websphere.management.repository.ConfigEpoch;
 public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, ConfigQueryServiceImplMBean {
     private static final Log log = LogFactory.getLog(ConfigQueryServiceImpl.class);
     
-    private final ConfigRepository configRepository;
     private final CellConfiguration config;
     private final ScheduledFuture<?> future;
     private final String cell;
@@ -65,12 +61,8 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, Con
 
     public ConfigQueryServiceImpl(String cacheName, File persistentFile, WebSphereServer server, String cell) {
         this.cell = cell;
-        configRepository = server.getMBeanClient("WebSphere:type=ConfigRepository,*").getProxy(ConfigRepository.class);
-        config = new CellConfiguration(cell,
-                server.getMBeanClient("WebSphere:type=ConfigService,*").getProxy(ConfigService.class),
-                configRepository,
-                server.getMBeanClient("WebSphere:type=AppManagement,*").getProxy(AppManagement.class));
-        queryCache = new ConfigQueryCache(cacheName, this, persistentFile);
+        config = new CellConfiguration(server, cell);
+        queryCache = new ConfigQueryCache(cacheName, config, persistentFile);
         epochPollExecutorService = Executors.newScheduledThreadPool(1, new NamedThreadFactory(cacheName + "-epoch-poll"));
         future = epochPollExecutorService.scheduleWithFixedDelay(this, 0, 30, TimeUnit.SECONDS);
         queryCache.start(2);
@@ -85,7 +77,7 @@ public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, Con
         ConfigEpoch epoch = null;
         Exception exception = null;
         try {
-            epoch = configRepository.getRepositoryEpoch();
+            epoch = config.getRepositoryEpoch();
         } catch (Exception ex) {
             exception = ex;
         }

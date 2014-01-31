@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -58,7 +58,7 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
-import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryExecutor;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryServiceFactory;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStats;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
@@ -125,12 +125,12 @@ public class ConnectorSubsystemComponent implements ResourceComponent<ResourceCo
         } else if (name.equals("retrieveCellCertificate")) {
             DeploymentManager dm = new DeploymentManager(null, new ConfigurationBasedProcessLocator(parameters));
             String cell = dm.getCell();
-            ConfigQueryService configQueryService = ConfigQueryServiceFactory.getInstance().getConfigQueryServiceWithoutCaching(dm);
+            ConfigQueryExecutor configQueryExecutor = ConfigQueryServiceFactory.getInstance().getConfigQueryExecutor(dm);
             try {
-                X509Certificate cert = configQueryService.query(CellRootCertificateQuery.INSTANCE);
+                X509Certificate cert = configQueryExecutor.query(CellRootCertificateQuery.INSTANCE);
                 TrustStoreManager.getInstance().addCertificate("cell:" + cell, cert);
             } finally {
-                configQueryService.release();
+                configQueryExecutor.destroy();
             }
             return null;
         } else if (name.equals("retrieveCertificateFromPort")) {

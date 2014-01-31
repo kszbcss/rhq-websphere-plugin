@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012,2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -33,7 +33,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 
 public class ModuleInfoFactory {
     private static final Log log = LogFactory.getLog(ModuleInfoFactory.class);
@@ -60,7 +60,7 @@ public class ModuleInfoFactory {
         return factories.get(configDataType);
     }
     
-    public String locateDeploymentDescriptor(CellConfiguration config, String moduleURI) throws JMException, ConnectorException, InterruptedException {
+    public String locateDeploymentDescriptor(Config config, String moduleURI) throws JMException, ConnectorException, InterruptedException {
         if (config.getWebSphereVersion().startsWith("6.")) {
             log.debug("Server implements J2EE 1.4; returning URI of static deployment descriptor");
         } else {

@@ -30,7 +30,7 @@ import javax.management.JMException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.types.J2CActivationSpecCO;
@@ -52,7 +52,7 @@ public class ActivationSpecQuery implements ConfigQuery<ActivationSpecs> {
         this.server = server;
     }
 
-    public ActivationSpecs execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public ActivationSpecs execute(Config config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         Map<String,ActivationSpecInfo> map = new HashMap<String,ActivationSpecInfo>();
         for (J2CResourceAdapterCO ra : config.allScopes(node, server).path(J2CResourceAdapterCO.class).resolve(false)) {
             for (J2CActivationSpecCO activationSpec : ra.getJ2cActivationSpec()) {

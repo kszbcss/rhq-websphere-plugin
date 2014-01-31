@@ -31,8 +31,8 @@ import javax.management.JMException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.types.SIBDestination;
 import be.fgov.kszbcss.rhq.websphere.config.types.SIBGatewayLinkCO;
@@ -71,7 +71,7 @@ public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineIn
         return null;
     }
     
-    public SIBMessagingEngineInfo execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public SIBMessagingEngineInfo execute(Config config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         SIBMessagingEngineCO me = config.allScopes(node, server).path(SIBMessagingEngineCO.class, name).resolveAtMostOne(false);
         if (me == null) {
             return null;

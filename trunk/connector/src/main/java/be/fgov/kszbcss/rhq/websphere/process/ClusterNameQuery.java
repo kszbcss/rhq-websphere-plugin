@@ -24,8 +24,8 @@ package be.fgov.kszbcss.rhq.websphere.process;
 
 import javax.management.JMException;
 
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -41,7 +41,7 @@ public class ClusterNameQuery implements ConfigQuery<String> {
         this.server = server;
     }
 
-    public String execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public String execute(Config config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         return config.server(node, server).resolveSingle(false).getClusterName();
     }
     

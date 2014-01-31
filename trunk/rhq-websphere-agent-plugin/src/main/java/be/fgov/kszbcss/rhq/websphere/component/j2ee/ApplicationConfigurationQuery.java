@@ -24,7 +24,7 @@ package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 
 import javax.management.JMException;
 
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -38,7 +38,7 @@ public class ApplicationConfigurationQuery implements ConfigQuery<ApplicationCon
         this.applicationName = applicationName;
     }
 
-    public ApplicationConfiguration execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException {
+    public ApplicationConfiguration execute(Config config) throws JMException, ConnectorException, InterruptedException {
         return new ApplicationConfiguration(config.getApplicationInfo(applicationName));
     }
 

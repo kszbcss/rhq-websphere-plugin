@@ -99,23 +99,8 @@ public class ConfigQueryServiceFactory {
         return new ConfigQueryServiceImpl(name, new File(cacheDirectory, name), server, cell);
     }
     
-    public ConfigQueryService getConfigQueryServiceWithoutCaching(WebSphereServer server) throws ConnectorException {
-        // TODO
-        throw new UnsupportedOperationException();
-//        String cell = server.getCell();
-//        Configuration config = new Configuration();
-//        config.setUpdateCheck(false);
-//        CacheConfiguration cacheConfig = new CacheConfiguration("non-persistent", 100);
-//        cacheConfig.setTimeToIdleSeconds(7*24*3600);
-//        config.setDefaultCacheConfiguration(cacheConfig);
-//        final CacheManager nonPersistentCacheManager = new CacheManager(config);
-//        return new ConfigQueryServiceImpl(nonPersistentCacheManager, cell + "-non-persistent", server, cell) {
-//            @Override
-//            public void release() {
-//                super.release();
-//                nonPersistentCacheManager.shutdown();
-//            }
-//        };
+    public ConfigQueryExecutor getConfigQueryExecutor(WebSphereServer server) throws ConnectorException {
+        return new CellConfiguration(server, server.getCell());
     }
     
     synchronized void removeDeploymentManagerConnection(DeploymentManagerConnection dmc) {

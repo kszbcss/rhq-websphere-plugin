@@ -42,7 +42,7 @@ import be.fgov.kszbcss.rhq.websphere.config.CacheRefreshStrategy;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
-import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryService;
+import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryExecutor;
 
 import com.ibm.websphere.management.repository.ConfigEpoch;
 
@@ -55,7 +55,7 @@ public class ConfigQueryCache implements Runnable {
     private static final Log log = LogFactory.getLog(ConfigQueryCache.class);
 
     private final String name;
-    private final ConfigQueryService queryService;
+    private final ConfigQueryExecutor queryExecutor;
     private final File persistentFile;
     private final Map<ConfigQuery<?>,ConfigQueryCacheEntry<?>> cache = new HashMap<ConfigQuery<?>,ConfigQueryCacheEntry<?>>();
     private ConfigEpoch epoch;
@@ -63,9 +63,9 @@ public class ConfigQueryCache implements Runnable {
     private boolean stopping;
     private Timer timer;
     
-    public ConfigQueryCache(String name, ConfigQueryService queryService, File persistentFile) {
+    public ConfigQueryCache(String name, ConfigQueryExecutor queryExecutor, File persistentFile) {
         this.name = name;
-        this.queryService = queryService;
+        this.queryExecutor = queryExecutor;
         this.persistentFile = persistentFile;
     }
 
@@ -143,7 +143,7 @@ public class ConfigQueryCache implements Runnable {
         ConfigQueryException nonTransientException = null;
         boolean transientError = false;
         try {
-            result = queryService.query(entry.query);
+            result = queryExecutor.query(entry.query);
         } catch (ConfigQueryException ex) {
             nonTransientException = ex;
         } catch (Throwable ex) {

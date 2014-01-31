@@ -30,8 +30,8 @@ import javax.management.JMException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.types.ConnectionFactoryCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.DataSourceCO;
@@ -57,7 +57,7 @@ public class ConnectionFactoryQuery implements ConfigQuery<ConnectionFactoryInfo
         this.jndiName = jndiName;
     }
 
-    public ConnectionFactoryInfo execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public ConnectionFactoryInfo execute(Config config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         for (ConnectionFactoryCO cf : config.allScopes(node, server).path(type.getContainingConfigurationObjectType()).path(type.getConfigurationObjectType()).resolve(false)) {
             // Attention: the returned JNDI name may be null
             if (jndiName.equals(cf.getJndiName())) {

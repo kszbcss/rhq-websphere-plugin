@@ -24,7 +24,7 @@ package be.fgov.kszbcss.rhq.websphere.component.pme;
 
 import javax.management.JMException;
 
-import be.fgov.kszbcss.rhq.websphere.config.CellConfiguration;
+import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.config.types.WorkManagerInfoCO;
@@ -45,7 +45,7 @@ public class WorkManagerQuery implements ConfigQuery<WorkManagerInfoCO> {
         this.jndiName = jndiName;
     }
 
-    public WorkManagerInfoCO execute(CellConfiguration config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
+    public WorkManagerInfoCO execute(Config config) throws JMException, ConnectorException, InterruptedException, ConfigQueryException {
         for (WorkManagerInfoCO wm : config.allScopes(node, server).path(WorkManagerProviderCO.class).path(WorkManagerInfoCO.class).resolve(false)) {
             if (jndiName.equals(wm.getJndiName())) {
                 wm.detach();
