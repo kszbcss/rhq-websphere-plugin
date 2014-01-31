@@ -43,6 +43,7 @@ public abstract class ApplicationServer extends WebSphereServer {
     private final String node;
     private final String server;
     private ConfigQueryService configQueryService;
+    private boolean destroyed;
     
     /**
      * Constructor.
@@ -82,11 +83,12 @@ public abstract class ApplicationServer extends WebSphereServer {
     }
 
     @Override
-    public void destroy() {
+    public synchronized void destroy() {
         if (configQueryService != null) {
             configQueryService.release();
             configQueryService = null;
         }
+        destroyed = true;
         super.destroy();
     }
 
@@ -94,6 +96,9 @@ public abstract class ApplicationServer extends WebSphereServer {
     
     private synchronized ConfigQueryService getConfigQueryService() {
         if (configQueryService == null) {
+            if (destroyed) {
+                throw new IllegalStateException("Cannot create ConfigQueryService; ApplicationServer object already destroyed");
+            }
             configQueryService = createConfigQueryService();
         }
         return configQueryService;
