@@ -84,9 +84,13 @@ public abstract class WebSphereComponent<T extends ResourceComponent<?>> impleme
             getServer().unregisterConfigQuery(query);
         }
         registeredConfigQueries.clear();
+        // The destroy hook is mainly used by WebSphereServerComponent: we need to destroy
+        // the server object after unregistering the config queries
+        destroy();
     }
     
     protected void doStop() {}
+    protected void destroy() {}
 
     public abstract String getNodeName();
     public abstract String getServerName();

@@ -390,6 +390,10 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
     @Override
     protected void doStop() {
         persistLoggingState(loggingProvider.stop());
+    }
+    
+    @Override
+    protected void destroy() {
         server.destroy();
     }
     
