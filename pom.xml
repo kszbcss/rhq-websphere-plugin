@@ -41,6 +41,7 @@
         <module>rhq-websphere-agent-plugin</module>
         <module>design-doc</module>
         <module>websphere-apis</module>
+        <module>db2jcc-apis</module>
         <module>rhq-websphere-server-plugin</module>
         <module>distribution</module>
         <module>connector</module>
