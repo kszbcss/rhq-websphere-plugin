@@ -49,7 +49,7 @@ public class TransactionServiceComponent extends WebSphereServiceComponent<WebSp
     @Override
     protected void doStart() throws InvalidPluginConfigurationException {
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(getServer().getServerMBean(), PmiConstants.TRAN_MODULE));
+        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(PmiConstants.TRAN_MODULE));
         final TransactionService transactionService = getServer().getMBeanClient("WebSphere:type=TransactionService,*").getProxy(TransactionService.class);
         measurementFacetSupport.addHandler("IndoubtTransactions", new InDoubtTransactionsMeasurementHandler() {
             @Override

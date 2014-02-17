@@ -47,7 +47,7 @@ public abstract class J2EEComponent<T extends ModuleComponent> extends WebSphere
         // Applications may be installed with "Create MBeans for resources" disabled. In this case, there
         // is no MBean representing the bean/servlet. Therefore we always locate the PMI module starting from the
         // server.
-        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(server.getServerMBean(),
+        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(
                 getPMIModule(), parent.getApplicationName() + "#" + parent.getModuleName(),
                 getPMISubmodule(), context.getResourceKey()));
         PropertySimple suppressLogEventsProp = context.getPluginConfiguration().getSimple("suppressLogEvents");

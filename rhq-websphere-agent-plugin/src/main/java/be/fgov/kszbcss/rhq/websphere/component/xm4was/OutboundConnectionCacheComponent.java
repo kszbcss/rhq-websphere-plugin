@@ -37,7 +37,6 @@ import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
-import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.support.configuration.ConfigurationFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
@@ -50,10 +49,9 @@ public class OutboundConnectionCacheComponent extends WebSphereServiceComponent<
     @Override
     protected void doStart() throws InvalidPluginConfigurationException {
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
-        WebSphereServer server = getServer();
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        mbean = server.getMBeanClient("WebSphere:type=XM4WAS.OutboundConnectionCache,name=" + context.getResourceKey() + ",*");
-        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(mbean));
+        mbean = getServer().getMBeanClient("WebSphere:type=XM4WAS.OutboundConnectionCache,name=" + context.getResourceKey() + ",*");
+        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler("OutboundConnectionCache"));
         configurationFacetSupport = new ConfigurationFacetSupport(this, mbean);
     }
 

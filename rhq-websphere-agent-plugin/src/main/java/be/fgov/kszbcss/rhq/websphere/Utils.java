@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012,2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,19 +25,13 @@ package be.fgov.kszbcss.rhq.websphere;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.mc4j.ems.connection.EmsException;
-import org.mc4j.ems.connection.bean.EmsBean;
 import org.rhq.core.domain.event.Event;
 import org.rhq.core.pluginapi.event.EventContext;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
-import com.ibm.websphere.pmi.stat.StatDescriptor;
 
 public class Utils {
     private Utils() {}
@@ -47,15 +41,6 @@ public class Utils {
             return new ObjectName(s);
         } catch (MalformedObjectNameException ex) {
             throw new IllegalArgumentException(ex.getMessage());
-        }
-    }
-    
-    public static MBeanStatDescriptor getMBeanStatDescriptor(EmsBean bean, String... path) {
-        try {
-            ObjectName mbean = new ObjectName(bean.getBeanName().toString());
-            return path.length == 0 ? new MBeanStatDescriptor(mbean) : new MBeanStatDescriptor(mbean, new StatDescriptor(path));
-        } catch (JMException ex) {
-            throw new EmsException(ex);
         }
     }
     

@@ -39,7 +39,6 @@ import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
 import be.fgov.kszbcss.rhq.websphere.config.types.WorkManagerInfoCO;
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.support.configuration.ConfigurationFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
@@ -52,13 +51,12 @@ public class WorkManagerComponent extends WebSphereServiceComponent<WebSphereSer
     protected void doStart() throws InvalidPluginConfigurationException {
         ResourceContext<WebSphereServerComponent> context = getResourceContext();
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        ApplicationServer server = getServer();
         String jndiName = context.getResourceKey();
         configData = registerConfigQuery(new WorkManagerQuery(getNodeName(), getServerName(), jndiName));
-        measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(server.getServerMBean(),
+        measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(
                 new WorkManagerThreadPoolPMIModuleSelector(jndiName, configData)));
         configurationFacetSupport = new ConfigurationFacetSupport(this,
-                server.getMBeanClient(new WorkManagerThreadPoolMBeanLocator(jndiName, configData)), true);
+                getServer().getMBeanClient(new WorkManagerThreadPoolMBeanLocator(jndiName, configData)), true);
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {

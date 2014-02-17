@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -55,8 +55,8 @@ import be.fgov.kszbcss.rhq.websphere.util.PIDWatcher;
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.PmiModuleConfig;
-import com.ibm.websphere.pmi.stat.MBeanLevelSpec;
-import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
+import com.ibm.websphere.pmi.stat.StatDescriptor;
+import com.ibm.websphere.pmi.stat.StatLevelSpec;
 import com.ibm.websphere.pmi.stat.WSStats;
 
 /**
@@ -178,8 +178,8 @@ public abstract class WebSphereServer {
         return notificationListenerManager.addNotificationListener(name, listener, filter, handback, extended);
     }
     
-    public WSStats getWSStats(MBeanStatDescriptor descriptor) throws JMException, ConnectorException {
-        WSStats stats = perf.getStatsObject(descriptor, Boolean.TRUE);
+    public WSStats getWSStats(StatDescriptor descriptor) throws JMException, ConnectorException {
+        WSStats stats = perf.getStatsArray(new StatDescriptor[] { descriptor }, Boolean.TRUE)[0];
         if (log.isDebugEnabled()) {
             if (stats == null) {
                 log.debug("No stats found for " + descriptor);
@@ -239,19 +239,19 @@ public abstract class WebSphereServer {
      * @return the set of statistics that have effectively been enabled; it excludes statistics that
      *         were already enabled before the call
      */
-    public Set<Integer> enableStatistics(MBeanStatDescriptor descriptor, Set<Integer> statisticsToEnable) {
+    public Set<Integer> enableStatistics(StatDescriptor descriptor, Set<Integer> statisticsToEnable) {
         try {
             if (log.isDebugEnabled()) {
                 log.debug("Attempting to enable statistics " + statisticsToEnable + " on " + descriptor);
             }
             
             // Load the existing instrumentation level
-            MBeanLevelSpec[] specs = perf.getInstrumentationLevel(descriptor, Boolean.FALSE);
+            StatLevelSpec[] specs = perf.getInstrumentationLevel(descriptor, Boolean.FALSE);
             if (specs.length != 1) {
                 log.error("Expected getInstrumentationLevel to return exactly one MBeanLevelSpec object");
                 return Collections.emptySet();
             }
-            MBeanLevelSpec spec = specs[0];
+            StatLevelSpec spec = specs[0];
             if (log.isDebugEnabled()) {
                 log.debug("Current instrumentation level: " + spec);
             }
@@ -287,7 +287,7 @@ public abstract class WebSphereServer {
                 }
                 
                 // Now update the instrumentation level
-                perf.setInstrumentationLevel(spec, Boolean.FALSE);
+                perf.setInstrumentationLevel(new StatLevelSpec[] { spec }, Boolean.FALSE);
                 
                 log.info("Enabled statistics " + newStats + " on " + descriptor);
             }
@@ -297,5 +297,9 @@ public abstract class WebSphereServer {
             log.error(ex); // TODO
             return Collections.emptySet();
         }
+    }
+
+    public StatDescriptor[] listStatMembers(StatDescriptor statDescriptor, boolean recursive) throws JMException, ConnectorException {
+        return perf.listStatMembers(statDescriptor, recursive);
     }
 }
