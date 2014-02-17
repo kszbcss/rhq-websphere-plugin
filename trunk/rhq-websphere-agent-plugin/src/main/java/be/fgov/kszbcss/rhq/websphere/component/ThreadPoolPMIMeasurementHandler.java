@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012 Crossroads Bank for Social Security
+ * Copyright (C) 2012,2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,17 +24,16 @@ package be.fgov.kszbcss.rhq.websphere.component;
 
 import com.ibm.websphere.pmi.stat.WSRangeStatistic;
 
-import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIModuleSelector;
 
 public class ThreadPoolPMIMeasurementHandler extends PMIMeasurementHandler {
-    public ThreadPoolPMIMeasurementHandler(MBeanClient mbean, String... path) {
-        super(mbean, path);
+    public ThreadPoolPMIMeasurementHandler(String... path) {
+        super(path);
     }
 
-    public ThreadPoolPMIMeasurementHandler(MBeanClient mbean, PMIModuleSelector moduleSelector) {
-        super(mbean, moduleSelector);
+    public ThreadPoolPMIMeasurementHandler(PMIModuleSelector moduleSelector) {
+        super(moduleSelector);
     }
 
     @Override

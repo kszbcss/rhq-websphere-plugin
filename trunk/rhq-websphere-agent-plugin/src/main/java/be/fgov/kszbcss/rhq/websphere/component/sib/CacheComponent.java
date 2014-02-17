@@ -31,7 +31,6 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
-import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientProxy;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 
@@ -41,10 +40,8 @@ public class CacheComponent extends WebSphereServiceComponent<SIBMessagingEngine
     @Override
     protected void doStart() throws InvalidPluginConfigurationException {
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        // Need to start from the SIBMessagingEngine MBean here because the PMI module names for SIB were changed by PM60540
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(
-                ((MBeanClientProxy)getParent().getSIBMessagingEngine()).getMBeanClient(),
-                "Storage Management", "Cache"));
+                new SIBMessagingEnginePMIModuleSelector(getParent(), "Storage Management", "Cache")));
     }
 
     @Override

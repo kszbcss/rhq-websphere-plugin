@@ -41,7 +41,6 @@ import be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQueryException;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
-import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIModuleSelector;
@@ -60,8 +59,7 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
     protected void doStart() throws InvalidPluginConfigurationException {
         jndiName = getResourceContext().getResourceKey();
         configData = registerConfigQuery(new ConnectionFactoryQuery(getNodeName(), getServerName(), getType(), jndiName));
-        ApplicationServer server = getServer();
-        mbean = server.getMBeanClient(new ConnectionFactoryMBeanLocator(getType(), jndiName, configData));
+        mbean = getServer().getMBeanClient(new ConnectionFactoryMBeanLocator(getType(), jndiName, configData));
         measurementFacetSupport = new MeasurementFacetSupport(this);
         PMIModuleSelector moduleSelector = new PMIModuleSelector() {
             public String[] getPath() throws JMException, ConnectorException, InterruptedException {
@@ -75,7 +73,7 @@ public abstract class ConnectionFactoryComponent extends WebSphereServiceCompone
                 return new String[] { getType().getPmiModule(), cf.getProviderName(), cf.getJndiName() };
             }
         };
-        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(server.getServerMBean(), moduleSelector) {
+        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(moduleSelector) {
             @Override
             protected double getValue(String name, WSRangeStatistic statistic) {
                 if (name.equals("PercentMaxed") || name.equals("PercentUsed")) {

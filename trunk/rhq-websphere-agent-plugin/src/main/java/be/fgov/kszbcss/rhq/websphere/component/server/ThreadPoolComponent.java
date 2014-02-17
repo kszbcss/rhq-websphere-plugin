@@ -60,7 +60,7 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
         String name = context.getResourceKey();
         // We don't use the ThreadPool mbean here because for some thread pools, no MBean is created
         // by the server (see the design document for more details).
-        measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(server.getServerMBean(), PmiConstants.THREADPOOL_MODULE, name));
+        measurementFacetSupport.addHandler("stats", new ThreadPoolPMIMeasurementHandler(PmiConstants.THREADPOOL_MODULE, name));
         configurationFacetSupport = new ConfigurationFacetSupport(this,
                 server.getMBeanClient("WebSphere:type=ThreadPool,name=" + name + ",*"), true);
         threadMonitor = server.getMBeanClient("XM4WAS:type=ThreadMonitor,*").getProxy(ThreadMonitor.class);

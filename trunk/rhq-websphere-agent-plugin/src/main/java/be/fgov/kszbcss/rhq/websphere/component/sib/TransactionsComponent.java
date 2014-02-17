@@ -38,7 +38,6 @@ import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.component.InDoubtTransactionsMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
-import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientProxy;
 import be.fgov.kszbcss.rhq.websphere.proxy.SIBMessagingEngine;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
@@ -50,10 +49,8 @@ public class TransactionsComponent extends WebSphereServiceComponent<SIBMessagin
     protected void doStart() throws InvalidPluginConfigurationException {
         measurementFacetSupport = new MeasurementFacetSupport(this);
         final SIBMessagingEngine sibMessagingEngine = getParent().getSIBMessagingEngine();
-        // Need to start from the SIBMessagingEngine MBean here because the PMI module names for SIB were changed by PM60540
         measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(
-                ((MBeanClientProxy)sibMessagingEngine).getMBeanClient(),
-                "Storage Management", "Transactions"));
+                new SIBMessagingEnginePMIModuleSelector(getParent(), "Storage Management", "Transactions")));
         measurementFacetSupport.addHandler("IndoubtTransactions", new InDoubtTransactionsMeasurementHandler() {
             @Override
             protected Set<String> getTransactionIds() throws JMException, ConnectorException {

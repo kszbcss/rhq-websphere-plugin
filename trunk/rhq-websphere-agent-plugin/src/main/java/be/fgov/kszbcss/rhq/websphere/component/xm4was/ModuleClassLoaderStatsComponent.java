@@ -40,7 +40,7 @@ public abstract class ModuleClassLoaderStatsComponent<T extends WebSphereService
     @Override
     protected void doStart() throws InvalidPluginConfigurationException {
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(getServer().getServerMBean(), "ClassLoaderStats", getModuleName()));
+        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler("ClassLoaderStats", getModuleName()));
     }
 
     @Override

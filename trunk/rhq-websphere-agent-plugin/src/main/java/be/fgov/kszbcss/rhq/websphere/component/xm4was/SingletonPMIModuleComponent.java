@@ -41,7 +41,7 @@ public abstract class SingletonPMIModuleComponent extends WebSphereServiceCompon
     @Override
     protected void doStart() throws InvalidPluginConfigurationException {
         measurementFacetSupport = new MeasurementFacetSupport(this);
-        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(getServer().getServerMBean(), getPMIModuleName()));
+        measurementFacetSupport.addHandler("stats", new PMIMeasurementHandler(getPMIModuleName()));
     }
 
     @Override

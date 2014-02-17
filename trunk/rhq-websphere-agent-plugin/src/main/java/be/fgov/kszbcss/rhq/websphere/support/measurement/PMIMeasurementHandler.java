@@ -1,6 +1,6 @@
 /*
  * RHQ WebSphere Plug-in
- * Copyright (C) 2012-2013 Crossroads Bank for Social Security
+ * Copyright (C) 2012-2014 Crossroads Bank for Social Security
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 package be.fgov.kszbcss.rhq.websphere.support.measurement;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,7 +44,6 @@ import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 import com.ibm.websphere.pmi.PmiDataInfo;
 import com.ibm.websphere.pmi.PmiModuleConfig;
-import com.ibm.websphere.pmi.stat.MBeanStatDescriptor;
 import com.ibm.websphere.pmi.stat.StatDescriptor;
 import com.ibm.websphere.pmi.stat.WSAverageStatistic;
 import com.ibm.websphere.pmi.stat.WSCountStatistic;
@@ -56,8 +56,8 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
     
     private static final Log log = LogFactory.getLog(PMIMeasurementHandler.class);
     
-    private final MBeanClient mbean;
     private final PMIModuleSelector moduleSelector;
+    private StatDescriptor descriptor;
     private final Map<String,WSAverageStatistic> lastStats = new HashMap<String,WSAverageStatistic>();
     
     /**
@@ -66,12 +66,11 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
      */
     private final Map<Integer,Long> failedAttemptsToEnableStat = new HashMap<Integer,Long>();
     
-    public PMIMeasurementHandler(MBeanClient mbean, String... path) {
-        this(mbean, new StaticPMIModuleSelector(path));
+    public PMIMeasurementHandler(String... path) {
+        this(new StaticPMIModuleSelector(path));
     }
     
-    public PMIMeasurementHandler(MBeanClient mbean, PMIModuleSelector moduleSelector) {
-        this.mbean = mbean;
+    public PMIMeasurementHandler(PMIModuleSelector moduleSelector) {
         this.moduleSelector = moduleSelector;
     }
 
@@ -85,34 +84,68 @@ public class PMIMeasurementHandler implements MeasurementGroupHandler {
         }
     }
     
+    private StatDescriptor loadDescriptor() {
+        try {
+            return new StatDescriptor(moduleSelector.getPath());
+        } catch (Exception ex) {
+            log.error("Failed to determine PMI module path", ex);
+            return null;
+        }
+    }
+    
     public void getValues(WebSphereServer server, MeasurementReport report, Map<String,MeasurementScheduleRequest> requests) {
         purgeFailedAttemptsToEnableStat();
         
-        ObjectName objectName;
-        try {
-            objectName = mbean.getObjectName(true); // TODO: we could first try with the cached name
-        } catch (Exception ex) {
-            log.error("Failed to get object name", ex);
-            return;
-        }
-        String[] path;
-        try {
-            path = moduleSelector.getPath();
-        } catch (Exception ex) {
-            log.error("Failed to determine PMI module path", ex);
-            return;
-        }
-        MBeanStatDescriptor descriptor = path.length == 0 ? new MBeanStatDescriptor(objectName) : new MBeanStatDescriptor(objectName, new StatDescriptor(path));
+        StatDescriptor descriptor;
         WSStats stats;
-        try {
-            stats = server.getWSStats(descriptor);
-        } catch (Exception ex) {
-            log.error("Failed to get statistics object", ex);
-            return;
+        boolean isFreshDescriptor;
+        synchronized (this) {
+            descriptor = this.descriptor;
+            if (descriptor == null) {
+                log.debug("Initial load of descriptor");
+                descriptor = loadDescriptor();
+                if (descriptor == null) {
+                    return;
+                }
+                this.descriptor = descriptor;
+                isFreshDescriptor = true;
+            } else {
+                isFreshDescriptor = false;
+            }
         }
-        if (stats == null) {
-            return;
+        while (true) {
+            if (log.isDebugEnabled()) {
+                log.debug("Attempting to get stats for " + descriptor);
+            }
+            try {
+                stats = server.getWSStats(descriptor);
+            } catch (Exception ex) {
+                log.error("Failed to get statistics object", ex);
+                return;
+            }
+            if (stats == null) {
+                if (isFreshDescriptor) {
+                    log.debug("Stats not available");
+                    return;
+                } else {
+                    synchronized (this) {
+                        log.debug("Refreshing descriptor");
+                        descriptor = loadDescriptor();
+                        if (Arrays.equals(this.descriptor.getPath(), descriptor.getPath())) {
+                            log.debug("Descriptor didn't change; abandon.");
+                            return;
+                        } else {
+                            log.debug("Descriptor changed; retrying...");
+                            this.descriptor = descriptor;
+                            isFreshDescriptor = true;
+                        }
+                    }
+                }
+            } else {
+                break;
+            }
         }
+        
         PmiModuleConfig pmiModuleConfig;
         try {
             pmiModuleConfig = server.getPmiModuleConfig(stats);
