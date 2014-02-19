@@ -51,21 +51,26 @@ public class SIBMessagingEnginePMIModuleSelector implements PMIModuleSelector {
 
     public String[] getPath() throws JMException, ConnectorException, InterruptedException {
         String[] path = new String[3+relativePath.length];
-        StatDescriptor[] descs = sibMessagingEngine.getServer().listStatMembers(new StatDescriptor(new String[0]), false);
+        StatDescriptor[] descs = sibMessagingEngine.getServer().listStatMembers(null, false);
         if (log.isDebugEnabled()) {
             log.debug("Resolving module path relative to messaging engine; descriptors: " + Arrays.asList(descs));
         }
+        boolean hasFix = false;
         for (StatDescriptor desc : descs) {
             String name = desc.getPath()[0];
-            if (name.equals("SIB Service")) {
-                log.debug("Server doesn't have \"fix\" for PM60540");
-                path[0] = "SIB Service";
-                path[1] = "SIB Messaging Engines";
-            } else {
-                log.debug("Server has \"fix\" for PM60540");
-                path[0] = "StatGroup.SIBService";
-                path[1] = "StatGroup.MessagingEngines";
+            if (name.equals("StatGroup.SIBService")) {
+                hasFix = true;
+                break;
             }
+        }
+        if (hasFix) {
+            log.debug("Server has \"fix\" for PM60540");
+            path[0] = "StatGroup.SIBService";
+            path[1] = "StatGroup.SIBMessagingEngines";
+        } else {
+            log.debug("Server doesn't have \"fix\" for PM60540");
+            path[0] = "SIB Service";
+            path[1] = "SIB Messaging Engines";
         }
         path[2] = sibMessagingEngine.getName();
         System.arraycopy(relativePath, 0, path, 3, relativePath.length);
