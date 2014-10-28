@@ -30,7 +30,9 @@ public class AdminDataHolder {
         
     }
     
-    public static void removeData(Object key) {
-        
+	public static Object removeData(Object key) {
+		// note that this method had void return type in WAS 7.0 and earlier. This makes the class binary incompatible
+		// with WAS 7.
+		return null;
     }
 }
