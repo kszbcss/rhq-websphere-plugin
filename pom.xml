@@ -34,8 +34,9 @@
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <rhq.version>4.4.0</rhq.version>
-        <ems.version>1.3</ems.version>
+        <rhq.version>4.12.0</rhq.version>
+        <ems.version>1.3.6-rhq</ems.version>
+		<ems.impl.version>1.3</ems.impl.version>
     </properties>
     <modules>
         <module>rhq-websphere-agent-plugin</module>
@@ -89,10 +90,10 @@
                 <artifactId>org-mc4j-ems</artifactId>
                 <version>${ems.version}</version>
             </dependency>
-            <dependency>
+			<dependency>
                 <groupId>mc4j</groupId>
                 <artifactId>org-mc4j-ems-impl</artifactId>
-                <version>${ems.version}</version>
+                <version>${ems.impl.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
