@@ -70,6 +70,8 @@
                             <foCustomization>${basedir}/src/docbkx/xsl/fo.xsl</foCustomization>
                             <imgSrcPath>${baseUrl}/src/docbkx/images/</imgSrcPath>
                             <admonGraphicsPath>${baseUrl}/src/docbkx/admon-graphics/</admonGraphicsPath>
+							<!-- enable apache fop extensions so we can have pdf bookmarks http://www.sagehill.net/docbookxsl/PdfBookmarks.html -->
+							<fop1Extensions>1</fop1Extensions>
                         </configuration>
                     </execution>
                 </executions>
