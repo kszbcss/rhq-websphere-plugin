@@ -95,7 +95,7 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
     
     @Override
     protected boolean isConfigured() throws Exception {
-        return getApplicationInfo() != null;
+		return getApplicationInfo() != null && getApplicationInfo().getTargetMapping(getServer()) != null;
     }
 
     protected AvailabilityType doGetAvailability() {
