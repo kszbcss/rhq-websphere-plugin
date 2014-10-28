@@ -182,6 +182,7 @@ public abstract class AdminClientWrapper implements AdminClient {
         target.removeNotificationListener(name, listener);
     }
 
+	@Deprecated
     public void removeNotificationListenerExtended(NotificationListener listener)
             throws ListenerNotFoundException, ConnectorException {
         target.removeNotificationListenerExtended(listener);
