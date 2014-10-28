@@ -387,6 +387,7 @@ public class SecureAdminClient extends AdminClientWrapper {
         }
     }
     
+	@Deprecated
     public void removeNotificationListenerExtended(NotificationListener listener) throws ListenerNotFoundException, ConnectorException {
         try {
             WSSubject.setRunAsSubject(subject);
