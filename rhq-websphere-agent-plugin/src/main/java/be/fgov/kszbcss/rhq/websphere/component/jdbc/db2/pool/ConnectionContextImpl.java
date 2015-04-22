@@ -32,15 +32,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import com.ibm.db2.jcc.DB2ClientRerouteServerList;
 import com.ibm.db2.jcc.DB2SimpleDataSource;
 
 final class ConnectionContextImpl {
-    private static final Log log = LogFactory.getLog(ConnectionContextImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ConnectionContextImpl.class);
     
     int refCounter;
     private final DB2SimpleDataSource dataSource;

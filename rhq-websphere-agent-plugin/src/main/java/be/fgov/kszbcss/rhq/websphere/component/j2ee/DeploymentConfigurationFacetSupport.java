@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.configuration.PropertyList;
 import org.rhq.core.domain.configuration.PropertyMap;
@@ -40,7 +40,7 @@ import org.rhq.core.domain.configuration.PropertySimple;
  * Support class to collect the deployment configuration for a WAR module or an EJB.
  */
 public class DeploymentConfigurationFacetSupport {
-    private static final Log log = LogFactory.getLog(DeploymentConfigurationFacetSupport.class);
+    private static final Logger log = LoggerFactory.getLogger(DeploymentConfigurationFacetSupport.class);
     
     private static final Set<String> destinationTypes = new HashSet<String>(Arrays.asList("javax.jms.Queue", "javax.jms.Topic", "javax.jms.Destination"));
     

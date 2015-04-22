@@ -31,8 +31,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.measurement.MeasurementDataNumeric;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
@@ -51,7 +51,7 @@ import com.ibm.websphere.pmi.stat.WSStats;
 public class PMIMeasurementHandler implements MeasurementGroupHandler {
     private static long STAT_ENABLE_ATTEMPT_INTERVAL = 12*3600*1000;
     
-    private static final Log log = LogFactory.getLog(PMIMeasurementHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(PMIMeasurementHandler.class);
     
     private final PMIModuleSelector moduleSelector;
     private StatDescriptor descriptor;

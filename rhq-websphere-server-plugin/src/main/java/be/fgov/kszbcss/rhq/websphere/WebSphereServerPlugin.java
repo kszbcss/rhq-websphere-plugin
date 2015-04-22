@@ -22,39 +22,36 @@
  */
 package be.fgov.kszbcss.rhq.websphere;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-
-import javax.ejb.EJBException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.rhq.core.clientapi.agent.discovery.DiscoveryAgentService;
 import org.rhq.core.domain.auth.Subject;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.configuration.Property;
 import org.rhq.core.domain.configuration.PropertyMap;
 import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.configuration.ResourceConfigurationUpdate;
-import org.rhq.core.domain.criteria.OperationDefinitionCriteria;
 import org.rhq.core.domain.criteria.ResourceCriteria;
-import org.rhq.core.domain.criteria.ResourceOperationHistoryCriteria;
+import org.rhq.core.domain.discovery.AvailabilityReport;
+import org.rhq.core.domain.discovery.AvailabilityReport.Datum;
 import org.rhq.core.domain.measurement.AvailabilityType;
-import org.rhq.core.domain.operation.OperationRequestStatus;
-import org.rhq.core.domain.operation.ResourceOperationHistory;
-import org.rhq.core.domain.operation.bean.ResourceOperationSchedule;
 import org.rhq.core.domain.resource.Resource;
 import org.rhq.core.domain.resource.composite.ResourceAvailabilitySummary;
 import org.rhq.core.domain.tagging.Tag;
 import org.rhq.core.domain.util.PageControl;
 import org.rhq.core.domain.util.PageList;
+import org.rhq.enterprise.server.agentclient.AgentClient;
 import org.rhq.enterprise.server.configuration.ConfigurationManagerLocal;
-import org.rhq.enterprise.server.operation.OperationManagerLocal;
+import org.rhq.enterprise.server.core.AgentManagerLocal;
 import org.rhq.enterprise.server.plugin.pc.ScheduledJobInvocationContext;
 import org.rhq.enterprise.server.plugin.pc.ServerPluginComponent;
 import org.rhq.enterprise.server.plugin.pc.ServerPluginContext;
@@ -63,21 +60,25 @@ import org.rhq.enterprise.server.tagging.TagManagerLocal;
 import org.rhq.enterprise.server.util.LookupUtil;
 
 public class WebSphereServerPlugin implements ServerPluginComponent {
-    private static final Log log = LogFactory.getLog(WebSphereServerPlugin.class);
+	private static final Log LOG = LogFactory.getLog(WebSphereServerPlugin.class);
     
     private Configuration config;
     
-    public void initialize(ServerPluginContext context) throws Exception {
+    @Override
+	public void initialize(ServerPluginContext context) throws Exception {
         config = context.getPluginConfiguration();
     }
 
-    public void start() {
+    @Override
+	public void start() {
     }
 
-    public void stop() {
+    @Override
+	public void stop() {
     }
 
-    public void shutdown() {
+    @Override
+	public void shutdown() {
     }
     
 	/**
@@ -117,21 +118,22 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
 				ResourceAvailabilitySummary availability =
 						resourceManager.getAvailabilitySummary(user, resource.getId());
 				if ((System.currentTimeMillis() - availability.getLastChange().getTime()) / 60000 > uninventoryDelay) {
-					log.debug("Removing unconfigured tag from resource " + resource.getName() + " (" + resource.getId()
+					LOG.debug("Removing unconfigured tag from resource " + resource.getName() + " (" + resource.getId()
 							+ ") to work around an issue in RHQ 4.5.1");
 					Set<Tag> tags = resource.getTags();
 					tags.remove(unconfiguredTag);
 					tagManager.updateResourceTags(user, resource.getId(), tags);
-					log.info("About to uninventory " + resource.getName() + " (" + resource.getId() + ")");
+					LOG.info("About to uninventory " + resource.getName() + " (" + resource.getId() + ")");
 					resourceManager.uninventoryResources(user, new int[] { resource.getId() });
 				} else {
-					log.debug("Resource " + resource.getName() + " (" + resource.getId()
+					LOG.debug("Resource " + resource.getName() + " (" + resource.getId()
 							+ ") is tagged as unconfigured; force configuration check");
 					resources.add(resource);
 				}
 			}
 
 			// Search for WebSphere resources that are down and check if they have been unconfigured
+			// AvailabilityType.MISSING results seems to have been converted to DOWN at this point
 			resourceCriteria = new ResourceCriteria();
 			resourceCriteria.addFilterCurrentAvailability(AvailabilityType.DOWN);
 			resourceCriteria.addFilterPluginName("WebSphere");
@@ -145,182 +147,95 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
 				}
 			}
 
-			// check and mark - for all resources that were already marked as unconfigured and for the unavailable
-			// resources
+			// check and mark - for all resources that were already marked as unconfigured and for the unavailable resources
 			checkAndMarkUnconfiguredResources(resources, unconfiguredTag);
-		} catch (Throwable e) {
+		} catch (RuntimeException e) {
 			// need to catch all exceptions here because letting the exception pass will unschedule the job forevermore
-			log.error("Exception during autoUninventory of resources", e);
+			LOG.error("Exception during autoUninventory of resources", e);
 		}
     }
+	
+	private void checkAndMarkUnconfiguredResources(LinkedList<Resource> resources, final Tag unconfiguredTag) {
+		final Subject user = LookupUtil.getSubjectManager().getOverlord();
+		final TagManagerLocal tagManager = LookupUtil.getTagManager();
+		final ResourceManagerLocal resourceManager = LookupUtil.getResourceManager();
 
-	private void checkAndMarkUnconfiguredResources(LinkedList<Resource> resources, Tag unconfiguredTag)
-			throws Exception {
-		OperationManagerLocal operationManager = LookupUtil.getOperationManager();
-		Subject user = LookupUtil.getSubjectManager().getOverlord();
-		TagManagerLocal tagManager = LookupUtil.getTagManager();
-		ResourceManagerLocal resourceManager = LookupUtil.getResourceManager();
-
-		Map<Integer, Boolean> hasCheckConfigurationByResourceTypeId = new HashMap<Integer, Boolean>();
-
-		// RHQ has no API to invoke operations synchronously. Therefore we need to go through the normal
-		// APIs, schedule an operation and poll for the result. To accelerate things, we schedule a certain
-		// number of operations in parallel.
-		List<ResourceOperationSchedule> schedules = new ArrayList<ResourceOperationSchedule>();
-		while (!resources.isEmpty() || !schedules.isEmpty()) {
-			while (!resources.isEmpty() && schedules.size() < 6) {
-				Resource resource = resources.removeFirst();
-				if (hasResourceCheckOperation(hasCheckConfigurationByResourceTypeId, resource.getResourceType().getId())) {
-					log.info("Scheduling checkConfiguration for " + resource.getName() + " (" + resource.getId() + ")");
-					ResourceOperationSchedule schedule =
-							operationManager.scheduleResourceOperation(user, resource.getId(), "checkConfiguration", 0,
-									0, 0, 0, new Configuration(), "Scheduled by RHQ WebSphere Server Plugin");
-					// Set the original Resource object because we need the set of tags (which is not loaded by
-					// scheduleResourceOperation)
-					schedule.setResource(resource);
-					schedules.add(schedule);
-				} else {
-					log.info("checkConfiguration operation not supported on " + resource.getName() + " ("
-							+ resource.getId() + ")");
-				}
-			}
-			Thread.sleep(1000);
-			List<ResourceOperationSchedule> deferred = new ArrayList<ResourceOperationSchedule>();
-			for (ResourceOperationSchedule schedule : schedules) {
-				Resource resource = schedule.getResource();
-				Configuration resourceConfiguration = getOperationScheduleResult(schedule, deferred);
-				if (resourceConfiguration != null) {
-					boolean isConfigured = resourceConfiguration.getSimple("isConfigured").getBooleanValue();
-					if (resource.getCurrentAvailability().getAvailabilityType() == AvailabilityType.DOWN
-							&& !isConfigured) {
-						log.info("Tagging " + resource.getName() + " (" + resource.getId() + ") as unconfigured");
-						Set<Tag> tags = resource.getTags();
-						tags.add(unconfiguredTag);
-						tagManager.updateResourceTags(user, resource.getId(), tags);
-						resourceManager.disableResources(user, new int[] { resource.getId() });
-					} else if (resource.getCurrentAvailability().getAvailabilityType() == AvailabilityType.DISABLED
-							&& isConfigured) {
-						log.info(resource.getName() + " (" + resource.getId()
-								+ ") has reappeared in the WebSphere configuration; reenabling it");
-						Set<Tag> tags = resource.getTags();
-						tags.remove(unconfiguredTag);
-						tagManager.updateResourceTags(user, resource.getId(), tags);
-						resourceManager.enableResources(user, new int[] { resource.getId() });
+		// To accelerate things, we schedule a certain number of operations in parallel.
+		// JBoss 6 has not yet ManagedExecutorService, so we're using unmanaged threads.
+		ExecutorService executorService = Executors.newFixedThreadPool(6);
+		for (final Resource resource : resources) {
+			if (resource.getResourceType().isSupportsMissingAvailabilityType()) {
+				executorService.submit(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							// the synchronous calls to retrieve availability don't convert AvailabilityType.MISSING to
+							// DOWN, so we can make use of it to detect unconfigured resources
+							if (resource.getCurrentAvailability().getAvailabilityType() != AvailabilityType.DISABLED) {
+								AvailabilityType currentAvailability = getCurrentAvailaibility(resource);
+								if (currentAvailability == AvailabilityType.MISSING) {
+									LOG.info("Tagging " + resource.getName() + " (" + resource.getId()
+											+ ") as unconfigured");
+									Set<Tag> tags = resource.getTags();
+									tags.add(unconfiguredTag);
+									// using synchronized, because at least resourceManager didn't seem threadsafe
+									synchronized (tagManager) {
+										tagManager.updateResourceTags(user, resource.getId(), tags);
+									}
+									synchronized (resourceManager) {
+										resourceManager.disableResources(user, new int[] { resource.getId() });
+									}
+								}
+							} else {
+								AvailabilityType currentAvailability = getCurrentAvailaibility(resource);
+								if (currentAvailability != AvailabilityType.UNKNOWN
+										&& currentAvailability != AvailabilityType.MISSING) {
+									LOG.info(resource.getName() + " (" + resource.getId()
+											+ ") has reappeared in the WebSphere configuration; reenabling it");
+									Set<Tag> tags = resource.getTags();
+									tags.remove(unconfiguredTag);
+									synchronized (tagManager) {
+										tagManager.updateResourceTags(user, resource.getId(), tags);
+									}
+									synchronized (resourceManager) {
+										resourceManager.enableResources(user, new int[] { resource.getId() });
+									}
+								}
+							}
+						} catch (RuntimeException e) {
+							LOG.error("Exception during availability check of resource " + resource.getName() + "("
+									+ resource.getId() + ")");
+						}
 					}
-				}
-
+				});
 			}
-			schedules = deferred;
+		}
+		try {
+			executorService.shutdown();
+			executorService.awaitTermination(5, TimeUnit.MINUTES);
+		} catch (InterruptedException e) {
+			throw new IllegalStateException("Interrupted during availability check of autoUninventory", e);
 		}
 	}
 
-	/**
-	 * @param schedule
-	 *            The scheduled operation
-	 * @param deferred
-	 *            List to which the schedule will be added if operation not yet complete
-	 * @return Result of scheduled operation. Will be null on error or if operation not yet complete.
-	 */
-	private Configuration getOperationScheduleResult(ResourceOperationSchedule schedule, List<ResourceOperationSchedule> deferred) {
-		OperationManagerLocal operationManager = LookupUtil.getOperationManager();
+	private AvailabilityType getCurrentAvailaibility(Resource resource) {
 		Subject user = LookupUtil.getSubjectManager().getOverlord();
-
-		Resource resource = schedule.getResource();
-
-		Configuration operationResult = null;
-
-		ResourceOperationHistoryCriteria historyCriteria = new ResourceOperationHistoryCriteria();
-		historyCriteria.setPageControl(PageControl.getUnlimitedInstance());
-		historyCriteria.addFilterJobId(schedule.getJobId());
-		historyCriteria.fetchResults(true);
-		PageList<ResourceOperationHistory> historyList;
-		// findResourceOperationHistoriesByCriteria may occasionally fail. The reason is that it executes two queries:
-		// one to retrieve the data and one to determine the total number of rows (note that this is basically
-		// useless since we are using PageControl.getUnlimitedInstance()). If the operation history is created
-		// just between these two queries, then there is a mismatch and an exception is triggered
-		// ("PageList was passed an empty collection but 'totalSize' was 1, PageControl[page=0, size=-1]").
-		// See https://bugzilla.redhat.com/show_bug.cgi?id=855674 for another description of this problem.
-		boolean isRetry = false;
-		while (true) {
-			try {
-				historyList = operationManager.findResourceOperationHistoriesByCriteria(user, historyCriteria);
-				break;
-			} catch (EJBException ex) {
-				if (isRetry) {
-					throw ex;
-				} else {
-					log.debug("Retrying findResourceOperationHistoriesByCriteria (first attempt failed)", ex);
-					isRetry = true;
-				}
+		AgentManagerLocal agentManager = LookupUtil.getAgentManager();
+		AgentClient agentClient = agentManager.getAgentClient(user, resource.getId());
+		DiscoveryAgentService discoveryAgentService = agentClient.getDiscoveryAgentService();
+		AvailabilityReport currentAvailability = discoveryAgentService.getCurrentAvailability(resource, false);
+		// the discoveryAgentService returns the live availability of the requested resource and the last
+		// known availabilities of any child resources
+		List<Datum> datums = currentAvailability.getResourceAvailability();
+		for(Datum datum : datums) {
+			if(datum.getResourceId() == resource.getId()) {
+				return datum.getAvailabilityType();
 			}
 		}
-		if (historyList.size() == 1) {
-			ResourceOperationHistory history = historyList.get(0);
-			boolean operationCompleted;
-			if (history.getStatus() == OperationRequestStatus.SUCCESS) {
-				if (history.getResults() == null) {
-					// This may happen if the checkConfiguration operation is declared on the resource type,
-					// but not correctly implemented by the resource component.
-					log.error("No results available for operation on " + resource.getName() + " (" + resource.getId()
-							+ ")");
-					operationCompleted = true;
-				} else {
-					operationResult = history.getResults();
-					operationCompleted = true;
-				}
-			} else if (history.getStatus() == OperationRequestStatus.INPROGRESS) {
-				log.info("Deferring operation on " + resource.getName() + " (" + resource.getId()
-						+ "): still in progress");
-				deferred.add(schedule);
-				operationCompleted = false;
-			} else {
-				log.error("Operation didn't succeed on " + resource.getName() + " (" + resource.getId() + "): "
-						+ history.getStatus());
-				operationCompleted = true;
-			}
-			if (operationCompleted) {
-				if (log.isDebugEnabled()) {
-					log.debug("Deleting operation history " + history);
-				}
-				operationManager.deleteOperationHistory(user, history.getId(), false);
-			}
-		} else if (historyList.size() == 0) {
-			// If we get here, then the ResourceOperationHistory has not been created yet (it is created asynchronously)
-			log.info("ResourceOperationHistory for " + resource.getName() + " (" + resource.getId() + ") not found yet");
-			deferred.add(schedule);
-		} else {
-			log.error("Unexpected result from findResourceOperationHistoriesByCriteria for " + resource.getName()
-					+ " (" + resource.getId() + ")");
-		}
-
-		return operationResult;
+		throw new IllegalStateException("Agent didn't respond with requested resource's availability. Resource: "
+				+ resource.toString());
 	}
 
-	/**
-	 * 
-	 * @param hasCheckConfigurationByResourceTypeId
-	 *            cache for the results of the check
-	 * @param resourceTypeId
-	 *            the id of the resource type
-	 * @return whether given resource type possesses a checkConfiguration operation
-	 */
-	private boolean hasResourceCheckOperation(Map<Integer, Boolean> hasCheckConfigurationByResourceTypeId,
-			int resourceTypeId) {
-		Subject user = LookupUtil.getSubjectManager().getOverlord();
-		OperationManagerLocal operationManager = LookupUtil.getOperationManager();
-
-		Boolean hasCheckConfiguration = hasCheckConfigurationByResourceTypeId.get(resourceTypeId);
-		if (hasCheckConfiguration == null) {
-		    OperationDefinitionCriteria opDefCriteria = new OperationDefinitionCriteria();
-		    opDefCriteria.setPageControl(PageControl.getUnlimitedInstance());
-			opDefCriteria.addFilterResourceTypeId(resourceTypeId);
-		    opDefCriteria.addFilterName("checkConfiguration");
-		    hasCheckConfiguration = operationManager.findOperationDefinitionsByCriteria(user, opDefCriteria).size() > 0;
-		    hasCheckConfigurationByResourceTypeId.put(resourceTypeId, hasCheckConfiguration);
-		}
-		return hasCheckConfiguration;
-	}
-    
 	public void updateDB2MonitorUsers(ScheduledJobInvocationContext invocation) {
 		try {
 			Subject user = LookupUtil.getSubjectManager().getOverlord();
@@ -336,11 +251,11 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
 				ResourceConfigurationUpdate rcUpdate =
 						configurationManager.getLatestResourceConfigurationUpdate(user, resource.getId());
 				if (rcUpdate == null) {
-					log.warn("Couldn't get latest configuration for resource " + resource.getId());
+					LOG.warn("Couldn't get latest configuration for resource " + resource.getId());
 				} else {
 					String primaryServer = rcUpdate.getConfiguration().getSimpleValue("primary", null);
 					if (primaryServer == null) {
-						log.warn("Unable to determine primary server for DB2 monitor " + resource.getId());
+						LOG.warn("Unable to determine primary server for DB2 monitor " + resource.getId());
 					} else {
 						String database =
 								primaryServer + "/" + rcUpdate.getConfiguration().getSimpleValue("databaseName");
@@ -355,7 +270,7 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
 								PropertySimple credentialsProperty = pluginConfig.getSimple("credentials");
 								if (!principal.equals(principalProperty.getStringValue())
 										|| !credentials.equals(credentialsProperty.getStringValue())) {
-									log.info("Updating DB2 monitor user for resource " + resource.getId());
+									LOG.info("Updating DB2 monitor user for resource " + resource.getId());
 									principalProperty.setStringValue(principal);
 									credentialsProperty.setStringValue(credentials);
 									configurationManager
@@ -367,9 +282,9 @@ public class WebSphereServerPlugin implements ServerPluginComponent {
 					}
 				}
 			}
-		} catch (Throwable e) {
+		} catch (RuntimeException e) {
 			// need to catch all exceptions here because letting the exception pass will unschedule the job forevermore
-			log.error("Exception during updateDB2MonitorUsers scheduled job", e);
+			LOG.error("Exception during updateDB2MonitorUsers scheduled job", e);
 		}
     }
 }

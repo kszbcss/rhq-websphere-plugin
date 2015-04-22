@@ -22,16 +22,15 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
-import java.util.Hashtable;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.MDC;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 class NamedThreadFactory implements ThreadFactory, Thread.UncaughtExceptionHandler {
-    private static final Log log = LogFactory.getLog(NamedThreadFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(NamedThreadFactory.class);
     
     private final ThreadGroup group;
     private final String namePrefix;
@@ -42,14 +41,13 @@ class NamedThreadFactory implements ThreadFactory, Thread.UncaughtExceptionHandl
         this.namePrefix = namePrefix;
     }
 
-    public Thread newThread(final Runnable runnable) {
+    @Override
+	public Thread newThread(final Runnable runnable) {
         // The log4j MDC is stored in an InheritableThreadLocal. We need to clear it.
         Runnable runnableWrapper = new Runnable() {
-            public void run() {
-                Hashtable<?,?> context = MDC.getContext();
-                if (context != null) {
-                    context.clear();
-                }
+            @Override
+			public void run() {
+				MDC.clear();
                 runnable.run();
             }
         };
@@ -59,7 +57,8 @@ class NamedThreadFactory implements ThreadFactory, Thread.UncaughtExceptionHandl
         return t;
     }
 
-    public void uncaughtException(Thread t, Throwable e) {
+    @Override
+	public void uncaughtException(Thread t, Throwable e) {
         log.error("Uncaught exception on scheduled thread [" + t.getName() + "]", e);
     }
 }

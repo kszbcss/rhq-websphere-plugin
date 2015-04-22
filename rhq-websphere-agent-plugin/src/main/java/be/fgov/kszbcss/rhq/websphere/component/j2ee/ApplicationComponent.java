@@ -31,6 +31,7 @@ import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.event.EventContext;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
+import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
@@ -43,9 +44,7 @@ import be.fgov.kszbcss.rhq.websphere.proxy.ApplicationManager;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
-import com.ibm.websphere.management.exception.ConnectorException;
-
-public class ApplicationComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet {
+public class ApplicationComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, OperationFacet {
     private MBeanClient mbean;
     private MeasurementFacetSupport measurementFacetSupport;
     private ApplicationManager applicationManager;
@@ -69,11 +68,11 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
         return getResourceContext().getResourceKey();
     }
     
-    public ApplicationInfo getApplicationInfo() throws InterruptedException, ConnectorException, ConfigQueryException {
+	public ApplicationInfo getApplicationInfo() throws InterruptedException, ConfigQueryException {
         return applicationInfo.get();
     }
     
-    public ApplicationConfiguration getConfiguration() throws InterruptedException, ConnectorException, ConfigQueryException {
+	public ApplicationConfiguration getConfiguration() throws InterruptedException, ConfigQueryException {
         return applicationConfiguration.get();
     }
     
@@ -98,7 +97,8 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
 		return getApplicationInfo() != null && getApplicationInfo().getTargetMapping(getServer()) != null;
     }
 
-    protected AvailabilityType doGetAvailability() {
+    @Override
+	protected AvailabilityType doGetAvailability() {
         try {
             mbean.getAttribute("name");
             return AvailabilityType.UP;
@@ -107,11 +107,13 @@ public class ApplicationComponent extends WebSphereServiceComponent<WebSphereSer
         }
     }
 
-    public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
+    @Override
+	public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
         measurementFacetSupport.getValues(report, requests);
     }
 
-    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+    @Override
+	public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("start")) {
             applicationManager.startApplication(getApplicationName());
         } else if (name.equals("stop")) {

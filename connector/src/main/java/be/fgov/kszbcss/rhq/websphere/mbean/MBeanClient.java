@@ -33,8 +33,8 @@ import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
@@ -47,7 +47,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
  * server upgrade).
  */
 public class MBeanClient {
-    private static final Log log = LogFactory.getLog(MBeanClient.class);
+    private static final Logger log = LoggerFactory.getLogger(MBeanClient.class);
     
     private interface Action<T> {
         public T execute(AdminClient adminClient, ObjectName objectName) throws JMException, ConnectorException;

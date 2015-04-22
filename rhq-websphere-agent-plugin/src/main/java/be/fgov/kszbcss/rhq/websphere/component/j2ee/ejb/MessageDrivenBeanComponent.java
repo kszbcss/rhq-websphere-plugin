@@ -25,12 +25,13 @@ package be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
+import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.j2ee.ModuleComponent;
@@ -39,8 +40,8 @@ import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
 
 import com.ibm.websphere.pmi.PmiConstants;
 
-public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
-    private static final Log log = LogFactory.getLog(MessageDrivenBeanComponent.class);
+public class MessageDrivenBeanComponent extends EnterpriseBeanComponent implements OperationFacet {
+    private static final Logger log = LoggerFactory.getLogger(MessageDrivenBeanComponent.class);
     
     private J2CMessageEndpoint endpoint;
     
@@ -127,7 +128,7 @@ public class MessageDrivenBeanComponent extends EnterpriseBeanComponent {
         }
     }
 
-    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+    public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("pause")) {
             endpoint.pause();
         } else if (name.equals("resume")) {

@@ -32,8 +32,8 @@ import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.util.PIDChangeTracker;
 import be.fgov.kszbcss.rhq.websphere.util.PIDWatcher;
@@ -53,7 +53,7 @@ import com.ibm.websphere.management.AdminClient;
  * </ul>
  */
 public class NotificationListenerManager {
-    private static final Log log = LogFactory.getLog(NotificationListenerManager.class);
+    private static final Logger log = LoggerFactory.getLogger(NotificationListenerManager.class);
     
     private final AdminClient adminClient;
     private final PIDChangeTracker pidChangeTracker;

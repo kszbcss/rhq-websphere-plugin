@@ -38,8 +38,8 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.pluginapi.inventory.DiscoveredResourceDetails;
@@ -78,7 +78,7 @@ public class WebSphereServerDiscoveryComponent implements ResourceDiscoveryCompo
         }
     }
     
-    private static final Log log = LogFactory.getLog(WebSphereServerDiscoveryComponent.class);
+    private static final Logger log = LoggerFactory.getLogger(WebSphereServerDiscoveryComponent.class);
     
     private static final List<PortSpec> portSpecs = new ArrayList<PortSpec>();
     

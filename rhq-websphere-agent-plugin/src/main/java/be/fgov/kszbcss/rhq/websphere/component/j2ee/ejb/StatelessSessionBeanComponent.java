@@ -22,8 +22,8 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.measurement.AvailabilityType;
 
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClientProxy;
@@ -32,7 +32,7 @@ import be.fgov.kszbcss.rhq.websphere.proxy.EJBMonitor;
 import com.ibm.websphere.pmi.PmiConstants;
 
 public class StatelessSessionBeanComponent extends EnterpriseBeanComponent {
-    private static final Log log = LogFactory.getLog(StatelessSessionBeanComponent.class);
+    private static final Logger log = LoggerFactory.getLogger(StatelessSessionBeanComponent.class);
     
     @Override
     protected EnterpriseBeanType getType() {

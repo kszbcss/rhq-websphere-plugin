@@ -40,8 +40,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.configuration.PropertyList;
 import org.rhq.core.domain.configuration.PropertyMap;
@@ -69,7 +69,7 @@ import be.fgov.kszbcss.rhq.websphere.process.DeploymentManager;
 import be.fgov.kszbcss.rhq.websphere.process.locator.ConfigurationBasedProcessLocator;
 
 public class ConnectorSubsystemComponent implements ResourceComponent<ResourceComponent<?>>, MeasurementFacet, OperationFacet {
-    private static final Log log = LogFactory.getLog(ConnectorSubsystemComponent.class);
+    private static final Logger log = LoggerFactory.getLogger(ConnectorSubsystemComponent.class);
     
     public void start(ResourceContext<ResourceComponent<?>> context)
             throws InvalidPluginConfigurationException, Exception {

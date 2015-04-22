@@ -23,9 +23,10 @@
 package be.fgov.kszbcss.rhq.websphere.config;
 
 import java.io.File;
+import java.io.Serializable;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.process.DeploymentManager;
 
@@ -35,7 +36,7 @@ import be.fgov.kszbcss.rhq.websphere.process.DeploymentManager;
  * instance.
  */
 class DeploymentManagerConnection {
-    private static final Log log = LogFactory.getLog(DeploymentManagerConnection.class);
+    private static final Logger log = LoggerFactory.getLogger(DeploymentManagerConnection.class);
 
     private final ConfigQueryServiceFactory factory;
     private final ConfigQueryServiceImpl configQueryService;
@@ -50,14 +51,14 @@ class DeploymentManagerConnection {
         return configQueryService;
     }
     
-    synchronized void incrementRefCount() {
+	private synchronized void incrementRefCount() {
         refCount++;
         if (log.isDebugEnabled()) {
             log.debug("New ref count is " + refCount);
         }
     }
 
-    synchronized void decrementRefCount() {
+	private synchronized void decrementRefCount() {
         refCount--;
         if (log.isDebugEnabled()) {
             log.debug("New ref count is " + refCount);
@@ -68,4 +69,32 @@ class DeploymentManagerConnection {
             factory.removeDeploymentManagerConnection(this);
         }
     }
+
+	public ConfigQueryService createConfigQueryServiceHandle() {
+		incrementRefCount();
+		return new ConfigQueryServiceHandle();
+	}
+
+	private class ConfigQueryServiceHandle implements ConfigQueryService {
+
+		@Override
+		public <T extends Serializable> ConfigData<T> registerConfigQuery(ConfigQuery<T> query) {
+			return configQueryService.registerConfigQuery(query);
+		}
+
+		@Override
+		public void unregisterConfigQuery(ConfigQuery<?> query) {
+			configQueryService.unregisterConfigQuery(query);
+		}
+
+		@Override
+		public void release() {
+			if (log.isDebugEnabled()) {
+				log.debug("Releasing one instance of ConfigQueryServiceHandle for cell "
+						+ configQueryService.getCell());
+			}
+			decrementRefCount();
+		}
+	}
+
 }

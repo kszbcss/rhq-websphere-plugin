@@ -72,13 +72,6 @@
         </c:list-property>
     </c:group>
 '>
-<!ENTITY isConfigured-operation '
-    <operation name="checkConfiguration" description="Determines if the resource is still configured in the WebSphere configuration. Useful to determine if a resource should be uninventoried automatically.">
-        <results>
-            <c:simple-property name="isConfigured" displayName="Is Configured" type="boolean"/>
-        </results>
-    </operation>
-'>
 <!ENTITY threadpool-metrics '
     <metric property="stats.PoolSize" displayName="Pool size"
             category="utilization" displayType="summary" defaultInterval="600000"
@@ -153,7 +146,7 @@
             discovery="be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerDiscoveryComponent"
             class="be.fgov.kszbcss.rhq.websphere.component.server.WebSphereServerComponent"
             description="WebSphere Application Server"
-            supportsManualAdd="true">
+            supportsManualAdd="true" supportsMissingAvailabilityType="true">
         
         <plugin-configuration>
             <c:group name="connection" displayName="Connection Info">
@@ -179,7 +172,6 @@
         
         <process-scan name="WebSphere" query="process|name|match=.*[\\/]java(\.exe)?$,arg|-application|match=com\.ibm\.ws\.bootstrap\.WSLauncher,arg|com.ibm.ws.runtime.WsServer|match=.*"/>
         
-        &isConfigured-operation;
         <operation name="restart" description="Restart the server process."/>
         <operation name="pauseAllMessageEndpoints" description="Pause all J2C message endpoints on this server."/>
         <operation name="resumeAllMessageEndpoints" description="Resume all J2C message endpoints on this server."/>
@@ -213,7 +205,7 @@
                 sourceType="JMX Server"
                 discovery="org.rhq.plugins.jmx.EmbeddedJMXServerDiscoveryComponent"
                 class="org.rhq.plugins.jmx.JMXServerComponent"
-                singleton="true"/>
+                singleton="true" />
 
         <service name="Transaction Service"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.server.TransactionServiceDiscoveryComponent"
@@ -312,9 +304,9 @@
         <service name="Thread Pool"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.server.ThreadPoolDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.server.ThreadPoolComponent"
-                 description="WebSphere Thread Pool">
+                 description="WebSphere Thread Pool"
+                  supportsMissingAvailabilityType="true">
             
-            &isConfigured-operation;
             <operation name="dump" description="Create a summarized thread dump and write it to SystemOut.log.">
                 <parameters>
                     <c:simple-property name="shorten" type="boolean" required="true"/>
@@ -328,9 +320,9 @@
         <service name="Work Manager"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.pme.WorkManagerDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.pme.WorkManagerComponent"
-                 description="WebSphere Work Manager">
+                 description="WebSphere Work Manager"
+                 supportsMissingAvailabilityType="true">
             
-            &isConfigured-operation;
             &threadpool-metrics;
             &threadpool-configuration;
         </service>
@@ -338,9 +330,8 @@
         <service name="Timer Manager"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.pme.TimerManagerDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.pme.TimerManagerComponent"
-                 description="WebSphere Timer Manager">
-            
-            &isConfigured-operation;
+                 description="WebSphere Timer Manager"
+                 supportsMissingAvailabilityType="true">
             
             &threadpool-metrics;
             <metric property="alarm-stats.AlarmsCreatedCount" displayName="Alarms Created"
@@ -365,9 +356,9 @@
         <service name="DynaCache"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.server.DynaCacheDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.server.DynaCacheComponent"
-                 description="WebSphere Dynamic Cache">
+                 description="WebSphere Dynamic Cache"
+                 supportsMissingAvailabilityType="true">
     
-            &isConfigured-operation;
             <operation name="clearCache" description="Clear the cache."/>
             
             <metric property="CacheHits" displayName="Cache Hits"
@@ -383,8 +374,8 @@
         <service name="Datasource"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceComponent"
-                 description="Datasource">
-            &isConfigured-operation;
+                 description="Datasource"
+                 supportsMissingAvailabilityType="true">
             
             <metric property="stats.PoolSize" displayName="Pool size"
                     category="utilization" displayType="summary" defaultInterval="600000"
@@ -522,8 +513,8 @@
         <service name="Connection Factory"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.j2c.J2CConnectionFactoryDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.j2c.J2CConnectionFactoryComponent"
-                 description="Datasource">
-            &isConfigured-operation;
+                 description="Datasource"
+                 supportsMissingAvailabilityType="true">
             
             <metric property="stats.PoolSize" displayName="Pool size"
                     category="utilization" displayType="summary" defaultInterval="600000"
@@ -566,9 +557,9 @@
         <service name="Application"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ApplicationDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ApplicationComponent"
-                 description="Application (EAR)">
+                 description="Application (EAR)"
+                 supportsMissingAvailabilityType="true">
             
-            &isConfigured-operation;
             <operation name="start" description="Start the application."/>
             <operation name="stop" description="Stop the application."/>
             
@@ -590,14 +581,13 @@
             <service name="Web module"
                      discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleDiscoveryComponent"
                      class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.WebModuleComponent"
-                     description="Web module">
+                     description="Web module"
+                     supportsMissingAvailabilityType="true">
                 
                 <plugin-configuration>
                 &logevent-configuration;
                 </plugin-configuration>
                                          
-                &isConfigured-operation;
-            
                 <metric property="specVersion" displayName="Spec Version" dataType="trait"
                         displayType="summary" defaultOn="true"
                         description="The version of the servlet specification used by the module as defined in the deployment descriptor."/>
@@ -619,13 +609,12 @@
                 <service name="Servlet"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletDiscoveryComponent"
                          class="be.fgov.kszbcss.rhq.websphere.component.j2ee.web.ServletComponent"
-                         description="Servlet">
+                         description="Servlet"
+                         supportsMissingAvailabilityType="true">
                     <plugin-configuration>
                     &logevent-configuration;
                     </plugin-configuration>                         
                     
-                    &isConfigured-operation;
-                
                     <metric property="stats.ServiceTime" displayName="Avg. Servlet Resp. Time"
                             category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                             description="Average response time of a servlet"/>
@@ -646,10 +635,9 @@
             <service name="EJB module"
                      discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.EJBModuleDiscoveryComponent"
                      class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.EJBModuleComponent"
-                     description="EJB module">
+                     description="EJB module"
+                     supportsMissingAvailabilityType="true">
                 
-                &isConfigured-operation;
-            
                 <metric property="specVersion" displayName="Spec Version" dataType="trait"
                         displayType="summary" defaultOn="true"
                         description="The version of the EJB specification used by the module, as defined in the deployment descriptor."/>
@@ -657,13 +645,12 @@
                 <service name="Stateless Session Bean"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanDiscoveryComponent"
                          class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.StatelessSessionBeanComponent"
-                         description="Stateless Session Bean">
+                         description="Stateless Session Bean"
+                         supportsMissingAvailabilityType="true">
                     <plugin-configuration>
                     &logevent-configuration;
                     </plugin-configuration>                         
                     
-                    &isConfigured-operation;
-                
                     <metric property="stats.MethodResponseTime" displayName="Avg. Method Resp. Time"
                             category="performance" units="milliseconds" displayType="summary" defaultInterval="600000"
                             description="The average response time in milliseconds on the remote methods of the bean"/>
@@ -680,12 +667,12 @@
                 <service name="Message Driven Bean"
                          discovery="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanDiscoveryComponent"
                          class="be.fgov.kszbcss.rhq.websphere.component.j2ee.ejb.MessageDrivenBeanComponent"
-                         description="Message Driven Bean">
+                         description="Message Driven Bean"
+                         supportsMissingAvailabilityType="true">
                     <plugin-configuration>
                     &logevent-configuration;
                     </plugin-configuration>                         
                     
-                    &isConfigured-operation;
                     <operation name="pause" description="Deactivate the Message Endpoint for this MDB."/>
                     <operation name="resume" description="Activate the Message Endpoint for this MDB."/>
                     
@@ -736,9 +723,9 @@
         <service name="Messaging Engine"
                  discovery="be.fgov.kszbcss.rhq.websphere.component.sib.SIBMessagingEngineDiscoveryComponent"
                  class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBMessagingEngineComponent"
-                 description="SIBus Messaging Engine">
+                 description="SIBus Messaging Engine"
+                 supportsMissingAvailabilityType="true">
             
-            &isConfigured-operation;
             <operation name="enable" description="Enable this messaging engine in the HAManager."/>
             <operation name="disable" description="Disable this messaging engine in the HAManager."/>
         
@@ -809,9 +796,8 @@
             <service name="Queue"
                      discovery="be.fgov.kszbcss.rhq.websphere.component.sib.SIBQueuePointDiscoveryComponent"
                      class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBQueuePointComponent"
-                     description="SIBus Queue">
-                
-                &isConfigured-operation;
+                     description="SIBus Queue"
+                     supportsMissingAvailabilityType="true">
                 
                 <metric property="stats.TotalMessagesProducedCount" displayName="Total Msg. Produced"
                         category="utilization" displayType="summary" defaultInterval="600000" measurementType="trendsup"
@@ -833,9 +819,8 @@
             <service name="Gateway Link"
                      discovery="be.fgov.kszbcss.rhq.websphere.component.sib.SIBGatewayLinkDiscoveryComponent"
                      class="be.fgov.kszbcss.rhq.websphere.component.sib.SIBGatewayLinkComponent"
-                     description="SIBus Gateway Link">
-                
-                &isConfigured-operation;
+                     description="SIBus Gateway Link"
+                     supportsMissingAvailabilityType="true">
                 
                 <metric property="depth" displayName="Depth"
                         category="utilization" displayType="summary" defaultInterval="600000"

@@ -33,8 +33,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.measurement.MeasurementDataNumeric;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
@@ -48,7 +48,7 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementGroupHandler
  * Collects metrics from the DB2 snapshot views.
  */
 public class SnapshotMeasurementGroupHandler implements MeasurementGroupHandler {
-    private static final Log log = LogFactory.getLog(SnapshotMeasurementGroupHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(SnapshotMeasurementGroupHandler.class);
     
     private static final Map<String,String> expressions;
     

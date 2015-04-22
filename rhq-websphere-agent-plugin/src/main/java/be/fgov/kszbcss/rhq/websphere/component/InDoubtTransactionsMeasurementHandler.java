@@ -28,8 +28,8 @@ import java.util.Set;
 
 import javax.management.JMException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
@@ -42,7 +42,7 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.SimpleMeasurementHandle
  * by the server.
  */
 public abstract class InDoubtTransactionsMeasurementHandler extends SimpleMeasurementHandler {
-    private static final Log log = LogFactory.getLog(InDoubtTransactionsMeasurementHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(InDoubtTransactionsMeasurementHandler.class);
     
     private Set<String> transactionIds;
     

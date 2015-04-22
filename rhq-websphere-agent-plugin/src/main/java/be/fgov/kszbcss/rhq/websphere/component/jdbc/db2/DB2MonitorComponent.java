@@ -25,8 +25,8 @@ package be.fgov.kszbcss.rhq.websphere.component.jdbc.db2;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.measurement.AvailabilityType;
@@ -36,6 +36,7 @@ import org.rhq.core.pluginapi.configuration.ConfigurationFacet;
 import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
+import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryInfo;
@@ -45,8 +46,8 @@ import be.fgov.kszbcss.rhq.websphere.component.jdbc.DataSourceComponent;
 import be.fgov.kszbcss.rhq.websphere.proxy.AdminOperations;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
 
-public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceComponent> implements MeasurementFacet, ConfigurationFacet {
-    private static final Log log = LogFactory.getLog(DB2MonitorComponent.class);
+public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceComponent> implements MeasurementFacet, ConfigurationFacet, OperationFacet {
+    private static final Logger log = LoggerFactory.getLogger(DB2MonitorComponent.class);
     
     private DataSourceComponent dataSourceComponent;
     private AdminOperations adminOperations;
@@ -162,12 +163,12 @@ public class DB2MonitorComponent extends WebSphereServiceComponent<DataSourceCom
     }
 
     @Override
-    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+    public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("testConnection")) {
             getContext().testConnection();
             return null;
         } else {
-            return super.doInvokeOperation(name, parameters);
+           	return null;
         }
     }
 

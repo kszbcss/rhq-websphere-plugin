@@ -27,8 +27,8 @@ import java.util.List;
 
 import javax.management.JMException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
@@ -44,7 +44,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 public class DeployedApplicationsQuery implements ConfigQuery<String[]> {
     private static final long serialVersionUID = 3198911266754286723L;
     
-    private static final Log log = LogFactory.getLog(DeployedApplicationsQuery.class);
+    private static final Logger log = LoggerFactory.getLogger(DeployedApplicationsQuery.class);
     
     private final String node;
     private final String server;

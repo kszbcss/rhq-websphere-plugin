@@ -30,11 +30,11 @@ import javax.net.ssl.ManagerFactoryParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactorySpi;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DelegatingTrustManagerFactory extends TrustManagerFactorySpi {
-    private static final Log log = LogFactory.getLog(DelegatingTrustManagerFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(DelegatingTrustManagerFactory.class);
     
     @Override
     protected void engineInit(KeyStore truststore) throws KeyStoreException {

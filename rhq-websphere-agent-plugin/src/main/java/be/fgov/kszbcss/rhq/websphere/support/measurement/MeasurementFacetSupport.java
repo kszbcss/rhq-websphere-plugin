@@ -26,8 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
@@ -36,7 +36,7 @@ import be.fgov.kszbcss.rhq.websphere.component.WebSphereComponent;
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 public class MeasurementFacetSupport implements MeasurementFacet {
-    private static final Log log = LogFactory.getLog(MeasurementFacetSupport.class);
+    private static final Logger log = LoggerFactory.getLogger(MeasurementFacetSupport.class);
     
     private final WebSphereComponent<?> component;
     private final Map<String,MeasurementHandler> handlers = new HashMap<String,MeasurementHandler>();

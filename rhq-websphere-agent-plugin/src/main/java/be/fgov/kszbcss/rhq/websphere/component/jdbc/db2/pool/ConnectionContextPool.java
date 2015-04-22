@@ -26,8 +26,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.component.jdbc.db2.DB2MonitorComponent;
 
@@ -38,7 +38,7 @@ import be.fgov.kszbcss.rhq.websphere.component.jdbc.db2.DB2MonitorComponent;
  * concurrently but for monitoring purposes this is not necessary (and probably not even desirable).
  */
 public final class ConnectionContextPool {
-    private static final Log log = LogFactory.getLog(ConnectionContextPool.class);
+    private static final Logger log = LoggerFactory.getLogger(ConnectionContextPool.class);
     
     private static final Map<Map<String,Object>,ConnectionContextImpl> contexts = new HashMap<Map<String,Object>,ConnectionContextImpl>();
     

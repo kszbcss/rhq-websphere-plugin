@@ -26,8 +26,8 @@ import java.util.Set;
 
 import javax.management.JMException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
@@ -46,7 +46,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.sib.admin.SIBLinkReceiver;
 
 public class SIBGatewayLinkComponent extends WebSphereServiceComponent<SIBMessagingEngineComponent> implements MeasurementFacet {
-    private static final Log log = LogFactory.getLog(SIBGatewayLinkComponent.class);
+    private static final Logger log = LoggerFactory.getLogger(SIBGatewayLinkComponent.class);
     
     private SIBGatewayLink gatewayLink;
     private MeasurementFacetSupport measurementFacetSupport;

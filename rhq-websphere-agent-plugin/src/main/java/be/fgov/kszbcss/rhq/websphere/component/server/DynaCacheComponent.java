@@ -25,8 +25,8 @@ package be.fgov.kszbcss.rhq.websphere.component.server;
 import java.util.Arrays;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementDataNumeric;
@@ -41,7 +41,7 @@ import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
 import be.fgov.kszbcss.rhq.websphere.proxy.DynaCache;
 
 public class DynaCacheComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, OperationFacet {
-    private static final Log log = LogFactory.getLog(DynaCacheComponent.class);
+    private static final Logger log = LoggerFactory.getLogger(DynaCacheComponent.class);
     
     private DynaCache cache;
     private String instanceName;
@@ -97,7 +97,7 @@ public class DynaCacheComponent extends WebSphereServiceComponent<WebSphereServe
     }
 
     @Override
-    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+    public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("clearCache")) {
             cache.clearCache(instanceName);
         }

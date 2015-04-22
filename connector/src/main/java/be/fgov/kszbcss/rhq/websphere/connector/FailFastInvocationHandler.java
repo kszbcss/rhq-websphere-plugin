@@ -26,14 +26,14 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorNotAvailableException;
 
 public class FailFastInvocationHandler implements InvocationHandler {
-    private static final Log log = LogFactory.getLog(FailFastInvocationHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(FailFastInvocationHandler.class);
     
     private final AdminClient target;
     private long lastConnectorNotAvailableException = -1;

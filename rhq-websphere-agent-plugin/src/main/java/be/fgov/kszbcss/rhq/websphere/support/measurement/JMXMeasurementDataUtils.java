@@ -22,15 +22,15 @@
  */
 package be.fgov.kszbcss.rhq.websphere.support.measurement;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.measurement.MeasurementDataNumeric;
 import org.rhq.core.domain.measurement.MeasurementDataTrait;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
 public class JMXMeasurementDataUtils {
-    private static final Log log = LogFactory.getLog(JMXMeasurementDataUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(JMXMeasurementDataUtils.class);
     
     private JMXMeasurementDataUtils() {}
     

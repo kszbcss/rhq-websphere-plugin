@@ -24,8 +24,8 @@ package be.fgov.kszbcss.rhq.websphere.connector;
 
 import javax.security.auth.Subject;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -33,7 +33,7 @@ import com.ibm.websphere.security.WSSecurityException;
 import com.ibm.websphere.security.auth.WSSubject;
 
 public class SecureAdminClientProvider implements AdminClientProvider {
-    private static final Log log = LogFactory.getLog(SecureAdminClientProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(SecureAdminClientProvider.class);
     
     private final AdminClientProvider parent;
 

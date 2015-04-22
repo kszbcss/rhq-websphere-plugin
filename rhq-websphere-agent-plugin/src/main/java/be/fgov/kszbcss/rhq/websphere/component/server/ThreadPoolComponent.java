@@ -33,6 +33,7 @@ import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
+import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.ThreadPoolPMIMeasurementHandler;
@@ -46,7 +47,8 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport
 
 import com.ibm.websphere.pmi.PmiConstants;
 
-public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, ConfigurationFacet {
+public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements
+		MeasurementFacet, ConfigurationFacet, OperationFacet {
     private MeasurementFacetSupport measurementFacetSupport;
     private ConfigurationFacetSupport configurationFacetSupport;
     private ThreadMonitor threadMonitor;
@@ -67,15 +69,18 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
         configData = registerConfigQuery(new ThreadPoolQuery(getNodeName(), getServerName(), name));
     }
 
-    public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
+    @Override
+	public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
         measurementFacetSupport.getValues(report, requests);
     }
 
-    public Configuration loadResourceConfiguration() throws Exception {
+    @Override
+	public Configuration loadResourceConfiguration() throws Exception {
         return configurationFacetSupport.loadResourceConfiguration();
     }
 
-    public void updateResourceConfiguration(ConfigurationUpdateReport report) {
+    @Override
+	public void updateResourceConfiguration(ConfigurationUpdateReport report) {
         configurationFacetSupport.updateResourceConfiguration(report);
     }
 
@@ -84,19 +89,20 @@ public class ThreadPoolComponent extends WebSphereServiceComponent<WebSphereServ
         return configData.get() != null;
     }
 
-    protected AvailabilityType doGetAvailability() {
+    @Override
+	protected AvailabilityType doGetAvailability() {
         // TODO Auto-generated method stub
         return AvailabilityType.UP;
     }
 
     @Override
-    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+    public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("dump")) {
             threadMonitor.dumpThreads(getResourceContext().getResourceKey(), true,
                     Boolean.valueOf(parameters.getSimpleValue("shorten")));
             return null;
-        } else {
-            return super.doInvokeOperation(name, parameters);
+		} else {
+			return null;
         }
     }
 }

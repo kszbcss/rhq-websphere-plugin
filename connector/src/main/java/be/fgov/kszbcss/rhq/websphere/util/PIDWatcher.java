@@ -27,13 +27,13 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ibm.websphere.management.AdminClient;
 
 public class PIDWatcher {
-    private static final Log log = LogFactory.getLog(PIDWatcher.class);
+    private static final Logger log = LoggerFactory.getLogger(PIDWatcher.class);
     
     private final AdminClient adminClient;
     private final List<WeakReference<PIDChangeTracker>> trackers = new LinkedList<WeakReference<PIDChangeTracker>>();

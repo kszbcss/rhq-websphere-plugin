@@ -24,8 +24,8 @@ package be.fgov.kszbcss.rhq.websphere.process;
 
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
@@ -33,7 +33,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientProvider;
 
 final class ProcessIdentityValidator implements AdminClientProvider {
-    private static final Log log = LogFactory.getLog(ProcessIdentityValidator.class);
+    private static final Logger log = LoggerFactory.getLogger(ProcessIdentityValidator.class);
     
     private final AdminClientProvider parent;
     private AdminClient adminClient;

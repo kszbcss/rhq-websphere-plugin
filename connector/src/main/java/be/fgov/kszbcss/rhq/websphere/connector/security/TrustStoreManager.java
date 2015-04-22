@@ -41,14 +41,14 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.pluginapi.plugin.PluginContext;
 
 public class TrustStoreManager {
     private static TrustStoreManager instance;
 
-    private static final Log log = LogFactory.getLog(TrustStoreManager.class);
+    private static final Logger log = LoggerFactory.getLogger(TrustStoreManager.class);
     
     private final ReadWriteLock truststoreLock = new ReentrantReadWriteLock();
     private final File truststoreFile;

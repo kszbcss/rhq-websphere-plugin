@@ -27,15 +27,15 @@ import java.util.Set;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public abstract class MBeanObjectNamePatternLocator implements MBeanLocator {
-    private static final Log log = LogFactory.getLog(MBeanObjectNamePatternLocator.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(MBeanObjectNamePatternLocator.class.getName());
     
     private final boolean recursive;
 

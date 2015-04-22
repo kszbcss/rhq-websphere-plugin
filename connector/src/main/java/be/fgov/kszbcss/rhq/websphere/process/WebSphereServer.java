@@ -34,8 +34,8 @@ import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.connector.AdminClientStatsCollector;
 import be.fgov.kszbcss.rhq.websphere.connector.FailFastAdminClientProvider;
@@ -66,7 +66,7 @@ import com.ibm.websphere.pmi.stat.WSStats;
  * be created successfully even if the server is unavailable.
  */
 public abstract class WebSphereServer {
-    private static final Log log = LogFactory.getLog(WebSphereServer.class);
+    private static final Logger log = LoggerFactory.getLogger(WebSphereServer.class);
     
     private final ProcessLocator processLocator;
     private final ProcessIdentityValidator processIdentityValidator;
@@ -100,7 +100,8 @@ public abstract class WebSphereServer {
         notificationListenerManager = new NotificationListenerManager(adminClient, pidWatcher);
         mbeanClientFactory = new MBeanClientFactory(this);
         serverMBean = getMBeanClient(new MBeanLocator() {
-            public Set<ObjectName> queryNames(WebSphereServer server) throws JMException, ConnectorException {
+            @Override
+			public Set<ObjectName> queryNames(WebSphereServer server) throws JMException, ConnectorException {
                 return Collections.singleton(server.getAdminClient().getServerMBean());
             }
         });
@@ -294,7 +295,7 @@ public abstract class WebSphereServer {
             
             return newStats;
         } catch (Exception ex) {
-            log.error(ex); // TODO
+			log.error("Unexpected exception", ex); // TODO
             return Collections.emptySet();
         }
     }

@@ -26,30 +26,27 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.rhq.core.domain.configuration.Configuration;
-import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
-import org.rhq.core.pluginapi.operation.OperationFacet;
-import org.rhq.core.pluginapi.operation.OperationResult;
 import org.rhq.plugins.jmx.JMXComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.ConfigData;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
 import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
-public abstract class WebSphereComponent<T extends ResourceComponent<?>> implements JMXComponent<T>, OperationFacet {
-    private static final Log log = LogFactory.getLog(WebSphereComponent.class);
+public abstract class WebSphereComponent<T extends ResourceComponent<?>> implements JMXComponent<T> {
+    private static final Logger log = LoggerFactory.getLogger(WebSphereComponent.class);
     
     private ResourceContext<T> resourceContext;
     private final List<ConfigQuery<?>> registeredConfigQueries = new ArrayList<ConfigQuery<?>>();
 
-    public final void start(ResourceContext<T> context) throws InvalidPluginConfigurationException, Exception {
+    @Override
+	public final void start(ResourceContext<T> context) throws InvalidPluginConfigurationException, Exception {
         this.resourceContext = context;
         doStart();
     }
@@ -78,7 +75,8 @@ public abstract class WebSphereComponent<T extends ResourceComponent<?>> impleme
      */
     protected abstract void doStart() throws InvalidPluginConfigurationException;
     
-    public final void stop() {
+    @Override
+	public final void stop() {
         doStop();
         for (ConfigQuery<?> query : registeredConfigQueries) {
             getServer().unregisterConfigQuery(query);
@@ -112,37 +110,22 @@ public abstract class WebSphereComponent<T extends ResourceComponent<?>> impleme
      */
     protected abstract boolean isConfigured() throws Exception;
 
-    public final AvailabilityType getAvailability() {
+    @Override
+	public final AvailabilityType getAvailability() {
         try {
             if (!isConfigured()) {
-                log.debug("isConfigured=false => availability == DOWN");
-                return AvailabilityType.DOWN;
+				log.debug("isConfigured=false => availability == MISSING");
+				return AvailabilityType.MISSING;
             } else {
                 log.debug("isConfigured=true; continue with checking the runtime state");
             }
         } catch (Exception ex) {
-            log.debug("Caught exception thrown by isConfigured => availability == DOWN", ex);
-            return AvailabilityType.DOWN;
+			log.warn("Caught exception thrown by isConfigured => availability == UNKNOWN", ex);
+			return AvailabilityType.UNKNOWN;
         }
         return doGetAvailability();
     }
     
     protected abstract AvailabilityType doGetAvailability();
-    
-    public final OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
-        if (name.equals("checkConfiguration")) {
-            // TODO: This doesn't have the expected effect - in the GUI the following error message is shown: "There was an error looking up this operation's results."
-            //       Also, the result is not saved in the database.
-            OperationResult result = new OperationResult();
-            Configuration results = result.getComplexResults();
-            results.put(new PropertySimple("isConfigured", Boolean.valueOf(isConfigured())));
-            return result;
-        } else {
-            return doInvokeOperation(name, parameters);
-        }
-    }
-    
-    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
-        return null;
-    }
+
 }

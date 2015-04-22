@@ -36,8 +36,8 @@ import javax.management.JMException;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.cache.ConfigQueryCache;
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
@@ -46,7 +46,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.management.repository.ConfigEpoch;
 
 public class ConfigQueryServiceImpl implements ConfigQueryService, Runnable, ConfigQueryServiceImplMBean {
-    private static final Log log = LogFactory.getLog(ConfigQueryServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ConfigQueryServiceImpl.class);
     
     private final CellConfiguration config;
     private final ScheduledFuture<?> future;

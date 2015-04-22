@@ -22,8 +22,8 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.jdbc;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.pluginapi.configuration.ConfigurationFacet;
 import org.rhq.core.pluginapi.configuration.ConfigurationUpdateReport;
@@ -34,7 +34,7 @@ import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryType;
 import be.fgov.kszbcss.rhq.websphere.support.configuration.ConfigurationFacetSupport;
 
 public class DataSourceComponent extends ConnectionFactoryComponent implements ConfigurationFacet {
-    private static final Log log = LogFactory.getLog(DataSourceComponent.class);
+    private static final Logger log = LoggerFactory.getLogger(DataSourceComponent.class);
     
     private ConfigurationFacetSupport configurationFacetSupport;
     

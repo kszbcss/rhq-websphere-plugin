@@ -53,7 +53,8 @@ public final class ManagedServer extends ApplicationServer {
      */
     public ManagedServer(String cell, String node, String server, Configuration config) {
         super(cell, node, server, "ManagedProcess", new ConfigurationBasedProcessLocator(config));
-        clusterName = registerConfigQuery(clusterNameQuery = new ClusterNameQuery(node, server));
+		clusterNameQuery = new ClusterNameQuery(node, server);
+		clusterName = registerConfigQuery(clusterNameQuery);
     }
 
     @Override
@@ -74,7 +75,8 @@ public final class ManagedServer extends ApplicationServer {
         return ConfigQueryServiceFactory.getInstance().getConfigQueryService(this);
     }
 
-    public String getClusterName() throws InterruptedException, JMException, ConnectorException, ConfigQueryException {
+    @Override
+	public String getClusterName() throws InterruptedException, JMException, ConnectorException, ConfigQueryException {
         return clusterName.get();
     }
 }

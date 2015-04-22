@@ -24,8 +24,8 @@ package be.fgov.kszbcss.rhq.websphere.component.server.log.xm4was;
 
 import java.util.Timer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.pluginapi.event.EventContext;
 
 import be.fgov.kszbcss.rhq.websphere.component.server.log.EventPublisher;
@@ -34,7 +34,7 @@ import be.fgov.kszbcss.rhq.websphere.component.server.log.LoggingProvider;
 import be.fgov.kszbcss.rhq.websphere.process.ApplicationServer;
 
 public class XM4WASLoggingProvider implements LoggingProvider {
-    private static final Log log = LogFactory.getLog(XM4WASLoggingProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(XM4WASLoggingProvider.class);
     
     private Timer timer;
     private LogEventDispatcher dispatcher;

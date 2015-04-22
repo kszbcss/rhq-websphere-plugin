@@ -25,8 +25,8 @@ package be.fgov.kszbcss.rhq.websphere.component.xm4was;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.pluginapi.inventory.DiscoveredResourceDetails;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryComponent;
@@ -39,7 +39,7 @@ import com.ibm.websphere.pmi.stat.StatDescriptor;
 import com.ibm.websphere.pmi.stat.WSStats;
 
 public abstract class SingletonPMIModuleDiscoveryComponent implements ResourceDiscoveryComponent<WebSphereServerComponent> {
-    private static final Log log = LogFactory.getLog(SingletonPMIModuleDiscoveryComponent.class);
+    private static final Logger log = LoggerFactory.getLogger(SingletonPMIModuleDiscoveryComponent.class);
     
     public final Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<WebSphereServerComponent> context) throws InvalidPluginConfigurationException, Exception {
         Set<DiscoveredResourceDetails> result = new HashSet<DiscoveredResourceDetails>();

@@ -28,11 +28,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DB2BaseMetricData {
-    private static final Log log = LogFactory.getLog(DB2BaseMetricData.class);
+    private static final Logger log = LoggerFactory.getLogger(DB2BaseMetricData.class);
     
     /**
      * Contains the individual metric values for each DB2 agent.

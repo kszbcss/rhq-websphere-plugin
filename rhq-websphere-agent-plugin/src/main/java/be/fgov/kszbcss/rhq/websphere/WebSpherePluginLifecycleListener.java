@@ -27,8 +27,8 @@ import java.lang.reflect.Field;
 import java.security.Security;
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.pluginapi.plugin.PluginContext;
 import org.rhq.core.pluginapi.plugin.PluginLifecycleListener;
 
@@ -42,7 +42,7 @@ import com.ibm.ws.ssl.config.SSLConfig;
 import com.ibm.ws.ssl.config.SSLConfigManager;
 
 public class WebSpherePluginLifecycleListener implements PluginLifecycleListener {
-    private static final Log log = LogFactory.getLog(WebSpherePluginLifecycleListener.class);
+    private static final Logger log = LoggerFactory.getLogger(WebSpherePluginLifecycleListener.class);
     
     private static final String SSL_CONFIG_ALIAS = "RHQSSLConfig";
     

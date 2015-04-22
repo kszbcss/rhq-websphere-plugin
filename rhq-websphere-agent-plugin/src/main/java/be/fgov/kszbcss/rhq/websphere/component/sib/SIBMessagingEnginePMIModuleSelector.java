@@ -26,8 +26,8 @@ import java.util.Arrays;
 
 import javax.management.JMException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.pmi.stat.StatDescriptor;
@@ -39,7 +39,7 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIModuleSelector;
  * because the PMI module names for SIB were changed by PM60540.
  */
 public class SIBMessagingEnginePMIModuleSelector implements PMIModuleSelector {
-    private static final Log log = LogFactory.getLog(SIBMessagingEnginePMIModuleSelector.class);
+    private static final Logger log = LoggerFactory.getLogger(SIBMessagingEnginePMIModuleSelector.class);
     
     private final SIBMessagingEngineComponent sibMessagingEngine;
     private String[] relativePath;

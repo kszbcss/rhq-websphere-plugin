@@ -28,8 +28,8 @@ import java.util.Map;
 import java.util.TimerTask;
 import java.util.logging.Level;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.event.EventSeverity;
 import org.rhq.core.pluginapi.event.EventContext;
 
@@ -42,7 +42,7 @@ import com.ibm.websphere.logging.WsLevel;
 class LogEventDispatcher extends TimerTask {
     public static final String EVENT_TYPE = "LogEvent";
     
-    private static final Log log = LogFactory.getLog(LogEventDispatcher.class);
+    private static final Logger log = LoggerFactory.getLogger(LogEventDispatcher.class);
     
     private final WebSphereServer server;
     private final LoggingService service;

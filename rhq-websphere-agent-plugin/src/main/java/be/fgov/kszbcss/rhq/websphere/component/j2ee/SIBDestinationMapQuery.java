@@ -27,8 +27,8 @@ import java.util.Map;
 
 import javax.management.JMException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
@@ -42,7 +42,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 public class SIBDestinationMapQuery implements ConfigQuery<SIBDestinationMap> {
     private static final long serialVersionUID = 1542229435338345886L;
     
-    private static final Log log = LogFactory.getLog(SIBDestinationMapQuery.class);
+    private static final Logger log = LoggerFactory.getLogger(SIBDestinationMapQuery.class);
     
     private final String node;
     private final String server;

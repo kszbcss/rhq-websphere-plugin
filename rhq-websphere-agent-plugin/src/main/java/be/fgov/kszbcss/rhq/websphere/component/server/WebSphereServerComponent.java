@@ -27,7 +27,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,8 +37,8 @@ import javax.management.JMRuntimeException;
 import javax.management.ObjectName;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.mc4j.ems.connection.EmsConnection;
 import org.mc4j.ems.connection.settings.ConnectionSettings;
 import org.mc4j.ems.connection.support.ConnectionProvider;
@@ -55,6 +54,7 @@ import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
+import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.ConnectionFactoryJndiNamesQuery;
@@ -85,9 +85,9 @@ import be.fgov.kszbcss.rhq.websphere.process.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.process.UnmanagedServer;
 import be.fgov.kszbcss.rhq.websphere.proxy.EJBMonitor;
 import be.fgov.kszbcss.rhq.websphere.proxy.J2CMessageEndpoint;
-import be.fgov.kszbcss.rhq.websphere.proxy.WebSphereJVM;
 import be.fgov.kszbcss.rhq.websphere.proxy.Server;
 import be.fgov.kszbcss.rhq.websphere.proxy.TraceService;
+import be.fgov.kszbcss.rhq.websphere.proxy.WebSphereJVM;
 import be.fgov.kszbcss.rhq.websphere.proxy.XM4WASJVM;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.JMXAttributeGroupHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport;
@@ -95,8 +95,9 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementFacetSupport
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 
-public final class WebSphereServerComponent extends WebSphereComponent<ResourceComponent<?>> implements MeasurementFacet, ConfigurationFacet {
-    private static final Log log = LogFactory.getLog(WebSphereServerComponent.class);
+public final class WebSphereServerComponent extends WebSphereComponent<ResourceComponent<?>> implements
+		MeasurementFacet, ConfigurationFacet, OperationFacet {
+    private static final Logger log = LoggerFactory.getLogger(WebSphereServerComponent.class);
     
     private static final Map<String,Class<? extends LoggingProvider>> loggingProviderClasses;
     
@@ -132,7 +133,8 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
     private ConfigData<String[]> threadPoolNames;
     private ConfigData<String[]> sibMessagingEngineNames;
     
-    public void doStart() throws InvalidPluginConfigurationException {
+    @Override
+	public void doStart() throws InvalidPluginConfigurationException {
         ResourceContext<ResourceComponent<?>> context = getResourceContext();
         
         Configuration pluginConfiguration = context.getPluginConfiguration();
@@ -143,19 +145,7 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
         serverName = parts[2];
         stateDir = new File(new File(new File(new File(getResourceContext().getDataDirectory(), "state"), cellName), nodeName), serverName);
         
-        loggingProviderName = pluginConfiguration.getSimpleValue("loggingProvider", "none");
-        Class<? extends LoggingProvider> loggingProviderClass = loggingProviderClasses.get(loggingProviderName);
-        if (loggingProviderClass == null) {
-            throw new InvalidPluginConfigurationException("Unknown logging provider '" + loggingProviderName + "'");
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Creating logging provider: name=" + loggingProviderName + ", class=" + loggingProviderClass.getName());
-        }
-        try {
-            loggingProvider = loggingProviderClass.newInstance();
-        } catch (Exception ex) {
-            throw new Error("Failed to instantiate " + loggingProviderClass, ex);
-        }
+		initializeLoggingProvider(pluginConfiguration);
         
         PropertySimple unmanaged = pluginConfiguration.getSimple("unmanaged");
         if (unmanaged != null && unmanaged.getBooleanValue()) {
@@ -193,6 +183,23 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
         sibMessagingEngineNames = registerConfigQuery(new SIBMessagingEngineNamesQuery(nodeName, serverName));
     }
 
+	private void initializeLoggingProvider(Configuration pluginConfiguration) throws Error {
+		loggingProviderName = pluginConfiguration.getSimpleValue("loggingProvider", "none");
+		Class<? extends LoggingProvider> loggingProviderClass = loggingProviderClasses.get(loggingProviderName);
+		if (loggingProviderClass == null) {
+			throw new InvalidPluginConfigurationException("Unknown logging provider '" + loggingProviderName + "'");
+		}
+		if (log.isDebugEnabled()) {
+			log.debug("Creating logging provider: name=" + loggingProviderName + ", class="
+					+ loggingProviderClass.getName());
+		}
+		try {
+			loggingProvider = loggingProviderClass.newInstance();
+		} catch (Exception ex) {
+			throw new Error("Failed to instantiate " + loggingProviderClass, ex);
+		}
+	}
+
     @Override
     public String getNodeName() {
         return nodeName;
@@ -203,11 +210,13 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
         return serverName;
     }
 
-    public ApplicationServer getServer() {
+    @Override
+	public ApplicationServer getServer() {
         return server;
     }
 
-    public synchronized EmsConnection getEmsConnection() {
+    @Override
+	public synchronized EmsConnection getEmsConnection() {
         if (connection == null) {
             Configuration pluginConfig = getResourceContext().getPluginConfiguration();
             ConnectionSettings connectionSettings = new ConnectionSettings();
@@ -322,12 +331,13 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
         }
     }
 
-    public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
+    @Override
+	public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
         measurementFacetSupport.getValues(report, requests);
     }
 
     @Override
-    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+	public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("restart")) {
             Server server = getServer().getServerMBean().getProxy(Server.class);
             server.restart();
@@ -363,7 +373,8 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
         return null;
     }
 
-    public Configuration loadResourceConfiguration() throws Exception {
+    @Override
+	public Configuration loadResourceConfiguration() throws Exception {
         Configuration config = new Configuration();
         String clusterName = server.getClusterName();
         config.put(new PropertySimple("clusterName", clusterName));
@@ -371,7 +382,8 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
         return config;
     }
 
-    public void updateResourceConfiguration(ConfigurationUpdateReport report) {
+    @Override
+	public void updateResourceConfiguration(ConfigurationUpdateReport report) {
         throw new UnsupportedOperationException();
     }
 
@@ -419,16 +431,12 @@ public final class WebSphereServerComponent extends WebSphereComponent<ResourceC
                     log.debug("Writing " + stateFile.getAbsolutePath());
                 }
                 try {
-                    OutputStream out = new FileOutputStream(stateFile);
-                    try {
-                        OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
+					try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(stateFile), "UTF-8")) {
                         writer.write(loggingProviderName);
                         writer.write(':');
                         writer.write(state);
                         writer.flush();
-                    } finally {
-                        out.close();
-                    }
+                    } 
                 } catch (IOException ex) {
                     log.error("Failed to write " + stateFile, ex);
                 }

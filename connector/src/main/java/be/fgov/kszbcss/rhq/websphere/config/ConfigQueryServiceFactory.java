@@ -27,18 +27,18 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.pluginapi.plugin.PluginContext;
-
-import com.ibm.websphere.management.exception.ConnectorException;
 
 import be.fgov.kszbcss.rhq.websphere.process.ManagedServer;
 import be.fgov.kszbcss.rhq.websphere.process.UnmanagedServer;
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
+import com.ibm.websphere.management.exception.ConnectorException;
+
 public class ConfigQueryServiceFactory {
-    private static final Log log = LogFactory.getLog(ConfigQueryServiceFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(ConfigQueryServiceFactory.class);
     
     private static ConfigQueryServiceFactory instance;
     
@@ -88,8 +88,7 @@ public class ConfigQueryServiceFactory {
             dmc = new DeploymentManagerConnection(this, server.getNodeAgent().getDeploymentManager(), cell, new File(cacheDirectory, cell));
             dmcMap.put(cell, dmc);
         }
-        dmc.incrementRefCount();
-        return new ConfigQueryServiceHandle(dmc);
+		return dmc.createConfigQueryServiceHandle();
     }
     
     public ConfigQueryService getConfigQueryService(UnmanagedServer server) {

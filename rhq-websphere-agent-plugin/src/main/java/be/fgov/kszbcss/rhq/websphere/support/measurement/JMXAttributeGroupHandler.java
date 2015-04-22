@@ -28,8 +28,8 @@ import java.util.Map;
 import javax.management.Attribute;
 import javax.management.AttributeList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 
@@ -37,7 +37,7 @@ import be.fgov.kszbcss.rhq.websphere.mbean.MBeanClient;
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 public class JMXAttributeGroupHandler implements MeasurementGroupHandler {
-    private static final Log log = LogFactory.getLog(JMXAttributeGroupHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(JMXAttributeGroupHandler.class);
     
     private final MBeanClient mbean;
     

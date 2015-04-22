@@ -27,8 +27,8 @@ import java.util.List;
 
 import javax.management.JMException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
@@ -48,7 +48,7 @@ import com.ibm.websphere.management.exception.DocumentNotFoundException;
 public class ApplicationInfoQuery implements ConfigQuery<ApplicationInfo> {
     private static final long serialVersionUID = 2L;
 
-    private static final Log log = LogFactory.getLog(ApplicationInfoQuery.class);
+    private static final Logger log = LoggerFactory.getLogger(ApplicationInfoQuery.class);
     
     private final String applicationName;
 

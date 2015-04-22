@@ -25,8 +25,8 @@ package be.fgov.kszbcss.rhq.websphere.component.j2ee;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.measurement.MeasurementDataTrait;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
@@ -40,7 +40,7 @@ import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementHandler;
 
 public abstract class SpecVersionMeasurementHandler implements MeasurementHandler {
-    private static final Log log = LogFactory.getLog(SpecVersionMeasurementHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(SpecVersionMeasurementHandler.class);
     
     protected abstract Document getDeploymentDescriptor() throws InterruptedException, ConnectorException, ConfigQueryException;
     protected abstract Pattern[] getPublicIdPatterns();

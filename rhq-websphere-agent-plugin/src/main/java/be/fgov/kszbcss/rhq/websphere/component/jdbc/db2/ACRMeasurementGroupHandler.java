@@ -24,8 +24,8 @@ package be.fgov.kszbcss.rhq.websphere.component.jdbc.db2;
 
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.measurement.MeasurementDataTrait;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
@@ -36,7 +36,7 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.MeasurementGroupHandler
 import com.ibm.db2.jcc.DB2ClientRerouteServerList;
 
 public class ACRMeasurementGroupHandler implements MeasurementGroupHandler {
-    private static final Log log = LogFactory.getLog(ACRMeasurementGroupHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(ACRMeasurementGroupHandler.class);
     
     private final DB2MonitorComponent monitor;
 

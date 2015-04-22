@@ -35,8 +35,8 @@ import javax.management.AttributeList;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.proxy.AppManagement;
 import be.fgov.kszbcss.rhq.websphere.proxy.ConfigService;
@@ -54,7 +54,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 final class ConfigObjectInvocationHandler implements InvocationHandler, ConfigObject {
     private static final long serialVersionUID = 1L;
 
-    private static final Log log = LogFactory.getLog(ConfigObjectInvocationHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(ConfigObjectInvocationHandler.class);
     
     private final ConfigObjectTypeDesc type;
     private CellConfiguration config;

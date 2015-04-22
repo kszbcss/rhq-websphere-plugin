@@ -26,13 +26,13 @@ import java.util.Collection;
 
 import javax.management.JMException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ibm.websphere.management.exception.ConnectorException;
 
 public abstract class Path<T extends ConfigObject> {
-    private static final Log log = LogFactory.getLog(Path.class);
+    private static final Logger log = LoggerFactory.getLogger(Path.class);
     
     abstract Class<T> getType();
     abstract <S extends ConfigObject> Collection<S> resolveRelative(String relativePath, Class<S> type) throws JMException, ConnectorException, InterruptedException;

@@ -26,15 +26,15 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.management.exception.ConnectorNotAvailableException;
 
 public class LazyAdminClientInvocationHandler implements InvocationHandler {
-    private static final Log log = LogFactory.getLog(LazyAdminClientInvocationHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(LazyAdminClientInvocationHandler.class);
     
     private final AdminClientProvider provider;
     private long lastAttempt = -1;

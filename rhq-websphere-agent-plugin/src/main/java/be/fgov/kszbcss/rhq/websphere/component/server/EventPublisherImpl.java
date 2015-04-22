@@ -22,8 +22,8 @@
  */
 package be.fgov.kszbcss.rhq.websphere.component.server;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.event.Event;
 import org.rhq.core.domain.event.EventSeverity;
 import org.rhq.core.pluginapi.event.EventContext;
@@ -35,7 +35,7 @@ import be.fgov.kszbcss.rhq.websphere.connector.agent.EventStats;
 public class EventPublisherImpl implements EventPublisher {
     public static final EventPublisherImpl INSTANCE = new EventPublisherImpl();
     
-    private static final Log log = LogFactory.getLog(EventPublisherImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(EventPublisherImpl.class);
     
     private final Object lastSanitizeWarningLock = new Object();
     private long lastSanitizeWarning;

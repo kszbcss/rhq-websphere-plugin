@@ -22,23 +22,21 @@
  */
 package be.fgov.kszbcss.rhq.websphere.config;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CacheRefreshStrategy {
-    private static final Log log = LogFactory.getLog(CacheRefreshStrategy.class);
+    private static final Logger log = LoggerFactory.getLogger(CacheRefreshStrategy.class);
     
     private static final ThreadLocal<Boolean> threadLocal = new ThreadLocal<Boolean>();
     
-    static void setImmediateRefresh(Boolean immediateRefresh) {
-        if ((immediateRefresh == null) == (threadLocal.get() == null)) {
-            throw new IllegalStateException();
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Setting immediateRefresh to " + immediateRefresh);
-        }
-        threadLocal.set(immediateRefresh);
-    }
+	static void setImmediateRefresh(Boolean immediateRefresh) {
+		if ((immediateRefresh == null) == (threadLocal.get() == null)) {
+			throw new IllegalStateException();
+		}
+		log.debug("Setting immediateRefresh to {}", immediateRefresh);
+		threadLocal.set(immediateRefresh);
+	}
     
     public static boolean isImmediateRefresh() {
         Boolean immediateRefresh = threadLocal.get();

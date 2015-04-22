@@ -26,14 +26,15 @@ import java.util.Set;
 
 import javax.management.JMException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
+import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 
 import be.fgov.kszbcss.rhq.websphere.component.WebSphereServiceComponent;
@@ -55,8 +56,8 @@ import com.ibm.websphere.hamanager.jmx.GroupMemberState;
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.wsspi.hamanager.GroupName;
 
-public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet {
-    private static final Log log = LogFactory.getLog(SIBMessagingEngineComponent.class);
+public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet, OperationFacet {
+    private static final Logger log = LoggerFactory.getLogger(SIBMessagingEngineComponent.class);
     
     private MeasurementFacetSupport measurementFacetSupport;
     private SIBMain sibMain;
@@ -130,7 +131,8 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         return getInfo() != null;
     }
 
-    protected AvailabilityType doGetAvailability() {
+    @Override
+	protected AvailabilityType doGetAvailability() {
         if (log.isDebugEnabled()) {
             log.debug("Starting to determine availability of messaging engine " + name);
         }
@@ -190,7 +192,8 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
         }
     }
 
-    public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
+    @Override
+	public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> requests) throws Exception {
         measurementFacetSupport.getValues(report, requests);
     }
 
@@ -233,7 +236,7 @@ public class SIBMessagingEngineComponent extends WebSphereServiceComponent<WebSp
     }
     
     @Override
-    protected OperationResult doInvokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
+    public OperationResult invokeOperation(String name, Configuration parameters) throws InterruptedException, Exception {
         if (name.equals("enable")) {
             ApplicationServer server = getServer();
             haManager.enableMember(getGroupName(), server.getNode(), server.getServer());

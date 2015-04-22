@@ -27,8 +27,8 @@ import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ibm.websphere.management.AdminClient;
 
@@ -36,7 +36,7 @@ public class NotificationListenerRegistration {
     private static final int UNREGISTERED = 0;
     private static final int REGISTERED = 1;
 
-    private static final Log log = LogFactory.getLog(NotificationListenerRegistration.class);
+    private static final Logger log = LoggerFactory.getLogger(NotificationListenerRegistration.class);
     
     private final NotificationListenerManager manager;
     private final ObjectName name;

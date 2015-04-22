@@ -41,8 +41,8 @@ import javax.management.JMException;
 import javax.management.ObjectName;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.types.CellCO;
 import be.fgov.kszbcss.rhq.websphere.config.types.NodeCO;
@@ -65,7 +65,7 @@ public class CellConfiguration implements Config, ConfigQueryExecutor {
         ConfigObject[] result;
     }
     
-    private static final Log log = LogFactory.getLog(CellConfiguration.class);
+    private static final Logger log = LoggerFactory.getLogger(CellConfiguration.class);
     
     private final String cell;
     private final ConfigService configService;

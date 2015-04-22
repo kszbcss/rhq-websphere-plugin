@@ -28,8 +28,8 @@ import java.util.List;
 
 import javax.management.JMException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.config.Config;
 import be.fgov.kszbcss.rhq.websphere.config.ConfigQuery;
@@ -50,7 +50,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 public class SIBMessagingEngineQuery implements ConfigQuery<SIBMessagingEngineInfo> {
     private static final long serialVersionUID = 4L;
     
-    private static final Log log = LogFactory.getLog(SIBMessagingEngineQuery.class);
+    private static final Logger log = LoggerFactory.getLogger(SIBMessagingEngineQuery.class);
     
     private final String node;
     private final String server;

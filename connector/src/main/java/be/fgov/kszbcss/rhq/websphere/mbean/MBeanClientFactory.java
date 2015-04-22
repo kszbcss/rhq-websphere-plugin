@@ -28,13 +28,13 @@ import java.util.Map;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.fgov.kszbcss.rhq.websphere.process.WebSphereServer;
 
 public class MBeanClientFactory {
-    private static final Log log = LogFactory.getLog(MBeanClientFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(MBeanClientFactory.class);
     
     private final WebSphereServer server;
     private final Map<MBeanLocator,MBeanClient> cache = new HashMap<MBeanLocator,MBeanClient>();

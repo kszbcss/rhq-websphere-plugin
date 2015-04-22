@@ -26,8 +26,8 @@ import java.util.Set;
 
 import javax.management.JMException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementReport;
 import org.rhq.core.domain.measurement.MeasurementScheduleRequest;
@@ -46,7 +46,7 @@ import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIMeasurementHandler;
 import be.fgov.kszbcss.rhq.websphere.support.measurement.PMIModuleSelector;
 
 public abstract class ConnectionFactoryComponent extends WebSphereServiceComponent<WebSphereServerComponent> implements MeasurementFacet {
-    private static final Log log = LogFactory.getLog(ConnectionFactoryComponent.class);
+    private static final Logger log = LoggerFactory.getLogger(ConnectionFactoryComponent.class);
     
     protected String jndiName;
     protected MBeanClient mbean;

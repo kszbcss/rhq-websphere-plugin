@@ -27,11 +27,11 @@ import java.security.cert.X509Certificate;
 
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DelegatingTrustManager implements X509TrustManager {
-    private static final Log log = LogFactory.getLog(DelegatingTrustManager.class);
+    private static final Logger log = LoggerFactory.getLogger(DelegatingTrustManager.class);
     
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
         throw new UnsupportedOperationException();
