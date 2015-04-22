@@ -37,7 +37,7 @@
             <plugin>
                 <groupId>org.codehaus.gmaven</groupId>
                 <artifactId>gmaven-plugin</artifactId>
-                <version>1.2</version>
+                <version>1.5</version>
                 <executions>
                     <execution>
                         <id>init-properties</id>
@@ -87,7 +87,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.5</version>
+                <version>1.9.1</version>
                 <executions>
                     <execution>
                         <id>attach-pdfs</id>

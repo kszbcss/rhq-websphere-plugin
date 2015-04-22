@@ -42,7 +42,6 @@
         <dependency>
             <groupId>org.rhq</groupId>
             <artifactId>rhq-core-domain</artifactId>
-            <version>${rhq.version}</version>
             <scope>provided</scope>
         </dependency> 
         <dependency>
@@ -54,7 +53,6 @@
         <dependency> 
             <groupId>jboss.jboss-embeddable-ejb3</groupId> 
             <artifactId>hibernate-all</artifactId> 
-            <version>1.0.0.Alpha9</version> 
             <scope>provided</scope> 
         </dependency> 
         <dependency>
