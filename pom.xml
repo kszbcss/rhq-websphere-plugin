@@ -29,8 +29,8 @@
     <packaging>pom</packaging>
     <name>RHQ WebSphere Plug-in</name>
     <scm>
-        <connection>scm:svn:http://rhq-websphere-plugin.googlecode.com/svn/trunk</connection>
-        <developerConnection>scm:svn:https://rhq-websphere-plugin.googlecode.com/svn/trunk</developerConnection>
+        <connection>scm:git:https://github.com/kszbcss/rhq-websphere-plugin.git</connection>
+        <developerConnection>scm:git:https://github.com/kszbcss/rhq-websphere-plugin.git</developerConnection>
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
