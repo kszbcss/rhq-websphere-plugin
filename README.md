@@ -2,7 +2,7 @@ _RHQ WebSphere Plug-in_ adds support for WebSphere Application Server to the [RH
 
 Documentation is available on the [github wiki](https://github.com/kszbcss/rhq-websphere-plugin/wiki).
 
-The latest version can be downloaded from bintray: [ ![Download](https://api.bintray.com/packages/kszbcss/generic/rhq-websphere-plugin/images/download.svg) ](https://bintray.com/kszbcss/generic/rhq-websphere-plugin/_latestVersion)
+The latest version can be downloaded [here](https://github.com/kszbcss/rhq-websphere-plugin/releases/latest).
 
 <!-- &lt;wiki:gadget url="http://www.ohloh.net/p/605499/widgets/project\_factoids\_stats.xml" height="250" width="400" border="1"/&gt; -- ohloh gadget doesn't work in markdown, and points to old SVN on google code-->
 
